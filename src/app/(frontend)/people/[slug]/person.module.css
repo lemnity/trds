@@ -1,0 +1,132 @@
+.crumbs {
+  padding-top: 1.5rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.crumbs li + li::before {
+  content: '/';
+  margin-right: 0.35rem;
+}
+
+.crumbs a {
+  text-decoration: none;
+}
+
+.crumbs a:hover {
+  color: var(--color-brand);
+  text-decoration: underline;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding-block: 1.75rem 2.25rem;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: clamp(5rem, 14vw, 7.5rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
+  font-size: var(--step-3);
+  font-weight: 600;
+}
+
+.title {
+  font-weight: 600;
+  font-size: var(--step-3);
+  line-height: var(--leading-tight);
+}
+
+.subtitle {
+  margin-top: 0.35rem;
+  color: var(--color-muted);
+}
+
+.layout {
+  display: grid;
+  gap: 2rem;
+  padding-top: 2rem;
+  align-items: start;
+}
+
+.sectionTitle {
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: var(--step-2);
+}
+
+.works {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.work {
+  position: relative;
+  padding: 1.1rem 1.25rem;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.work:focus-within {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.workTitle {
+  font-weight: 600;
+  font-size: var(--step-1);
+  text-decoration: none;
+}
+
+.workTitle:focus-visible {
+  outline: none;
+}
+
+.workTitle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.workTitle:hover {
+  color: var(--color-brand);
+}
+
+.workRole {
+  margin-top: 0.2rem;
+}
+
+.workNext {
+  margin-top: 0.35rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.bio {
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-muted);
+}
+
+@media (min-width: 60rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1.6fr) minmax(18rem, 1fr);
+  }
+}

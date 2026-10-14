@@ -184,7 +184,7 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
       <div className={styles.sectionHead}>
         <div>
           <p className={styles.eyebrow}>
-            <span>02</span> Афиша
+            <span>01</span> Афиша
           </p>
           <h2 className={styles.title}>Ближайшие даты</h2>
         </div>
@@ -254,7 +254,7 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
       <div className={`${styles.sectionHead} ${styles.second}`}>
         <div>
           <p className={styles.eyebrow}>
-            <span>03</span> {seating ? 'Зал' : 'Билеты'}
+            <span>02</span> {seating ? 'Зал' : 'Билеты'}
           </p>
           <h2 className={styles.title}>{seating ? 'Выбор мест' : 'Выбор билетов'}</h2>
         </div>

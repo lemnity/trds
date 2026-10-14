@@ -16,9 +16,16 @@ export type TicketType = {
   placeholder?: boolean
 }
 
+export type CreditEntry = {
+  /** Персонаж (для актёров), например «Габи». */
+  character?: string
+  /** Имена; несколько — состав в очередь (играют попеременно). */
+  people: string[]
+}
+
 export type Credit = {
   role: string
-  names: string
+  entries: CreditEntry[]
 }
 
 export type Show = {
@@ -30,6 +37,8 @@ export type Show = {
   lead: string
   description: string[]
   credits: Credit[]
+  /** Фото спектакля (не афиши) для баннера, коллажа и галереи. */
+  gallery: string[]
   posterUrl: string
   status: 'published' | 'draft'
 }

@@ -1,0 +1,63 @@
+.gallery {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  border-radius: var(--radius-card);
+  scrollbar-width: none;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.slide {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  scroll-snap-align: start;
+  background: var(--color-night);
+}
+
+.slide img {
+  object-fit: cover;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.controls button {
+  display: grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: 1.5px solid var(--color-control-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  font-size: var(--step-1);
+  cursor: pointer;
+}
+
+.controls button:hover:not([aria-disabled='true']) {
+  border-color: var(--color-brand);
+  color: var(--color-brand);
+}
+
+.controls button[aria-disabled='true'] {
+  color: var(--color-control-border);
+  cursor: not-allowed;
+}
+
+.counter {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-muted);
+}

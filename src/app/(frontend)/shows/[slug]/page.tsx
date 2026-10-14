@@ -5,7 +5,10 @@ import { Suspense } from 'react'
 import { HideWhenStarted } from '@/components/board/HideWhenStarted'
 import { ShowCard } from '@/components/board/ShowCard'
 import { ShowBooking } from '@/components/show/ShowBooking'
-import { ShowHero } from '@/components/show/ShowHero'
+import { Gallery } from '@/components/show/Gallery'
+import { ShowAbout, ShowPeople } from '@/components/show/ShowAbout'
+import { ShowHeader } from '@/components/show/ShowHeader'
+import { ShowTabs, type ShowTab } from '@/components/show/ShowTabs'
 import { getShowPage, getShowsData, listPublishedShows, listUpcoming } from '@/modules/shows'
 
 import styles from './show.module.css'
@@ -43,35 +46,25 @@ export default async function ShowPage({ params }: { params: Promise<Params> }) 
   // Старый сайт театра: на нём продажи через Ticketscloud, пока не подключён банк.
   const fallbackUrl = `https://teatrturdus.ru/${show.slug}`
 
+  // Вкладки «Видео» и «Отзывы» из референса появятся, когда театр даст материалы.
+  const tabs: ShowTab[] = [
+    { id: 'about', label: 'О спектакле', content: <ShowAbout show={show} /> },
+  ]
+  if (show.credits.length > 0)
+    tabs.push({ id: 'people', label: 'Актёры и создатели', content: <ShowPeople show={show} /> })
+  if (show.gallery.length > 0)
+    tabs.push({
+      id: 'photos',
+      label: 'Фото',
+      content: <Gallery photos={show.gallery} title={show.title} />,
+    })
+
   return (
     <>
-      <ShowHero show={show} next={performances[0]} />
+      <ShowHeader show={show} next={performances[0]} />
 
-      <section id="about" className={`container ${styles.section}`} aria-labelledby="about-title">
-        <p className={styles.eyebrow}>
-          <span>01</span> О спектакле
-        </p>
-        <h2 id="about-title" className={styles.title}>
-          {show.title}
-        </h2>
-        <div className={styles.about}>
-          <div className={styles.prose}>
-            {show.description.map((p, i) => (
-              // Список статичен и не переупорядочивается.
-              <p key={i}>{p}</p>
-            ))}
-          </div>
-          {show.credits.length > 0 && (
-            <dl className={styles.credits}>
-              {show.credits.map((c) => (
-                <div key={c.role}>
-                  <dt>{c.role}</dt>
-                  <dd>{c.names}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
-        </div>
+      <section id="about" className="container" aria-label="О спектакле">
+        <ShowTabs tabs={tabs} />
       </section>
 
       <section id="tickets" className={`container ${styles.section}`} aria-label="Даты и билеты">

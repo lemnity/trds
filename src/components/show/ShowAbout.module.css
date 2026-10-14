@@ -1,0 +1,176 @@
+.about {
+  display: grid;
+  gap: 2rem;
+  align-items: start;
+}
+
+.title {
+  font-weight: 600;
+  font-size: var(--step-2);
+}
+
+.prose {
+  display: grid;
+  gap: 1rem;
+  max-width: var(--reading-max);
+  margin-top: 1rem;
+}
+
+.collage {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+.collage[data-count='1'] {
+  grid-template-columns: 1fr;
+}
+
+.photo {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: var(--radius-control);
+  background: var(--color-night);
+}
+
+.photo + .photo {
+  aspect-ratio: auto;
+}
+
+.photo img {
+  object-fit: cover;
+}
+
+.facts {
+  display: grid;
+  padding: 0.5rem 1.5rem;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.facts div {
+  display: grid;
+  grid-template-columns: 9rem 1fr;
+  gap: 1rem;
+  padding-block: 1rem;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.facts div:last-child {
+  border-bottom: 0;
+}
+
+.facts dt {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.facts dd {
+  margin: 0;
+  font-size: var(--step--1);
+  font-weight: 500;
+}
+
+.person {
+  text-decoration-color: var(--color-control-border);
+  text-underline-offset: 0.2em;
+}
+
+.person:hover {
+  color: var(--color-brand);
+  text-decoration-color: currentColor;
+}
+
+.people {
+  display: grid;
+  gap: 2rem;
+}
+
+.roleTitle {
+  margin-bottom: 0.75rem;
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.cards {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+}
+
+.card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+.card:hover {
+  box-shadow: 0 10px 28px rgb(21 23 28 / 0.12);
+}
+
+.card:focus-within {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
+  font-weight: 600;
+}
+
+.cardName {
+  display: block;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cardName:focus-visible {
+  outline: none;
+}
+
+/* Вся карточка — ссылка на страницу человека. */
+.cardName::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.character {
+  display: block;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+@media (min-width: 60rem) {
+  .about {
+    grid-template-columns: minmax(0, 1.4fr) minmax(20rem, 1fr);
+    gap: 3rem;
+  }
+
+  .collage {
+    height: 20rem;
+  }
+
+  .photo {
+    aspect-ratio: auto;
+  }
+}
