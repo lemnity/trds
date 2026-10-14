@@ -1,4 +1,4 @@
-import type { EventType, VenueKind } from './types'
+import type { Availability, EventType, VenueKind } from './types'
 
 // Формат площадки — главное отличие театра: спектакли идут вне классической сцены.
 export const VENUE_KIND_LABELS: Record<VenueKind, string> = {
@@ -26,4 +26,20 @@ export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   performance: 'Перформанс',
   concert: 'Концерт, кабаре',
   promenade: 'Спектакль-променад',
+}
+
+const plural = (n: number, one: string, few: string, many: string) =>
+  n % 10 === 1 && n % 100 !== 11
+    ? one
+    : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)
+      ? few
+      : many
+
+/** Подпись индикатора остатка: «Свободно N из M», «Осталось N билетов», «Билетов нет». */
+export const availabilityText = (a: Availability | null): string => {
+  if (!a) return 'Продажа на сайте не открыта'
+  if (a.level === 'none') return 'Билетов нет'
+  if (a.level === 'few')
+    return `${plural(a.available, 'Остался', 'Осталось', 'Осталось')} ${a.available} ${plural(a.available, 'билет', 'билета', 'билетов')}`
+  return `Свободно ${a.available} из ${a.capacity}`
 }

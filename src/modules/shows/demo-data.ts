@@ -31,8 +31,9 @@ const vertinskyNovemberSeating = {
 // Схема зала есть, цены театр не передал — места видны, продажа закрыта.
 const dkSeatingClosed = { planId: 'dom-kultury', pricesKopecks: {}, unavailableSeatIds: [] }
 
-const threePoetsTickets = [
-  { id: 'standard', title: 'Входной билет', priceKopecks: 100_000, capacity: 20 },
+// ДЕМО-продажи до учёта мест (T-042): показывают все состояния индикатора остатка.
+const threePoetsTickets = (sold: number) => [
+  { id: 'standard', title: 'Входной билет', priceKopecks: 100_000, capacity: 20, sold },
 ]
 
 export const demoShowsData: ShowsData = {
@@ -606,28 +607,28 @@ export const demoShowsData: ShowsData = {
       showSlug: 'three-poets',
       venueId: 'central-hotel',
       startsAt: at('2026-10-06', '19:00'),
-      ticketTypes: threePoetsTickets,
+      ticketTypes: threePoetsTickets(0),
     },
     {
       id: 'three-poets-1020',
       showSlug: 'three-poets',
       venueId: 'central-hotel',
       startsAt: at('2026-10-20', '19:00'),
-      ticketTypes: threePoetsTickets,
+      ticketTypes: threePoetsTickets(17),
     },
     {
       id: 'three-poets-1103',
       showSlug: 'three-poets',
       venueId: 'central-hotel',
       startsAt: at('2026-11-03', '19:00'),
-      ticketTypes: threePoetsTickets,
+      ticketTypes: threePoetsTickets(20),
     },
     {
       id: 'three-poets-1110',
       showSlug: 'three-poets',
       venueId: 'central-hotel',
       startsAt: at('2026-11-10', '19:00'),
-      ticketTypes: threePoetsTickets,
+      ticketTypes: threePoetsTickets(0),
     },
   ],
 }

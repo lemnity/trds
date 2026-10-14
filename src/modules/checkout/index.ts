@@ -1,6 +1,7 @@
 export {
   MAX_TICKETS_PER_ORDER,
   quoteOrder,
+  remainingOf,
   type Quote,
   type QuoteError,
   type QuoteLine,

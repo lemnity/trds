@@ -5,7 +5,12 @@ import { useSearchParams } from 'next/navigation'
 import { useId, useState, useSyncExternalStore } from 'react'
 
 import { formatRub } from '@/lib/money'
-import { MAX_TICKETS_PER_ORDER, quoteOrder, selectionToSearch } from '@/modules/checkout'
+import {
+  MAX_TICKETS_PER_ORDER,
+  quoteOrder,
+  remainingOf,
+  selectionToSearch,
+} from '@/modules/checkout'
 import { quoteSeats } from '@/modules/seating'
 import {
   availabilityLevel,
@@ -60,7 +65,8 @@ const dayAvailability = (items: SalePerformance[]): Availability | null => {
 }
 
 const initialQuantities = (types: TicketType[]) =>
-  Object.fromEntries(types.map((t, i) => [t.id, i === 0 ? 1 : 0]))
+  // Первая категория с остатком — 1 билет; распроданные — 0.
+  Object.fromEntries(types.map((t) => [t.id, t === types.find((x) => remainingOf(x) > 0) ? 1 : 0]))
 
 export function ShowBooking({ performances, fallbackUrl }: Props) {
   const ids = useId()
@@ -151,7 +157,7 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
 
   const change = (type: TicketType, delta: number) => {
     const current = quantities[type.id] ?? 0
-    const max = Math.min(type.capacity, MAX_TICKETS_PER_ORDER)
+    const max = Math.min(remainingOf(type), MAX_TICKETS_PER_ORDER)
     const next = current + delta
     // aria-disabled вместо disabled: кнопка не теряет фокус (WCAG 2.4.3).
     if (next < 0 || next > max || (delta > 0 && ticketCount >= MAX_TICKETS_PER_ORDER)) return
@@ -319,6 +325,13 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
           </div>
           {seatPricesSet ? orderBar : closedNotice}
         </div>
+      ) : selected.availability?.level === 'none' ? (
+        <div className={styles.card}>
+          <p className={styles.cardTitle}>Билетов нет</p>
+          <p className={styles.note}>
+            На этот показ все билеты проданы. Выберите другую дату выше.
+          </p>
+        </div>
       ) : selected.salesOpen ? (
         <div className={styles.stack}>
           <fieldset className={styles.card}>
@@ -326,7 +339,7 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
             <ul className={styles.types}>
               {selected.ticketTypes.map((type) => {
                 const qty = quantities[type.id] ?? 0
-                const max = Math.min(type.capacity, MAX_TICKETS_PER_ORDER)
+                const max = Math.min(remainingOf(type), MAX_TICKETS_PER_ORDER)
                 const labelId = `${ids}-${type.id}`
                 return (
                   <li key={type.id} className={styles.type}>

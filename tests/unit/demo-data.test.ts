@@ -56,6 +56,16 @@ describe('placeholder prices', () => {
   })
 })
 
+describe('demo availability states', () => {
+  it('shows few, sold out and free states on «Три поэта» (demo sales until T-042)', () => {
+    const sold = (id: string) =>
+      performances.find((p) => p.id === id)?.ticketTypes.reduce((n, t) => n + (t.sold ?? 0), 0)
+    expect(sold('three-poets-1020')).toBe(17)
+    expect(sold('three-poets-1103')).toBe(20)
+    expect(sold('three-poets-1110')).toBe(0)
+  })
+})
+
 describe('labels', () => {
   it('formats duration and age for display', () => {
     expect(formatDuration(150)).toBe('2 ч 30 мин')

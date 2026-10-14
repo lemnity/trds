@@ -14,6 +14,8 @@ export type TicketType = {
   capacity: number
   /** Цена-заглушка до утверждения театром: в интерфейсе помечается как предварительная. */
   placeholder?: boolean
+  /** Продано/в брони. До учёта мест (T-042) — демо-значение для показа индикаторов. */
+  sold?: number
 }
 
 export type CreditEntry = {

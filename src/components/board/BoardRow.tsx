@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { formatRub } from '@/lib/money'
 import { formatAge, formatPerformanceDate, type PerformanceView } from '@/modules/shows'
 
+import { Availability } from '../ui/Availability'
 import { VenueTag } from '../ui/VenueTag'
 import styles from './Board.module.css'
 
@@ -45,7 +46,7 @@ export function BoardRow({ item, highlight = false, showTitle = true }: Props) {
         <span>{item.venue.title}</span>
       </div>
       <div className={styles.action}>
-        {item.salesOpen && item.minPriceKopecks !== null ? (
+        {item.salesOpen && item.minPriceKopecks !== null && item.availability?.level !== 'none' ? (
           <>
             <span className={styles.price}>
               от {formatRub(item.minPriceKopecks)}
@@ -60,9 +61,10 @@ export function BoardRow({ item, highlight = false, showTitle = true }: Props) {
               <span aria-hidden="true">→</span>
             </Link>
           </>
-        ) : (
-          <span className={styles.closed}>Продажа на сайте не открыта</span>
-        )}
+        ) : null}
+        <div className={styles.availability}>
+          <Availability availability={item.availability} />
+        </div>
       </div>
     </article>
   )

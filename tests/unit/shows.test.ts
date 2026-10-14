@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   availabilityLevel,
+  availabilityText,
   filterPerformances,
   findPerformance,
   formatPerformanceDate,
@@ -62,7 +63,7 @@ const data: ShowsData = {
       startsAt: '2026-10-20T19:00:00+05:00',
       ticketTypes: [
         { id: 'std', title: 'Входной', priceKopecks: 150_000, capacity: 20 },
-        { id: 'vip', title: 'Столик', priceKopecks: 100_000, capacity: 8 },
+        { id: 'vip', title: 'Столик', priceKopecks: 100_000, capacity: 8, sold: 3 },
       ],
     },
     {
@@ -132,9 +133,9 @@ describe('listUpcoming', () => {
 })
 
 describe('availability', () => {
-  it('sums category quotas for performances sold by categories', () => {
+  it('sums category quotas minus sold tickets', () => {
     const [first] = listUpcoming(data, now)
-    expect(first?.availability).toEqual({ available: 28, capacity: 28, level: 'many' })
+    expect(first?.availability).toEqual({ available: 25, capacity: 28, level: 'many' })
   })
 
   it('counts free seats on the seating plan minus unavailable seats', () => {
@@ -145,6 +146,18 @@ describe('availability', () => {
   it('is unknown while sales on the site are closed', () => {
     const closed = listUpcoming(data, now).find((p) => p.id === 'a-2')
     expect(closed?.availability).toBeNull()
+  })
+})
+
+describe('availabilityText', () => {
+  it('shows free of total, few left, sold out and closed sales', () => {
+    expect(availabilityText({ available: 18, capacity: 20, level: 'many' })).toBe(
+      'Свободно 18 из 20',
+    )
+    expect(availabilityText({ available: 3, capacity: 20, level: 'few' })).toBe('Осталось 3 билета')
+    expect(availabilityText({ available: 1, capacity: 20, level: 'few' })).toBe('Остался 1 билет')
+    expect(availabilityText({ available: 0, capacity: 20, level: 'none' })).toBe('Билетов нет')
+    expect(availabilityText(null)).toBe('Продажа на сайте не открыта')
   })
 })
 

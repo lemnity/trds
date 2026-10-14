@@ -65,6 +65,22 @@ describe('quoteOrder', () => {
   })
 })
 
+describe('quoteOrder with sold tickets', () => {
+  const partlySold = [
+    { id: 'std', title: 'Входной', priceKopecks: 100_000, capacity: 20, sold: 17 },
+  ]
+
+  it('allows buying up to the remaining tickets', () => {
+    expect(quoteOrder(partlySold, { std: 3 }).ok).toBe(true)
+  })
+
+  it('rejects more than remain and anything when sold out', () => {
+    expect(quoteOrder(partlySold, { std: 4 })).toEqual({ ok: false, error: 'TOO_MANY_TICKETS' })
+    const soldOut = [{ ...partlySold[0]!, sold: 20 }]
+    expect(quoteOrder(soldOut, { std: 1 })).toEqual({ ok: false, error: 'TOO_MANY_TICKETS' })
+  })
+})
+
 describe('parseContact', () => {
   it('normalizes the email', () => {
     expect(parseContact({ email: '  Guest@Mail.RU ', consent: true })).toEqual({

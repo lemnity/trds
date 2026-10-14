@@ -1,20 +1,6 @@
-import type { Availability as AvailabilityData } from '@/modules/shows'
+import { availabilityText, type Availability as AvailabilityData } from '@/modules/shows'
 
 import styles from './Availability.module.css'
-
-const ticketsWord = (n: number) =>
-  n % 10 === 1 && n % 100 !== 11
-    ? 'билет'
-    : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)
-      ? 'билета'
-      : 'билетов'
-
-export const availabilityText = (a: AvailabilityData | null): string => {
-  if (!a) return 'Продажа на сайте не открыта'
-  if (a.level === 'none') return 'Билетов нет'
-  if (a.level === 'few') return `Осталось ${a.available} ${ticketsWord(a.available)}`
-  return 'Билеты есть'
-}
 
 /**
  * Индикатор остатка: полоса (доля свободных мест) и подпись. Цвет дублируется текстом,

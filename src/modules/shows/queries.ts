@@ -43,7 +43,9 @@ const availabilityOf = (p: Performance, salesOpen: boolean): Availability | null
     return { available, capacity, level: availabilityLevel(available, capacity) }
   }
   const capacity = p.ticketTypes.reduce((sum, t) => sum + t.capacity, 0)
-  return { available: capacity, capacity, level: availabilityLevel(capacity, capacity) }
+  const sold = p.ticketTypes.reduce((sum, t) => sum + Math.min(t.sold ?? 0, t.capacity), 0)
+  const available = capacity - sold
+  return { available, capacity, level: availabilityLevel(available, capacity) }
 }
 
 const toView = (data: ShowsData, p: Performance): PerformanceView | null => {

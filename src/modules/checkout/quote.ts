@@ -2,6 +2,9 @@ import type { TicketType } from '@/modules/shows'
 
 export const MAX_TICKETS_PER_ORDER = 10
 
+/** Остаток категории: вместимость минус проданное/забронированное. */
+export const remainingOf = (type: TicketType) => Math.max(0, type.capacity - (type.sold ?? 0))
+
 export type QuoteLine = {
   ticketTypeId: string
   title: string
@@ -33,7 +36,7 @@ export const quoteOrder = (
     if (!type) return { ok: false, error: 'UNKNOWN_TICKET_TYPE' }
     if (!Number.isSafeInteger(quantity) || quantity < 0)
       return { ok: false, error: 'INVALID_QUANTITY' }
-    if (quantity > type.capacity) return { ok: false, error: 'TOO_MANY_TICKETS' }
+    if (quantity > remainingOf(type)) return { ok: false, error: 'TOO_MANY_TICKETS' }
     if (quantity === 0) continue
     lines.push({
       ticketTypeId,
