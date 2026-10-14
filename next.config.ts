@@ -15,9 +15,13 @@ const nextConfig: NextConfig = {
         output: 'export',
         basePath: process.env.PAGES_BASE_PATH ?? '',
         trailingSlash: true,
-        images: { unoptimized: true },
       }
     : { output: 'standalone' }),
+  images: {
+    unoptimized: pagesExport,
+    // Афиши пока лежат на CDN текущего сайта театра; после T-020 — медиа из CMS/S3.
+    remotePatterns: [{ protocol: 'https', hostname: 'static.tildacdn.com' }],
+  },
   poweredByHeader: false,
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {

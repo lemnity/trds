@@ -1,0 +1,41 @@
+import { describe, expect, it } from 'vitest'
+
+import { demoShowsData, formatAge, formatDuration } from '../../src/modules/shows'
+
+const { shows, venues, performances } = demoShowsData
+
+describe('demo shows data', () => {
+  it('references only existing shows and venues', () => {
+    const slugs = new Set(shows.map((s) => s.slug))
+    const venueIds = new Set(venues.map((v) => v.id))
+    for (const p of performances) {
+      expect(slugs.has(p.showSlug), p.id).toBe(true)
+      expect(venueIds.has(p.venueId), p.id).toBe(true)
+    }
+  })
+
+  it('uses unique ids and slugs', () => {
+    expect(new Set(performances.map((p) => p.id)).size).toBe(performances.length)
+    expect(new Set(shows.map((s) => s.slug)).size).toBe(shows.length)
+  })
+
+  it('stores prices as integer kopecks and dates with the theatre offset', () => {
+    for (const p of performances) {
+      expect(p.startsAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00\+05:00$/)
+      for (const t of p.ticketTypes) {
+        expect(Number.isSafeInteger(t.priceKopecks)).toBe(true)
+        expect(Number.isSafeInteger(t.capacity) && t.capacity > 0).toBe(true)
+      }
+    }
+  })
+})
+
+describe('labels', () => {
+  it('formats duration and age for display', () => {
+    expect(formatDuration(150)).toBe('2 ч 30 мин')
+    expect(formatDuration(60)).toBe('1 ч')
+    expect(formatDuration(45)).toBe('45 мин')
+    expect(formatDuration(null)).toBeNull()
+    expect(formatAge(16)).toBe('16+')
+  })
+})

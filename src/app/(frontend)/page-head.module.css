@@ -1,0 +1,31 @@
+.head {
+  padding-block: clamp(1.5rem, 5vw, 3.5rem) clamp(1.25rem, 3vw, 2rem);
+}
+
+.crumbs {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.crumbs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  color: var(--color-brand);
+  font-weight: 500;
+}
+
+.title {
+  font-weight: 600;
+  font-size: var(--step-4);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.lead {
+  margin-top: 0.75rem;
+  max-width: var(--reading-max);
+  font-size: var(--step-1);
+  color: var(--color-muted);
+}

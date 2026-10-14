@@ -1,0 +1,444 @@
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.second {
+  margin-top: var(--section-space);
+}
+
+.eyebrow {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-brand);
+}
+
+.eyebrow span {
+  color: var(--color-muted);
+  font-weight: 500;
+}
+
+.title {
+  margin-top: 0.35rem;
+  font-weight: 600;
+  font-size: var(--step-3);
+  line-height: var(--leading-tight);
+}
+
+.hint {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+/* Лента дат: горизонтальная прокрутка на любом экране, без переноса страницы. */
+.strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 11rem;
+  justify-content: start;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding: 0.25rem 0.25rem 0.75rem;
+  margin-inline: -0.25rem;
+  scroll-snap-type: x proximity;
+}
+
+.strip li {
+  scroll-snap-align: start;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  width: 100%;
+  height: 100%;
+  padding: 1rem 1.1rem;
+  border: 1.5px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+.day:hover {
+  border-color: var(--color-control-border);
+  box-shadow: var(--shadow-card);
+}
+
+.day[aria-pressed='true'] {
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
+}
+
+.dayNum {
+  font-weight: 700;
+  font-size: var(--step-3);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.dayMonth {
+  font-size: var(--step-0);
+  font-weight: 600;
+}
+
+.weekday {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.times {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.timePill {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: #eceae5;
+  color: var(--color-ink);
+  font-size: var(--step--1);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.day[aria-pressed='true'] .timePill {
+  background: rgb(255 255 255 / 0.18);
+  color: #ffffff;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
+  width: 100%;
+  border-top: 1px solid var(--color-hairline);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.status::before {
+  content: '';
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status[data-open='true'] {
+  color: var(--color-success);
+}
+
+.day[aria-pressed='true'] .status {
+  color: #ffffff;
+  border-top-color: rgb(255 255 255 / 0.25);
+}
+
+.session {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.sessionTitle {
+  font-weight: 600;
+  font-size: var(--step-1);
+}
+
+.sessionVenue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.sessionTimes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sessionTimes button {
+  min-height: var(--tap-min);
+  padding-inline: 1.25rem;
+  border: 1.5px solid var(--color-control-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sessionTimes button[aria-pressed='true'] {
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
+}
+
+.booking {
+  display: grid;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.card {
+  min-width: 0;
+  margin: 0;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  border: 0;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.cardTitle {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  font-size: var(--step-2);
+}
+
+.cardTitle + * {
+  clear: both;
+}
+
+.types {
+  display: grid;
+}
+
+.type {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 1rem;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.typeTitle {
+  font-weight: 600;
+}
+
+.price {
+  margin-top: 0.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepper {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1.5px solid var(--color-control-border);
+  border-radius: var(--radius-control);
+}
+
+.stepper button {
+  width: var(--tap-min);
+  min-height: var(--tap-min);
+  border: 0;
+  background: transparent;
+  font-size: var(--step-1);
+  cursor: pointer;
+}
+
+.stepper button:hover:not([aria-disabled='true']) {
+  background: var(--color-background);
+  color: var(--color-brand);
+}
+
+.stepper button[aria-disabled='true'] {
+  color: var(--color-control-border);
+  cursor: not-allowed;
+}
+
+.stepper output {
+  display: grid;
+  place-items: center;
+  min-width: 3rem;
+  border-inline: 1.5px solid var(--color-control-border);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  margin-top: 0.75rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.note a {
+  color: var(--color-brand);
+  font-weight: 600;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+}
+
+.orderFor {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.emptyOrder {
+  padding-block: 1.5rem;
+  text-align: center;
+  color: var(--color-muted);
+}
+
+.lines,
+.totals {
+  display: grid;
+}
+
+.lines div,
+.totals div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.5rem;
+  font-size: var(--step--1);
+}
+
+.lines {
+  padding-block: 0.75rem;
+}
+
+.lines dd,
+.totals dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.totals {
+  border-top: 1px solid var(--color-hairline);
+  padding-top: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.totals .total {
+  font-size: var(--step-2);
+  font-weight: 600;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+  font-size: var(--step--1);
+}
+
+.required {
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+.input {
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: 0.6rem 0.85rem;
+  border: 1.5px solid var(--color-control-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.consent {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin-top: 1rem;
+  font-size: var(--step--1);
+}
+
+.consent input {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  accent-color: var(--color-brand);
+}
+
+.error {
+  margin-top: 0.4rem;
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--color-danger);
+}
+
+.submit {
+  width: 100%;
+  margin-block: 1.25rem 0.75rem;
+}
+
+.notice {
+  padding: 1rem 1.1rem;
+  border-left: 5px solid var(--color-warning);
+  border-radius: var(--radius-control);
+  background: var(--color-warning-surface);
+  font-size: var(--step--1);
+}
+
+.notice a {
+  color: var(--color-brand);
+  font-weight: 600;
+}
+
+.noticeTitle {
+  font-weight: 600;
+  color: var(--color-warning);
+}
+
+.empty {
+  padding: 1.5rem;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-muted);
+}
+
+@media (min-width: 60rem) {
+  .booking {
+    grid-template-columns: minmax(0, 1.6fr) minmax(20rem, 1fr);
+  }
+
+  .summary {
+    position: sticky;
+    top: 6rem;
+  }
+}

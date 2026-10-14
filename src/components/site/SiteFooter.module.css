@@ -1,0 +1,44 @@
+.footer {
+  margin-top: var(--section-space);
+  padding-block: clamp(2.5rem, 5vw, 3.5rem);
+  background: var(--color-night);
+  color: #ffffff;
+}
+
+.grid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
+
+.slogan {
+  font-weight: 700;
+  font-size: var(--step-3);
+  line-height: var(--leading-tight);
+}
+
+.muted {
+  color: var(--color-night-muted);
+  margin-top: 0.75rem;
+}
+
+.contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-style: normal;
+}
+
+.contacts a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  font-size: var(--step-1);
+  font-weight: 500;
+}
+
+.label {
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--color-night-muted);
+}

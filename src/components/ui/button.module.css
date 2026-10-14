@@ -1,0 +1,49 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: var(--tap-min);
+  padding: 0.65rem 1.4rem;
+  border: 1.5px solid var(--color-brand);
+  border-radius: var(--radius-control);
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
+  font-weight: 600;
+  font-size: var(--step-0);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
+}
+
+.button:hover {
+  background: var(--color-brand-hover);
+  border-color: var(--color-brand-hover);
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button:disabled,
+.button[aria-disabled='true'] {
+  background: transparent;
+  color: var(--color-muted);
+  border-color: var(--color-hairline);
+  cursor: not-allowed;
+}
+
+/* Контурная кнопка на тёмном фоне (баннер, hero). */
+.ghost {
+  background: transparent;
+  border-color: rgb(255 255 255 / 0.55);
+  color: #ffffff;
+}
+
+.ghost:hover {
+  background: rgb(255 255 255 / 0.12);
+  border-color: #ffffff;
+}

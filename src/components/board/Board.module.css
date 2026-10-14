@@ -1,0 +1,173 @@
+.list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'date title'
+    'date venue'
+    'time action';
+  column-gap: 1.25rem;
+  row-gap: 0.6rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--motion-base) var(--ease-standard);
+}
+
+.row:hover {
+  box-shadow:
+    0 1px 2px rgb(21 23 28 / 0.05),
+    0 14px 34px rgb(21 23 28 / 0.1);
+}
+
+.highlight {
+  outline: 2px solid var(--color-brand);
+  outline-offset: -2px;
+}
+
+.date {
+  grid-area: date;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 3.5rem;
+}
+
+.day {
+  font-weight: 700;
+  font-size: var(--step-3);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.month {
+  margin-top: 0.25rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+.time {
+  grid-area: time;
+  align-self: center;
+  justify-self: center;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.title {
+  grid-area: title;
+  min-width: 0;
+}
+
+.title h3 {
+  font-weight: 600;
+  font-size: var(--step-1);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.title a {
+  text-decoration: none;
+}
+
+.title a::after {
+  /* Вся карточка кликабельна по названию, кнопка «Билеты» остаётся отдельной целью. */
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.row {
+  position: relative;
+}
+
+.title a:hover {
+  color: var(--color-brand);
+}
+
+.badge {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.genre {
+  margin-top: 0.2rem;
+  color: var(--color-muted);
+  font-size: var(--step--1);
+}
+
+.venue {
+  grid-area: venue;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--step--1);
+}
+
+.action {
+  grid-area: action;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.price {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--tap-min);
+  padding-inline: 1.1rem;
+  border-radius: var(--radius-control);
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color var(--motion-fast) var(--ease-standard);
+}
+
+.cta:hover {
+  background: var(--color-brand-hover);
+}
+
+.closed {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+  text-align: right;
+}
+
+@media (min-width: 60rem) {
+  .row {
+    grid-template-columns: 5rem 4.5rem minmax(0, 1fr) 15rem 14rem;
+    grid-template-areas: 'date time title venue action';
+    align-items: center;
+    column-gap: 1.5rem;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .venue {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

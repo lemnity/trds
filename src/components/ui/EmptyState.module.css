@@ -1,0 +1,17 @@
+.empty {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.title {
+  font-weight: 600;
+  font-size: var(--step-2);
+}
+
+.body {
+  margin-top: 0.5rem;
+  color: var(--color-muted);
+  max-width: var(--reading-max);
+}

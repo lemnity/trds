@@ -1,0 +1,31 @@
+.notice {
+  padding: 1rem 1.25rem;
+  border-left: 5px solid currentColor;
+  border-radius: var(--radius-control);
+}
+
+.title {
+  font-weight: 600;
+}
+
+.body {
+  margin-top: 0.35rem;
+  color: var(--color-ink);
+}
+
+.warning {
+  color: var(--color-warning);
+  background: var(--color-warning-surface);
+}
+
+.danger {
+  color: var(--color-danger);
+  background: var(--color-danger-surface);
+}
+
+.info {
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-left: 5px solid var(--color-brand);
+}

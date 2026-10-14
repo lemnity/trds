@@ -1,0 +1,123 @@
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: #ffffff;
+  background: var(--color-night);
+}
+
+.media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.media img {
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+/* Фирменная синяя подложка: читаемость текста поверх любой афиши. */
+.media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgb(15 20 38 / 0.94) 0%,
+      rgb(31 58 138 / 0.78) 45%,
+      rgb(31 58 138 / 0.35) 100%
+    ),
+    linear-gradient(0deg, rgb(15 20 38 / 0.6) 0%, transparent 50%);
+}
+
+.content {
+  padding-block: clamp(3rem, 8vw, 6rem);
+  animation: rise var(--motion-slow) var(--ease-standard) both;
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #d6dcf0;
+}
+
+.title {
+  max-width: 16ch;
+  margin-top: 0.75rem;
+  font-weight: 600;
+  font-size: var(--step-4);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.lead {
+  max-width: 46ch;
+  margin-top: 1rem;
+  font-size: var(--step-1);
+  color: #e3e7f2;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: clamp(2rem, 5vw, 3rem);
+}
+
+.chip {
+  min-width: 9rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgb(255 255 255 / 0.28);
+  border-radius: var(--radius-control);
+  background: rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(6px);
+}
+
+.chip dt {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c9d1e8;
+}
+
+.chip dd {
+  margin: 0.2rem 0 0;
+  font-weight: 600;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 40rem) {
+  .chips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .chip {
+    min-width: 0;
+    padding: 0.55rem 0.75rem;
+  }
+}

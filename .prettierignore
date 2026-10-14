@@ -4,3 +4,4 @@ pnpm-lock.yaml
 src/app/(payload)
 src/payload-types.ts
 *.md
+dist

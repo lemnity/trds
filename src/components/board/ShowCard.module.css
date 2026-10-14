@@ -1,0 +1,84 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  transition:
+    transform var(--motion-base) var(--ease-standard),
+    box-shadow var(--motion-base) var(--ease-standard);
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 1px 2px rgb(21 23 28 / 0.05),
+    0 18px 40px rgb(21 23 28 / 0.12);
+}
+
+.card:focus-within {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--color-night);
+}
+
+.media img {
+  object-fit: cover;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem 1.15rem 1.25rem;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.arrow {
+  color: var(--color-brand);
+  transition: transform var(--motion-fast) var(--ease-standard);
+}
+
+.card:hover .arrow {
+  transform: translateX(3px);
+}
+
+.title {
+  font-weight: 600;
+  font-size: var(--step-1);
+  line-height: 1.25;
+}
+
+.title a {
+  text-decoration: none;
+}
+
+.title a:focus-visible {
+  outline: none;
+}
+
+/* Вся карточка — одна ссылка. */
+.title a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.genre {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}

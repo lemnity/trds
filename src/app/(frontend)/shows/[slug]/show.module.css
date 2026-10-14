@@ -1,0 +1,80 @@
+.section {
+  margin-top: var(--section-space);
+}
+
+.eyebrow {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-brand);
+}
+
+.eyebrow span {
+  color: var(--color-muted);
+  font-weight: 500;
+}
+
+.title {
+  margin: 0.35rem 0 1.25rem;
+  font-weight: 600;
+  font-size: var(--step-3);
+  line-height: var(--leading-tight);
+}
+
+.about {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.prose {
+  display: grid;
+  gap: 1rem;
+  max-width: var(--reading-max);
+}
+
+.credits {
+  display: grid;
+  padding: 0.5rem 1.5rem;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.credits div {
+  display: grid;
+  gap: 0.2rem;
+  padding-block: 0.85rem;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.credits div:last-child {
+  border-bottom: 0;
+}
+
+.credits dt {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.credits dd {
+  margin: 0;
+}
+
+.cards {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+}
+
+@media (min-width: 60rem) {
+  .about {
+    grid-template-columns: minmax(0, 1.6fr) minmax(20rem, 1fr);
+  }
+}

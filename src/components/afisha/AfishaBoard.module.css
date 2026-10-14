@@ -1,0 +1,49 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+.filters button {
+  min-height: var(--tap-min);
+  padding: 0.4rem 1.1rem;
+  border: 1.5px solid var(--color-control-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color var(--motion-fast) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard);
+}
+
+.filters button[aria-pressed='true'] {
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
+}
+
+.filters button:hover:not([aria-pressed='true']) {
+  border-color: var(--color-brand);
+}
+
+.month + .month {
+  margin-top: clamp(2rem, 5vw, 3rem);
+}
+
+.monthTitle {
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: var(--step-2);
+}
+
+.reset {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-brand);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
