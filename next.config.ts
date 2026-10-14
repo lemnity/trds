@@ -9,11 +9,15 @@ const dirname = path.dirname(fileURLToPath(import.meta.url))
 // Production — standalone-сервер; Pages не умеет запускать Next.js/Payload.
 const pagesExport = process.env.PAGES_EXPORT === '1'
 
+const basePath = pagesExport ? (process.env.PAGES_BASE_PATH ?? '') : ''
+
 const nextConfig: NextConfig = {
+  // Префикс адресов для ссылок react-aria/HeroUI (RouterProvider.useHref) на GitHub Pages.
+  env: { NEXT_PUBLIC_BASE_PATH: basePath },
   ...(pagesExport
     ? {
         output: 'export',
-        basePath: process.env.PAGES_BASE_PATH ?? '',
+        basePath,
         trailingSlash: true,
       }
     : { output: 'standalone' }),

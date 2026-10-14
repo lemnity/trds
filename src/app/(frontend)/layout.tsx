@@ -5,6 +5,7 @@ import { SiteFooter } from '@/components/site/SiteFooter'
 import { SiteHeader } from '@/components/site/SiteHeader'
 
 import { onest } from './fonts'
+import { Providers } from './providers'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -22,9 +23,11 @@ export default function FrontendLayout({ children }: { children: ReactNode }) {
         <a className="skip-link" href="#main">
           К содержанию
         </a>
-        <SiteHeader />
-        <main id="main">{children}</main>
-        <SiteFooter />
+        <Providers>
+          <SiteHeader />
+          <main id="main">{children}</main>
+          <SiteFooter />
+        </Providers>
       </body>
     </html>
   )

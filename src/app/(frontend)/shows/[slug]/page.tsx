@@ -8,7 +8,6 @@ import { ShowCard } from '@/components/board/ShowCard'
 import { ShowBooking } from '@/components/show/ShowBooking'
 import { Gallery } from '@/components/show/Gallery'
 import { ShowAbout } from '@/components/show/ShowAbout'
-// Варианты первого экрана: А — ShowHeader, Б — ShowHeaderSplit, В (референс заказчика) — ShowHeaderCompact.
 import { ShowHeaderCompact } from '@/components/show/ShowHeaderCompact'
 import { getShowPage, getShowsData, listPublishedShows, listUpcoming } from '@/modules/shows'
 

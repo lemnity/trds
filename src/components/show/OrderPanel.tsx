@@ -5,8 +5,8 @@ import { useId, useRef, useState, type FormEvent } from 'react'
 import { formatRub } from '@/lib/money'
 import { parseContact, type ContactErrors } from '@/modules/checkout'
 
-import buttons from '../ui/button.module.css'
 import styles from './ShowBooking.module.css'
+import { Button } from '@heroui/react'
 
 export type OrderLine = {
   key: string
@@ -146,9 +146,9 @@ export function OrderPanel(props: Props) {
         </p>
       )}
 
-      <button type="submit" className={`${buttons.button} ${styles.submit}`}>
+      <Button type="submit" fullWidth size="lg" className={styles.submit}>
         Оформить заказ
-      </button>
+      </Button>
       <p className={styles.afterSubmit}>Электронные билеты придут на почту после оплаты</p>
 
       {/* Живой регион есть всегда — сообщения появляются внутри (WCAG 4.1.3). */}

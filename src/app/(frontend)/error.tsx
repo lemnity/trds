@@ -1,8 +1,7 @@
 'use client'
 
-import buttons from '@/components/ui/button.module.css'
-
 import head from './page-head.module.css'
+import { Button } from '@heroui/react'
 
 export default function ErrorPage({ reset }: { error: Error; reset: () => void }) {
   return (
@@ -14,9 +13,7 @@ export default function ErrorPage({ reset }: { error: Error; reset: () => void }
           +7 982 657-54-26.
         </p>
       </header>
-      <button type="button" className={buttons.button} onClick={reset}>
-        Попробовать снова
-      </button>
+      <Button onPress={reset}>Попробовать снова</Button>
     </div>
   )
 }

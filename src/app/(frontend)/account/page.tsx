@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 
-import buttons from '@/components/ui/button.module.css'
+import { ButtonLink } from '@/components/ui/ButtonLink'
 
 import head from '../page-head.module.css'
 import styles from './account.module.css'
@@ -31,9 +30,9 @@ export default function AccountPage() {
           театром: <a href="tel:+79826575426">+7 982 657-54-26</a>,{' '}
           <a href="mailto:rechevik@inbox.ru">rechevik@inbox.ru</a>.
         </p>
-        <Link href="/afisha" className={buttons.button}>
+        <ButtonLink href="/afisha">
           Перейти в афишу <span aria-hidden="true">→</span>
-        </Link>
+        </ButtonLink>
       </div>
     </div>
   )

@@ -1,15 +1,14 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
 import { useState, useSyncExternalStore, type KeyboardEvent } from 'react'
 
 import { formatRub } from '@/lib/money'
 import { formatAge, formatPerformanceDate, type PerformanceView } from '@/modules/shows'
 
-import buttons from '../ui/button.module.css'
 import { PremiereBadge } from '../ui/PremiereBadge'
 import styles from './HeroSlider.module.css'
+import { ButtonLink } from '../ui/ButtonLink'
 
 export type HeroSlide = { performance: PerformanceView; imageUrl: string }
 
@@ -97,13 +96,10 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
                   .join(' · ')}
               </p>
               <div className={styles.actions}>
-                <Link
-                  href={`/shows/${p.show.slug}?date=${p.id}#tickets`}
-                  className={buttons.button}
-                >
+                <ButtonLink href={`/shows/${p.show.slug}?date=${p.id}#tickets`} size="lg">
                   {p.salesOpen ? 'Купить билет' : 'Подробнее о показе'}{' '}
                   <span aria-hidden="true">→</span>
-                </Link>
+                </ButtonLink>
                 {p.salesOpen && p.minPriceKopecks !== null && (
                   <span className={styles.price}>от {formatRub(p.minPriceKopecks)}</span>
                 )}

@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
 
-import buttons from '@/components/ui/button.module.css'
+import { ButtonLink } from '@/components/ui/ButtonLink'
 import { aboutTheatre, partners } from '@/modules/content'
 
 import head from '../page-head.module.css'
@@ -27,9 +26,9 @@ export default function AboutPage() {
             // Список статичен и не переупорядочивается.
             <p key={i}>{p}</p>
           ))}
-          <Link href="/afisha" className={buttons.button}>
+          <ButtonLink href="/afisha">
             Смотреть афишу <span aria-hidden="true">→</span>
-          </Link>
+          </ButtonLink>
         </div>
         <div className={styles.photos}>
           {aboutTheatre.photos.map((src) => (

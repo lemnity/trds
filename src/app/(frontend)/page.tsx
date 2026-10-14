@@ -4,11 +4,12 @@ import Link from 'next/link'
 import { HideWhenStarted } from '@/components/board/HideWhenStarted'
 import { ShowCard } from '@/components/board/ShowCard'
 import { HeroSlider } from '@/components/home/HeroSlider'
-import buttons from '@/components/ui/button.module.css'
 import { aboutTheatre, news, partners } from '@/modules/content'
 import { getShowsData, heroSlides, listUpcoming, type PerformanceView } from '@/modules/shows'
 
 import styles from './home.module.css'
+import { buttonVariants } from '@heroui/styles'
+import { ButtonLink } from '@/components/ui/ButtonLink'
 
 const CARDS = 4
 const HERO_NEAREST = 4
@@ -72,9 +73,9 @@ export default function HomePage() {
             </h2>
             <p className={styles.aboutLead}>{aboutTheatre.lead}</p>
             <p>{aboutTheatre.paragraphs[0]}</p>
-            <Link href="/about" className={`${buttons.button} ${styles.aboutButton}`}>
+            <ButtonLink href="/about" className={styles.aboutButton}>
               Подробнее <span aria-hidden="true">→</span>
-            </Link>
+            </ButtonLink>
           </div>
           <div className={styles.aboutPhotos}>
             {aboutTheatre.photos.slice(0, 2).map((src) => (
@@ -127,7 +128,7 @@ export default function HomePage() {
             {/* Форма заявки — T-034; до неё заявка уходит на почту театра. */}
             <a
               href="mailto:rechevik@inbox.ru?subject=%D0%9A%D0%BE%D1%80%D0%BF%D0%BE%D1%80%D0%B0%D1%82%D0%B8%D0%B2"
-              className={`${buttons.button} ${buttons.ghost}`}
+              className={buttonVariants({ variant: 'outline', className: styles.onDark })}
             >
               Оставить заявку <span aria-hidden="true">→</span>
             </a>

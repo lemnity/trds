@@ -10,10 +10,10 @@ import {
   type Show,
 } from '@/modules/shows'
 
-import buttons from '../ui/button.module.css'
-import { CalendarIcon, minPrice, PinIcon } from './ShowHeader'
+import { CalendarIcon, minPrice, PinIcon } from './showHeaderParts'
 import { PremiereBadge } from '../ui/PremiereBadge'
 import styles from './ShowHeaderCompact.module.css'
+import { buttonVariants } from '@heroui/styles'
 
 type Props = { show: Show; performances: SalePerformance[] }
 
@@ -103,7 +103,7 @@ export function ShowHeaderCompact({ show, performances }: Props) {
             <p className={styles.note}>Ближайших показов пока нет, даты появятся позже.</p>
           )}
           {next && (
-            <a href="#tickets" className={`${buttons.button} ${styles.buy}`}>
+            <a href="#tickets" className={buttonVariants({ size: 'lg', className: styles.buy })}>
               Купить билет <span aria-hidden="true">→</span>
             </a>
           )}

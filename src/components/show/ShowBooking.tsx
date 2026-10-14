@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useId, useState, useSyncExternalStore } from 'react'
 
@@ -20,11 +19,12 @@ import {
   type TicketType,
 } from '@/modules/shows'
 
-import buttons from '../ui/button.module.css'
 import { Availability as AvailabilityIndicator } from '../ui/Availability'
 import { VenueTag } from '../ui/VenueTag'
 import { SeatMap } from './SeatMap'
 import styles from './ShowBooking.module.css'
+import { Button } from '@heroui/react'
+import { ButtonLink } from '../ui/ButtonLink'
 
 type Props = {
   performances: SalePerformance[]
@@ -194,13 +194,13 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
         )}
       </p>
       {order.ok ? (
-        <Link href={checkoutHref} className={`${buttons.button} ${styles.orderBarButton}`}>
+        <ButtonLink href={checkoutHref} size="lg">
           Оформить заказ <span aria-hidden="true">→</span>
-        </Link>
+        </ButtonLink>
       ) : (
-        <span className={`${buttons.button} ${styles.orderBarButton}`} aria-disabled="true">
+        <Button size="lg" isDisabled className={styles.orderBarButton}>
           Оформить заказ
-        </span>
+        </Button>
       )}
     </div>
   )

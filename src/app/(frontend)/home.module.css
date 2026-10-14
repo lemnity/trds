@@ -272,3 +272,14 @@
     gap: 4rem;
   }
 }
+
+/* Контурная кнопка HeroUI на тёмно-синем баннере. */
+.onDark {
+  border-color: rgb(255 255 255 / 0.6);
+  color: #ffffff;
+}
+
+.onDark:hover {
+  border-color: #ffffff;
+  background: rgb(255 255 255 / 0.12);
+}
