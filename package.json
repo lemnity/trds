@@ -23,19 +23,28 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@heroui/react": "3.2.6",
+    "@heroui/styles": "3.2.6",
+    "@internationalized/date": "3.12.4",
     "@payloadcms/db-postgres": "3.90.2",
     "@payloadcms/next": "3.90.2",
     "@payloadcms/richtext-lexical": "3.90.2",
     "@payloadcms/ui": "3.90.2",
+    "@react-aria/ssr": "3.10.1",
+    "@react-aria/utils": "3.34.1",
     "graphql": "16.8.1",
     "next": "16.3.8",
     "payload": "3.90.2",
     "react": "19.2.8",
+    "react-aria": "3.52.1",
+    "react-aria-components": "1.21.1",
     "react-dom": "19.2.8",
     "sharp": "0.35.5",
+    "tailwindcss": "4.3.3",
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
     "@types/node": "24.19.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",

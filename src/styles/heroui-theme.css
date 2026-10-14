@@ -1,0 +1,45 @@
+/*
+ * Тема HeroUI v3 из наших токенов (src/styles/tokens.css): один бренд для своих
+ * компонентов и компонентов HeroUI. Имена переменных — из документации HeroUI (Theming).
+ */
+:root,
+[data-theme='light'] {
+  --background: var(--color-background);
+  --foreground: var(--color-ink);
+  --surface: var(--color-surface);
+  --surface-foreground: var(--color-ink);
+  --overlay: var(--color-surface);
+  --overlay-foreground: var(--color-ink);
+  --muted: var(--color-muted);
+
+  --default: #eceae5;
+  --default-foreground: var(--color-ink);
+
+  --accent: var(--color-brand);
+  --accent-foreground: var(--color-brand-contrast);
+
+  --success: var(--color-success);
+  --success-foreground: #ffffff;
+  --warning: var(--color-warning);
+  --warning-foreground: #ffffff;
+  --danger: var(--color-danger);
+  --danger-foreground: #ffffff;
+
+  --field-background: var(--color-surface);
+  --field-foreground: var(--color-ink);
+  --field-placeholder: var(--color-muted);
+  --field-border: var(--color-control-border);
+  --field-border-width: 1.5px;
+
+  --border: var(--color-hairline);
+  --separator: var(--color-hairline);
+  --focus: var(--color-focus);
+  --link: var(--color-brand);
+
+  --radius: 0.625rem;
+  --field-radius: var(--radius-control);
+}
+
+@theme {
+  --font-sans: var(--font-onest), system-ui, sans-serif;
+}
