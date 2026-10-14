@@ -17,21 +17,6 @@
   --level: var(--color-danger);
 }
 
-.bar {
-  display: block;
-  height: 4px;
-  overflow: hidden;
-  border-radius: 2px;
-  background: var(--color-hairline);
-}
-
-.bar span {
-  display: block;
-  height: 100%;
-  border-radius: 2px;
-  background: var(--level);
-}
-
 .text {
   display: flex;
   align-items: center;
@@ -54,6 +39,11 @@
   --level: #ffffff;
 }
 
-.dark .bar {
-  background: rgb(255 255 255 / 0.25);
+.meter {
+  width: 100%;
+}
+
+/* На тёмном фоне дорожка Meter светлее. */
+.dark .meter {
+  --color-default: rgb(255 255 255 / 0.25);
 }

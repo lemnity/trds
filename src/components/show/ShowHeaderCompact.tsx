@@ -1,5 +1,4 @@
 import Image from 'next/image'
-import Link from 'next/link'
 
 import { formatRub } from '@/lib/money'
 import {
@@ -14,6 +13,9 @@ import { CalendarIcon, minPrice, PinIcon } from './showHeaderParts'
 import { PremiereBadge } from '../ui/PremiereBadge'
 import styles from './ShowHeaderCompact.module.css'
 import { buttonVariants } from '@heroui/styles'
+import { TicketIcon } from '../ui/TicketIcon'
+import { Chip } from '@heroui/react'
+import { PageCrumbs } from '../ui/PageCrumbs'
 
 type Props = { show: Show; performances: SalePerformance[] }
 
@@ -51,33 +53,28 @@ export function ShowHeaderCompact({ show, performances }: Props) {
         )}
       </div>
 
-      <nav aria-label="Хлебные крошки" className={styles.crumbs}>
-        <ol>
-          <li>
-            <Link href="/">Главная</Link>
-          </li>
-          <li>
-            <Link href="/afisha">Афиша</Link>
-          </li>
-          <li aria-current="page">{show.title}</li>
-        </ol>
-      </nav>
+      <PageCrumbs
+        className={styles.crumbs}
+        items={[
+          { label: 'Главная', href: '/' },
+          { label: 'Афиша', href: '/afisha' },
+          { label: show.title },
+        ]}
+      />
 
       <header className={styles.head}>
         <h1 className={styles.title}>{show.title}</h1>
 
         <div className={styles.row}>
           {(chips.length > 0 || show.premiere) && (
-            <ul className={styles.chips} aria-label="Жанр, возраст и длительность">
-              {show.premiere && (
-                <li className={styles.premiereChip}>
-                  <PremiereBadge />
-                </li>
-              )}
+            <div className={styles.chips} aria-label="Жанр, возраст и длительность" role="group">
+              {show.premiere && <PremiereBadge />}
               {chips.map((c) => (
-                <li key={c}>{c}</li>
+                <Chip key={c} size="lg" variant="soft">
+                  {c}
+                </Chip>
               ))}
-            </ul>
+            </div>
           )}
           {price && (
             <p className={styles.price}>
@@ -89,22 +86,24 @@ export function ShowHeaderCompact({ show, performances }: Props) {
 
         <div className={styles.row}>
           {next && date ? (
-            <ul className={styles.chips} aria-label="Ближайший показ">
-              <li className={styles.iconChip}>
+            <div className={styles.chips} aria-label="Ближайший показ" role="group">
+              <Chip size="lg" variant="secondary">
                 <CalendarIcon />
-                {date.longDate}, {date.time}
-              </li>
-              <li className={styles.iconChip}>
+                <Chip.Label>
+                  {date.longDate}, {date.time}
+                </Chip.Label>
+              </Chip>
+              <Chip size="lg" variant="secondary">
                 <PinIcon />
-                {next.venue.title}
-              </li>
-            </ul>
+                <Chip.Label>{next.venue.title}</Chip.Label>
+              </Chip>
+            </div>
           ) : (
             <p className={styles.note}>Ближайших показов пока нет, даты появятся позже.</p>
           )}
           {next && (
             <a href="#tickets" className={buttonVariants({ size: 'lg', className: styles.buy })}>
-              Купить билет <span aria-hidden="true">→</span>
+              <TicketIcon /> Купить билет
             </a>
           )}
         </div>

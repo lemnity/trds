@@ -9,6 +9,7 @@ import { formatAge, formatPerformanceDate, type PerformanceView } from '@/module
 import { PremiereBadge } from '../ui/PremiereBadge'
 import styles from './HeroSlider.module.css'
 import { ButtonLink } from '../ui/ButtonLink'
+import { TicketIcon } from '../ui/TicketIcon'
 
 export type HeroSlide = { performance: PerformanceView; imageUrl: string }
 
@@ -97,8 +98,15 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
               </p>
               <div className={styles.actions}>
                 <ButtonLink href={`/shows/${p.show.slug}?date=${p.id}#tickets`} size="lg">
-                  {p.salesOpen ? 'Купить билет' : 'Подробнее о показе'}{' '}
-                  <span aria-hidden="true">→</span>
+                  {p.salesOpen ? (
+                    <>
+                      <TicketIcon /> Купить билет
+                    </>
+                  ) : (
+                    <>
+                      Подробнее о показе <span aria-hidden="true">→</span>
+                    </>
+                  )}
                 </ButtonLink>
                 {p.salesOpen && p.minPriceKopecks !== null && (
                   <span className={styles.price}>от {formatRub(p.minPriceKopecks)}</span>

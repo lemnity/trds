@@ -6,6 +6,8 @@ import { getPersonPage, listPeople } from '@/modules/people'
 import { formatPerformanceDate, getShowsData } from '@/modules/shows'
 
 import styles from './person.module.css'
+import { PageCrumbs } from '@/components/ui/PageCrumbs'
+import { PersonAvatar } from '@/components/ui/PersonAvatar'
 
 type Params = { slug: string }
 
@@ -24,13 +26,6 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     description: `${page.person.name} в спектаклях модного театра TURDUS.`,
   }
 }
-
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
 
 export default async function PersonPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params
@@ -52,23 +47,18 @@ export default async function PersonPage({ params }: { params: Promise<Params> }
 
   return (
     <div className="container">
-      <nav aria-label="Хлебные крошки" className={styles.crumbs}>
-        <ol>
-          <li>
-            <Link href="/">Главная</Link>
-          </li>
-          <li>
-            <Link href="/afisha">Афиша</Link>
-          </li>
-          <li aria-current="page">{person.name}</li>
-        </ol>
-      </nav>
+      <PageCrumbs
+        className={styles.crumbs}
+        items={[
+          { label: 'Главная', href: '/' },
+          { label: 'Афиша', href: '/afisha' },
+          { label: person.name },
+        ]}
+      />
 
       <header className={styles.head}>
         {/* Фото людей театр ещё не передал — показываем инициалы. */}
-        <span className={styles.avatar} aria-hidden="true">
-          {initials(person.name)}
-        </span>
+        <PersonAvatar name={person.name} className={styles.avatar} />
         <div>
           <h1 className={styles.title}>{person.name}</h1>
           <p className={styles.subtitle}>Модный театр TURDUS</p>

@@ -1,27 +1,5 @@
 .crumbs {
   padding-top: 1.5rem;
-  font-size: var(--step--1);
-  color: var(--color-muted);
-}
-
-.crumbs ol {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.crumbs li + li::before {
-  content: '/';
-  margin-right: 0.35rem;
-}
-
-.crumbs a {
-  text-decoration: none;
-}
-
-.crumbs a:hover {
-  color: var(--color-brand);
-  text-decoration: underline;
 }
 
 .head {
@@ -34,15 +12,21 @@
 
 .avatar {
   flex: none;
-  display: grid;
-  place-items: center;
+  height: auto;
   width: clamp(5rem, 14vw, 7.5rem);
   aspect-ratio: 1;
   border-radius: 50%;
-  background: var(--color-brand);
-  color: var(--color-brand-contrast);
   font-size: var(--step-3);
   font-weight: 600;
+}
+
+/* Avatar.Fallback HeroUI — на весь круг. */
+.avatar > * {
+  width: 100%;
+  height: 100%;
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
+  font-size: inherit;
 }
 
 .title {

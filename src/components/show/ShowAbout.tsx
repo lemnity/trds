@@ -6,6 +6,7 @@ import { personSlug } from '@/modules/people'
 import { formatAge, formatDuration, type Credit, type Show } from '@/modules/shows'
 
 import styles from './ShowAbout.module.css'
+import { PersonAvatar } from '../ui/PersonAvatar'
 
 const isDirector = (c: Credit) => /режисс/i.test(c.role)
 /** Актёрский состав: роли с персонажами или явные «В ролях» / «Действующие лица». */
@@ -93,13 +94,6 @@ const icons = {
   ),
 }
 
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-
 /** Актёры: одна карточка на человека; персонажи (и «в очередь») — подписью. */
 const castCards = (show: Show) => {
   const byName = new Map<string, { roles: string[]; alternating: boolean }>()
@@ -173,9 +167,7 @@ export function ShowAbout({ show }: { show: Show }) {
               {actors.map((a) => (
                 <li key={a.name} className={styles.actor}>
                   {/* Фото людей театр ещё не передал — инициалы. */}
-                  <span className={styles.avatar} aria-hidden="true">
-                    {initials(a.name)}
-                  </span>
+                  <PersonAvatar name={a.name} className={styles.avatar} />
                   <span className={styles.actorText}>
                     {a.role && <span className={styles.actorRole}>{a.role}</span>}
                     <Link href={`/people/${personSlug(a.name)}`} className={styles.actorName}>

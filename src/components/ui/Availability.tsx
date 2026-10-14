@@ -1,10 +1,14 @@
+import { Meter } from '@heroui/react'
+
 import { availabilityText, type Availability as AvailabilityData } from '@/modules/shows'
 
 import styles from './Availability.module.css'
 
+const COLOR = { many: 'success', few: 'warning', none: 'danger' } as const
+
 /**
- * Индикатор остатка: полоса (доля свободных мест) и подпись. Цвет дублируется текстом,
- * поэтому не единственный признак (WCAG 1.4.1).
+ * Индикатор остатка: Meter HeroUI (доля свободных мест) и подпись. Цвет дублируется
+ * текстом — не единственный признак (WCAG 1.4.1).
  */
 export function Availability({
   availability,
@@ -15,18 +19,27 @@ export function Availability({
   tone?: 'light' | 'dark'
 }) {
   const level = availability?.level ?? 'closed'
-  const share = availability ? availability.available / Math.max(availability.capacity, 1) : 0
+  const text = availabilityText(availability)
   return (
     <span
       className={`${styles.indicator} ${tone === 'dark' ? styles.dark : ''}`}
       data-level={level}
     >
       {availability && (
-        <span className={styles.bar} aria-hidden="true">
-          <span style={{ width: `${Math.round(share * 100)}%` }} />
-        </span>
+        <Meter
+          aria-label={text}
+          size="sm"
+          color={COLOR[availability.level]}
+          value={availability.available}
+          maxValue={Math.max(availability.capacity, 1)}
+          className={styles.meter}
+        >
+          <Meter.Track>
+            <Meter.Fill />
+          </Meter.Track>
+        </Meter>
       )}
-      <span className={styles.text}>{availabilityText(availability)}</span>
+      <span className={styles.text}>{text}</span>
     </span>
   )
 }

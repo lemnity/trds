@@ -5,6 +5,7 @@ import logo from '@/assets/logo.webp'
 
 import styles from './SiteHeader.module.css'
 import { ButtonLink } from '../ui/ButtonLink'
+import { TicketIcon } from '../ui/TicketIcon'
 
 // «Корпоративы» и поиск появятся вместе со своими страницами (T-034): ссылки в никуда не показываем.
 // «Личный кабинет» ведёт на /account: до T-050/T-051 там честное объяснение, без формы входа.
@@ -48,6 +49,7 @@ export function SiteHeader() {
             <span className={styles.accountLabel}>Личный кабинет</span>
           </Link>
           <ButtonLink href="/afisha" size="sm" className={styles.cta}>
+            <TicketIcon />
             Купить билет
           </ButtonLink>
         </div>

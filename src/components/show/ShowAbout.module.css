@@ -68,15 +68,21 @@
 
 .avatar {
   flex: none;
-  display: grid;
-  place-items: center;
+  height: auto;
   width: clamp(3.75rem, 12vw, 5.25rem);
   aspect-ratio: 1;
   border-radius: 50%;
-  background: linear-gradient(145deg, #e3e1dc, #cfccc4);
-  color: var(--color-ink);
   font-weight: 600;
   font-size: var(--step-1);
+}
+
+/* Avatar.Fallback HeroUI — на весь круг. */
+.avatar > * {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #e3e1dc, #cfccc4);
+  color: var(--color-ink);
+  font-size: inherit;
 }
 
 .actorText {
