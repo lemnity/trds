@@ -126,6 +126,11 @@ describe('listUpcoming', () => {
     expect(second).toMatchObject({ minPriceKopecks: null, salesOpen: false })
   })
 
+  it('exposes a preview image: show photo if any, else the poster', () => {
+    const [first] = listUpcoming(data, now)
+    expect(first?.show.imageUrl).toBe('https://example.test/a.jpg')
+  })
+
   it('joins the venue and the show summary', () => {
     const [first] = listUpcoming(data, now)
     expect(first?.venue.kind).toBe('bar')

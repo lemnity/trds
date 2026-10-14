@@ -65,6 +65,7 @@ const toView = (data: ShowsData, p: Performance): PerformanceView | null => {
       eventType: show.eventType,
       premiere: show.premiere === true,
       pushkinCard: show.pushkinCard === true,
+      imageUrl: show.gallery[0] ?? show.posterUrl,
     },
     venue,
     minPriceKopecks: prices.length > 0 ? Math.min(...prices) : null,

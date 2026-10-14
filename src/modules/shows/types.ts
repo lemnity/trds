@@ -91,6 +91,8 @@ export type PerformanceView = {
   show: Pick<Show, 'slug' | 'title' | 'ageLimit' | 'genre' | 'eventType'> & {
     premiere: boolean
     pushkinCard: boolean
+    /** Превью: фото спектакля, если есть, иначе афиша. */
+    imageUrl: string
   }
   venue: Venue
   minPriceKopecks: number | null

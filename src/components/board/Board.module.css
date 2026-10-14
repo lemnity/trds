@@ -7,7 +7,7 @@
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-areas:
-    'date title'
+    'thumb title'
     'date venue'
     'time action';
   column-gap: 1.25rem;
@@ -166,8 +166,8 @@
 
 @media (min-width: 60rem) {
   .row {
-    grid-template-columns: 5rem 4.5rem minmax(0, 1fr) 15rem 14rem;
-    grid-template-areas: 'date time title venue action';
+    grid-template-columns: 7rem 5rem 4.5rem minmax(0, 1fr) 15rem 14rem;
+    grid-template-areas: 'thumb date time title venue action';
     align-items: center;
     column-gap: 1.5rem;
     padding: 1.25rem 1.5rem;
@@ -194,4 +194,26 @@
 
 .badges .badge {
   margin-bottom: 0;
+}
+
+/* Превью спектакля: фото или афиша. Декоративное — ссылка у названия покрывает всю строку. */
+.thumb {
+  grid-area: thumb;
+  position: relative;
+  width: 4.5rem;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius-control);
+  background: var(--color-night);
+}
+
+.thumb img {
+  object-fit: cover;
+}
+
+@media (min-width: 60rem) {
+  .thumb {
+    width: 7rem;
+    aspect-ratio: 4 / 3;
+  }
 }

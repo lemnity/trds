@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 
 import { formatRub } from '@/lib/money'
@@ -21,6 +22,9 @@ export function BoardRow({ item, highlight = false, showTitle = true }: Props) {
 
   return (
     <article className={`${styles.row} ${highlight ? styles.highlight : ''}`}>
+      <div className={styles.thumb} aria-hidden="true">
+        <Image src={item.show.imageUrl} alt="" fill sizes="7rem" />
+      </div>
       <div className={styles.date}>
         <span className={styles.day}>{date.day}</span>
         <span className={styles.month}>
