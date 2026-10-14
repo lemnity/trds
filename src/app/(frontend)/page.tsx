@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { HideWhenStarted } from '@/components/board/HideWhenStarted'
 import { ShowCard } from '@/components/board/ShowCard'
 import buttons from '@/components/ui/button.module.css'
+import { aboutTheatre, news, partners } from '@/modules/content'
 import {
   formatPerformanceDate,
   getShowsData,
@@ -89,6 +90,57 @@ export default function HomePage() {
         </ul>
       </section>
 
+      <section className={`container ${styles.section}`} aria-labelledby="about-title">
+        <div className={styles.about}>
+          <div className={styles.aboutText}>
+            <h2 id="about-title" className={styles.sectionTitle}>
+              {aboutTheatre.title}
+            </h2>
+            <p className={styles.aboutLead}>{aboutTheatre.lead}</p>
+            <p>{aboutTheatre.paragraphs[0]}</p>
+            <Link href="/about" className={`${buttons.button} ${styles.aboutButton}`}>
+              Подробнее <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+          <div className={styles.aboutPhotos}>
+            {aboutTheatre.photos.slice(0, 2).map((src) => (
+              <div key={src} className={styles.aboutPhoto}>
+                <Image
+                  src={src}
+                  alt="Команда модного театра TURDUS"
+                  fill
+                  sizes="(min-width: 60rem) 25vw, 50vw"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={`container ${styles.section}`} aria-labelledby="news-title">
+        <h2 id="news-title" className={styles.sectionTitle}>
+          Новости
+        </h2>
+        <ul className={styles.news}>
+          {news.map((item) => (
+            <li key={item.id}>
+              <article className={styles.newsCard}>
+                <div className={styles.newsMedia}>
+                  <Image src={item.imageUrl} alt="" fill sizes="(min-width: 60rem) 25vw, 100vw" />
+                </div>
+                <div className={styles.newsBody}>
+                  <span className={styles.newsTag}>{item.tag}</span>
+                  <h3 className={styles.newsTitle}>
+                    <Link href={item.href}>{item.title}</Link>
+                  </h3>
+                  <p className={styles.newsSummary}>{item.summary}</p>
+                </div>
+              </article>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <section className={`container ${styles.section}`} aria-labelledby="corporate-title">
         <div className={styles.banner}>
           <div className={styles.bannerContent}>
@@ -112,6 +164,21 @@ export default function HomePage() {
             </div>
           )}
         </div>
+      </section>
+
+      <section className={`container ${styles.section}`} aria-labelledby="partners-title">
+        <h2 id="partners-title" className={styles.sectionTitle}>
+          Партнёры и площадки
+        </h2>
+        {/* Логотипы партнёров театр ещё не передал — пока названия. */}
+        <ul className={styles.partners}>
+          {partners.map((p) => (
+            <li key={p.name} className={styles.partner}>
+              <span className={styles.partnerName}>{p.name}</span>
+              <span className={styles.partnerRole}>{p.role}</span>
+            </li>
+          ))}
+        </ul>
       </section>
     </>
   )

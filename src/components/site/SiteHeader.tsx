@@ -26,6 +26,9 @@ export function SiteHeader() {
               <Link href="/afisha">Афиша</Link>
             </li>
             <li>
+              <Link href="/about">О театре</Link>
+            </li>
+            <li>
               <a href="#contacts">Контакты</a>
             </li>
           </ul>

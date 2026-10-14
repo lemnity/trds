@@ -216,3 +216,164 @@
     transform: none;
   }
 }
+
+/* О театре */
+.about {
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+}
+
+.aboutText {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  max-width: var(--reading-max);
+}
+
+.aboutLead {
+  font-size: var(--step-1);
+  font-weight: 600;
+}
+
+.aboutButton {
+  margin-top: 0.5rem;
+}
+
+.aboutPhotos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.aboutPhoto {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--color-night);
+}
+
+.aboutPhoto:nth-child(2) {
+  margin-top: 2.5rem;
+}
+
+.aboutPhoto img {
+  object-fit: cover;
+}
+
+/* Новости */
+.news {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+}
+
+.newsCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--motion-base) var(--ease-standard);
+}
+
+.newsCard:hover {
+  transform: translateY(-3px);
+}
+
+.newsCard:focus-within {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.newsMedia {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--color-night);
+}
+
+.newsMedia img {
+  object-fit: cover;
+}
+
+.newsBody {
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+  padding: 1rem 1.15rem 1.25rem;
+}
+
+.newsTag {
+  justify-self: start;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: #e9e7e2;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.newsTitle {
+  font-weight: 600;
+  font-size: var(--step-1);
+  line-height: 1.25;
+}
+
+.newsTitle a {
+  text-decoration: none;
+}
+
+.newsTitle a:focus-visible {
+  outline: none;
+}
+
+/* Вся карточка — ссылка. */
+.newsTitle a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.newsSummary {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+/* Партнёры */
+.partners {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+}
+
+.partner {
+  display: grid;
+  gap: 0.2rem;
+  align-content: center;
+  min-height: 6rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.partnerName {
+  font-weight: 600;
+}
+
+.partnerRole {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+@media (min-width: 60rem) {
+  .about {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 4rem;
+  }
+}
