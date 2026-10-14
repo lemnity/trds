@@ -93,6 +93,9 @@
 - 14.10.2026 — T-005: каркас Next.js + Payload (postgres adapter) собирается без БД; `next build` не требует `DATABASE_URL`. Локальная установка через pnpm с `minimumReleaseAge` медленная (~12 мин на холодный store). Локальный Node разработчика 24.14.0 допустим (`engines.node >=24.14.0 <25`), эталон — `.node-version` 24.21.0 в Docker/CI.
 - 14.10.2026 — Docker-образ собран локально (Node 24.21.0, digest-pinned), smoke: `/` → 200, процесс не root, `sharp` 0.35.5 загружается. Образ собран до добавления ESLint/Prettier в lock-файл — следующая сборка в CI проверит финальное состояние.
 - 14.10.2026 — T-010: ESLint 9.39.5 (а не 10 — плагины Next/React не поддерживают 10), Prettier 3.9.9, `.editorconfig`; CI: format → lint → typecheck → test → build, затем docker; audit отдельным job.
+- 14.10.2026 — CI на GitHub зелёный → T-005, T-010 `DONE`. Next 16 `next dev` сам создаёт `AGENTS.md`/`CLAUDE.md` (указание читать docs в `node_modules/next/dist/docs/`) — файлы закоммичены, `CLAUDE.md` дополнен ссылками на правила проекта.
+- 14.10.2026 — T-011: хук ecc `config-protection` запрещает правки `eslint.config.mjs` (даже ужесточающие), поэтому границы модулей проверяются не линтером, а `tools/boundaries.ts` в unit-тестах.
+- Локальный запуск: на машине разработчика порты 3000 и 5432–5435 заняты другими проектами. Используем PostgreSQL в контейнере `trds-pg` на `127.0.0.1:5436` (volume `trds-pg-data`) и `pnpm dev --port 3010`. `.env` локальный, не в git. В dev Payload синхронизирует схему автоматически (push); для staging/prod — миграции (T-020).
 - T-001…T-004 заблокированы ответами театра/банка/бухгалтера; реальные платежи не подключаются до их закрытия.
 
 ## 10. Источники для перепроверки
