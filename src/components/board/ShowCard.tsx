@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { formatAge, formatPerformanceDate, type PerformanceView } from '@/modules/shows'
 
 import { Availability } from '../ui/Availability'
+import { PremiereBadge } from '../ui/PremiereBadge'
 import styles from './ShowCard.module.css'
 
 export function ShowCard({ item, posterUrl }: { item: PerformanceView; posterUrl: string }) {
@@ -11,6 +12,7 @@ export function ShowCard({ item, posterUrl }: { item: PerformanceView; posterUrl
   return (
     <article className={styles.card}>
       <div className={styles.media}>
+        {item.show.premiere && <PremiereBadge overlay />}
         <Image
           src={posterUrl}
           alt=""

@@ -12,6 +12,7 @@ import {
 
 import buttons from '../ui/button.module.css'
 import { CalendarIcon, minPrice, PinIcon } from './ShowHeader'
+import { PremiereBadge } from '../ui/PremiereBadge'
 import styles from './ShowHeaderCompact.module.css'
 
 type Props = { show: Show; performances: SalePerformance[] }
@@ -66,8 +67,13 @@ export function ShowHeaderCompact({ show, performances }: Props) {
         <h1 className={styles.title}>{show.title}</h1>
 
         <div className={styles.row}>
-          {chips.length > 0 && (
+          {(chips.length > 0 || show.premiere) && (
             <ul className={styles.chips} aria-label="Жанр, возраст и длительность">
+              {show.premiere && (
+                <li className={styles.premiereChip}>
+                  <PremiereBadge />
+                </li>
+              )}
               {chips.map((c) => (
                 <li key={c}>{c}</li>
               ))}

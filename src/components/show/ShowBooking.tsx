@@ -225,9 +225,6 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
     <>
       <div className={styles.sectionHead}>
         <div>
-          <p className={styles.eyebrow}>
-            <span>Шаг 1</span> Дата
-          </p>
           <h2 className={styles.title}>Когда пойдёте?</h2>
         </div>
         <p className={styles.hint}>
@@ -298,9 +295,6 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
 
       <div className={`${styles.sectionHead} ${styles.second}`}>
         <div>
-          <p className={styles.eyebrow}>
-            <span>Шаг 2</span> {seating ? 'Места' : 'Билеты'}
-          </p>
           <h2 className={styles.title}>{seating ? 'Выберите места' : 'Сколько билетов?'}</h2>
         </div>
         <p className={styles.hint}>

@@ -184,3 +184,14 @@
   max-width: 14rem;
   margin-left: auto;
 }
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.badges .badge {
+  margin-bottom: 0;
+}

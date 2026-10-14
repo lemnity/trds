@@ -4,6 +4,7 @@ import { formatRub } from '@/lib/money'
 import { formatAge, formatPerformanceDate, type PerformanceView } from '@/modules/shows'
 
 import { Availability } from '../ui/Availability'
+import { PremiereBadge } from '../ui/PremiereBadge'
 import { VenueTag } from '../ui/VenueTag'
 import styles from './Board.module.css'
 
@@ -31,7 +32,12 @@ export function BoardRow({ item, highlight = false, showTitle = true }: Props) {
         {date.time}
       </p>
       <div className={styles.title}>
-        {highlight && <p className={styles.badge}>Ближайший показ</p>}
+        {(highlight || item.show.premiere) && (
+          <p className={styles.badges}>
+            {highlight && <span className={styles.badge}>Ближайший показ</span>}
+            {item.show.premiere && <PremiereBadge />}
+          </p>
+        )}
         {showTitle ? (
           <h3>
             <Link href={`/shows/${item.show.slug}`}>{item.show.title}</Link>

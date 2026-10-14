@@ -34,7 +34,7 @@ const uniqueNames = (credits: Credit[]) => [
 
 const icons = {
   clock: (
-    <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+    <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
       <circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" strokeWidth="1.5" />
       <path
         d="M10 6v4l2.5 1.5"
@@ -46,7 +46,7 @@ const icons = {
     </svg>
   ),
   person: (
-    <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+    <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
       <circle cx="10" cy="7" r="3" fill="none" stroke="currentColor" strokeWidth="1.5" />
       <path
         d="M4 17c.8-3 3.2-4.5 6-4.5s5.2 1.5 6 4.5"
@@ -58,7 +58,7 @@ const icons = {
     </svg>
   ),
   genre: (
-    <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+    <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
       <path
         d="M8.5 11.5l3-3M7 9l-2 2a2.8 2.8 0 0 0 4 4l2-2M13 11l2-2a2.8 2.8 0 0 0-4-4L9 7"
         fill="none"
@@ -69,7 +69,7 @@ const icons = {
     </svg>
   ),
   director: (
-    <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+    <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
       <path
         d="M3.5 8.5h13v8h-13zM3.5 8.5l2-4.5M8 8.5l2-4.5M12.5 8.5l2-4.5"
         fill="none"

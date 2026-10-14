@@ -137,3 +137,11 @@
     width: 100%;
   }
 }
+
+/* Бейдж «Премьера» в ряду плашек — без фона плашки. */
+.chips li.premiereChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  background: none;
+}
