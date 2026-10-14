@@ -1,5 +1,6 @@
 export type {
   Availability,
+  EventType,
   AvailabilityLevel,
   Credit,
   CreditEntry,
@@ -14,6 +15,8 @@ export type {
 export {
   THEATRE_TIME_ZONE,
   availabilityLevel,
+  filterPerformances,
+  type AfishaFilters,
   findPerformance,
   formatPerformanceDate,
   getShowPage,
@@ -25,5 +28,5 @@ export {
   type SalePerformance,
 } from './queries'
 export { demoShowsData } from './demo-data'
-export { VENUE_KIND_LABELS, formatDuration, formatAge } from './labels'
+export { EVENT_TYPE_LABELS, VENUE_KIND_LABELS, formatDuration, formatAge } from './labels'
 export { getShowsData } from './source'

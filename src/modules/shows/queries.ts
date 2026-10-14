@@ -2,6 +2,7 @@ import { getSeatingPlan, seatsOf, type PerformanceSeating } from '@/modules/seat
 
 import type {
   Availability,
+  EventType,
   AvailabilityLevel,
   Performance,
   PerformanceView,
@@ -9,6 +10,7 @@ import type {
   ShowsData,
   TicketType,
   Venue,
+  VenueKind,
 } from './types'
 
 // Часовой пояс театра (Екатеринбург). Открытый вопрос memory.md §5 — подтвердить у театра.
@@ -53,7 +55,15 @@ const toView = (data: ShowsData, p: Performance): PerformanceView | null => {
   return {
     id: p.id,
     startsAt: p.startsAt,
-    show: { slug: show.slug, title: show.title, ageLimit: show.ageLimit, genre: show.genre },
+    show: {
+      slug: show.slug,
+      title: show.title,
+      ageLimit: show.ageLimit,
+      genre: show.genre,
+      eventType: show.eventType,
+      premiere: show.premiere === true,
+      pushkinCard: show.pushkinCard === true,
+    },
     venue,
     minPriceKopecks: prices.length > 0 ? Math.min(...prices) : null,
     pricePlaceholder:
@@ -170,4 +180,39 @@ export const groupByMonth = (items: PerformanceView[]): MonthGroup[] => {
     groups.set(key, group)
   }
   return [...groups.values()]
+}
+
+export type AfishaFilters = {
+  /** Ключ месяца «2026-11» в часовом поясе театра. */
+  month?: string
+  venueKind?: VenueKind
+  eventType?: EventType
+  /** Детям — 12+ и младше. */
+  kids?: boolean
+  premiere?: boolean
+  pushkin?: boolean
+  query?: string
+}
+
+const KIDS_MAX_AGE = 12
+const normalize = (s: string) => s.toLowerCase().replaceAll('ё', 'е').trim()
+
+export const filterPerformances = (
+  items: PerformanceView[],
+  f: AfishaFilters,
+): PerformanceView[] => {
+  const query = f.query ? normalize(f.query) : ''
+  return items.filter(
+    (p) =>
+      (!f.month || formatPerformanceDate(p.startsAt).monthKey === f.month) &&
+      (!f.venueKind || p.venue.kind === f.venueKind) &&
+      (!f.eventType || p.show.eventType === f.eventType) &&
+      (!f.kids || (p.show.ageLimit !== null && p.show.ageLimit <= KIDS_MAX_AGE)) &&
+      (!f.premiere || p.show.premiere) &&
+      (!f.pushkin || p.show.pushkinCard) &&
+      (!query ||
+        [p.show.title, p.show.genre ?? '', p.venue.title].some((t) =>
+          normalize(t).includes(query),
+        )),
+  )
 }

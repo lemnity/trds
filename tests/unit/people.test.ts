@@ -15,6 +15,7 @@ const data: ShowsData = {
       lead: '',
       description: [],
       gallery: [],
+      eventType: 'spectacle',
       credits: [
         { role: 'Режиссер', entries: [{ people: ['Ирина Павлова'] }] },
         {
@@ -37,6 +38,7 @@ const data: ShowsData = {
       lead: '',
       description: [],
       gallery: [],
+      eventType: 'spectacle',
       credits: [{ role: 'Режиссер', entries: [{ people: ['Ирина Павлова'] }] }],
       posterUrl: 'https://example.test/f.jpg',
       status: 'published',
@@ -50,6 +52,7 @@ const data: ShowsData = {
       lead: '',
       description: [],
       gallery: [],
+      eventType: 'spectacle',
       credits: [{ role: 'Режиссер', entries: [{ people: ['Скрытый Человек'] }] }],
       posterUrl: 'https://example.test/d.jpg',
       status: 'draft',

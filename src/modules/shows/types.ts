@@ -28,6 +28,8 @@ export type Credit = {
   entries: CreditEntry[]
 }
 
+export type EventType = 'spectacle' | 'immersive' | 'performance' | 'concert' | 'promenade'
+
 export type Show = {
   slug: string
   title: string
@@ -37,6 +39,11 @@ export type Show = {
   lead: string
   description: string[]
   credits: Credit[]
+  eventType: EventType
+  /** Премьера — по пометке театра. */
+  premiere?: boolean
+  /** Можно купить по Пушкинской карте — подтверждает театр. */
+  pushkinCard?: boolean
   /** Фото спектакля (не афиши) для баннера, коллажа и галереи. */
   gallery: string[]
   posterUrl: string
@@ -79,7 +86,10 @@ export type Availability = {
 export type PerformanceView = {
   id: string
   startsAt: string
-  show: Pick<Show, 'slug' | 'title' | 'ageLimit' | 'genre'>
+  show: Pick<Show, 'slug' | 'title' | 'ageLimit' | 'genre' | 'eventType'> & {
+    premiere: boolean
+    pushkinCard: boolean
+  }
   venue: Venue
   minPriceKopecks: number | null
   /** Хотя бы одна цена — заглушка, не утверждённая театром. */

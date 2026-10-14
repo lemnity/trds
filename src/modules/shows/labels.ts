@@ -1,4 +1,4 @@
-import type { VenueKind } from './types'
+import type { EventType, VenueKind } from './types'
 
 // Формат площадки — главное отличие театра: спектакли идут вне классической сцены.
 export const VENUE_KIND_LABELS: Record<VenueKind, string> = {
@@ -19,3 +19,11 @@ export const formatDuration = (minutes: number | null): string | null => {
 }
 
 export const formatAge = (age: number | null): string | null => (age === null ? null : `${age}+`)
+
+export const EVENT_TYPE_LABELS: Record<EventType, string> = {
+  spectacle: 'Спектакль',
+  immersive: 'Иммерсивный спектакль',
+  performance: 'Перформанс',
+  concert: 'Концерт, кабаре',
+  promenade: 'Спектакль-променад',
+}

@@ -74,6 +74,7 @@ export const demoShowsData: ShowsData = {
   shows: [
     {
       slug: 'three-poets',
+      eventType: 'promenade',
       title: 'Три поэта',
       genre: 'Аудиоспектакль-променад',
       ageLimit: 16,
@@ -91,6 +92,7 @@ export const demoShowsData: ShowsData = {
     },
     {
       slug: 'vbare2',
+      eventType: 'immersive',
       title: 'Секс в большом баре 2.0',
       genre: 'Иммерсивная стендап-комедия',
       ageLimit: 18,
@@ -140,6 +142,7 @@ export const demoShowsData: ShowsData = {
     },
     {
       slug: 'guests',
+      eventType: 'performance',
       title: 'Гости',
       genre: 'Перформанс-беседа',
       ageLimit: 18,
@@ -183,6 +186,7 @@ export const demoShowsData: ShowsData = {
     },
     {
       slug: '8women',
+      eventType: 'spectacle',
       title: '8 любящих женщин',
       genre: 'Комедийный детектив',
       ageLimit: 16,
@@ -230,6 +234,7 @@ export const demoShowsData: ShowsData = {
     },
     {
       slug: 'normalflight',
+      eventType: 'immersive',
       title: 'Полёт нормальный: история одной любви',
       genre: 'Иммерсивный музыкальный спектакль',
       ageLimit: null,
@@ -277,6 +282,9 @@ export const demoShowsData: ShowsData = {
     },
     {
       slug: 'playapt',
+      eventType: 'spectacle',
+      // Пометка «Премьера» на сайте театра (14.10.2026).
+      premiere: true,
       title: 'История одной девочки',
       genre: 'Спектакль в квартире',
       ageLimit: null,
@@ -300,6 +308,9 @@ export const demoShowsData: ShowsData = {
     },
     {
       slug: 'shakespeare',
+      eventType: 'spectacle',
+      // Пометка «Премьера» на сайте театра (14.10.2026).
+      premiere: true,
       title: 'Весь Шекспир за 1,5 часа',
       genre: 'Спектакль',
       ageLimit: null,
@@ -334,6 +345,9 @@ export const demoShowsData: ShowsData = {
     },
     {
       slug: 'facetoface',
+      eventType: 'performance',
+      // Пометка «Премьера» на сайте театра (14.10.2026).
+      premiere: true,
       title: 'Лицом к лицу',
       genre: 'Перформанс-эксперимент',
       ageLimit: 16,
@@ -365,6 +379,7 @@ export const demoShowsData: ShowsData = {
     },
     {
       slug: 'concertsp',
+      eventType: 'concert',
       title: 'В бананово-лимонном Сингапуре',
       genre: 'Иммерсивное кабаре',
       ageLimit: 18,
@@ -396,6 +411,7 @@ export const demoShowsData: ShowsData = {
     },
     {
       slug: 'taro',
+      eventType: 'immersive',
       title: 'Таро',
       genre: 'Музыкальная мистерия',
       ageLimit: 16,
@@ -442,6 +458,7 @@ export const demoShowsData: ShowsData = {
     },
     {
       slug: 'tasteofsuccess',
+      eventType: 'immersive',
       title: 'Вкус успеха',
       genre: 'Иммерсивный спектакль',
       ageLimit: null,

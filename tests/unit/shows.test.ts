@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   availabilityLevel,
+  filterPerformances,
   findPerformance,
   formatPerformanceDate,
   getShowPage,
@@ -19,6 +20,7 @@ const data: ShowsData = {
     {
       slug: 'a',
       title: 'Спектакль А',
+      premiere: true,
       genre: null,
       ageLimit: 16,
       durationMinutes: 60,
@@ -26,6 +28,7 @@ const data: ShowsData = {
       description: [],
       credits: [],
       gallery: [],
+      eventType: 'spectacle',
       posterUrl: 'https://example.test/a.jpg',
       status: 'published',
     },
@@ -39,6 +42,7 @@ const data: ShowsData = {
       description: [],
       credits: [],
       gallery: [],
+      eventType: 'spectacle',
       posterUrl: 'https://example.test/d.jpg',
       status: 'draft',
     },
@@ -150,6 +154,31 @@ describe('availabilityLevel', () => {
     expect(availabilityLevel(4, 20)).toBe('few')
     expect(availabilityLevel(5, 20)).toBe('many')
     expect(availabilityLevel(1, 3)).toBe('few')
+  })
+})
+
+describe('filterPerformances', () => {
+  const all = () => listUpcoming(data, now)
+
+  it('returns everything without filters', () => {
+    expect(filterPerformances(all(), {}).map((p) => p.id)).toEqual(all().map((p) => p.id))
+  })
+
+  it('filters by month, venue kind and event type', () => {
+    expect(filterPerformances(all(), { month: '2026-11' }).map((p) => p.id)).toEqual(['a-2'])
+    expect(filterPerformances(all(), { venueKind: 'apartment' }).map((p) => p.id)).toEqual(['a-2'])
+    expect(filterPerformances(all(), { eventType: 'concert' })).toEqual([])
+  })
+
+  it('filters premieres, kids shows and Pushkin card', () => {
+    expect(filterPerformances(all(), { premiere: true })).toHaveLength(4)
+    expect(filterPerformances(all(), { kids: true })).toEqual([])
+    expect(filterPerformances(all(), { pushkin: true })).toEqual([])
+  })
+
+  it('searches by title ignoring case and ё', () => {
+    expect(filterPerformances(all(), { query: 'спектакль а' })).toHaveLength(4)
+    expect(filterPerformances(all(), { query: 'нет такого' })).toEqual([])
   })
 })
 
