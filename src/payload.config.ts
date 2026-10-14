@@ -9,7 +9,8 @@ import { AdminUsers } from './payload/collections/AdminUsers'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// Проверка обязательных env при старте — задача T-013.
+// Пустые значения допустимы только на этапе `next build`: при старте сервера и worker
+// окружение проверяет assertServerEnv (src/bin/start-app.ts, src/jobs/main.ts).
 export default buildConfig({
   admin: {
     user: AdminUsers.slug,
@@ -19,13 +20,13 @@ export default buildConfig({
   },
   collections: [AdminUsers],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: process.env.PAYLOAD_SECRET ?? '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URL || '',
+      connectionString: process.env.DATABASE_URL ?? '',
     },
   }),
   sharp,

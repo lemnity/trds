@@ -99,6 +99,13 @@ describe('stack version pins', () => {
     }
   })
 
+  it('starts the app through the env-checking entrypoint', () => {
+    const cmd = read('Dockerfile')
+      .split('\n')
+      .filter((line) => line.startsWith('CMD '))
+    expect(cmd).toEqual(['CMD ["node", "start.mjs"]'])
+  })
+
   it('runs CI on the pinned Node.js version with a frozen lockfile', () => {
     const lines = ciJobLines()
     expect(lines).toContain('node-version-file: .node-version')

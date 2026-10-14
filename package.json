@@ -32,7 +32,8 @@
     "payload": "3.90.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "sharp": "0.35.5"
+    "sharp": "0.35.5",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@types/node": "24.19.0",

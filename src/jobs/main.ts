@@ -1,4 +1,7 @@
+import { assertServerEnv } from '../lib/env'
 import { runWorker, type Job } from './worker'
+
+assertServerEnv()
 
 // Точка входа контейнера worker. Задачи (outbox, expiry, reconciliation, бонусы)
 // подключаются по мере реализации T-045/T-047/T-048/T-063.
