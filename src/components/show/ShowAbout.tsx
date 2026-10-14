@@ -93,8 +93,6 @@ const icons = {
   ),
 }
 
-export type ShowStat = { value: string; label: string }
-
 const initials = (name: string) =>
   name
     .split(/\s+/)
@@ -119,7 +117,7 @@ const castCards = (show: Show) => {
   }))
 }
 
-export function ShowAbout({ show, stats = [] }: { show: Show; stats?: ShowStat[] }) {
+export function ShowAbout({ show }: { show: Show }) {
   const directors = uniqueNames(show.credits.filter(isDirector))
   const duration = formatDuration(show.durationMinutes)
   const age = formatAge(show.ageLimit)
@@ -145,17 +143,23 @@ export function ShowAbout({ show, stats = [] }: { show: Show; stats?: ShowStat[]
           ))}
         </div>
 
-        {stats.length > 0 && (
-          <dl className={styles.stats}>
-            {stats.map((s) => (
-              <div key={s.label}>
-                <dt>{s.label}</dt>
-                <dd>{s.value}</dd>
-              </div>
-            ))}
-          </dl>
+        {crew.length > 0 && (
+          <section aria-labelledby={`${show.slug}-crew`}>
+            <h3 id={`${show.slug}-crew`} className={styles.blockTitle}>
+              Создатели
+            </h3>
+            <dl className={styles.castList}>
+              {crew.map((credit) => (
+                <div key={credit.role}>
+                  <dt>{credit.role}</dt>
+                  <dd>
+                    <PeopleLinks names={uniqueNames([credit])} />
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
         )}
-
         {actors.length > 0 && (
           <section aria-labelledby={`${show.slug}-actors`}>
             <h3 id={`${show.slug}-actors`} className={styles.blockTitle}>
@@ -174,24 +178,6 @@ export function ShowAbout({ show, stats = [] }: { show: Show; stats?: ShowStat[]
                 </li>
               ))}
             </ul>
-          </section>
-        )}
-
-        {crew.length > 0 && (
-          <section aria-labelledby={`${show.slug}-crew`}>
-            <h3 id={`${show.slug}-crew`} className={styles.blockTitle}>
-              Создатели
-            </h3>
-            <dl className={styles.castList}>
-              {crew.map((credit) => (
-                <div key={credit.role}>
-                  <dt>{credit.role}</dt>
-                  <dd>
-                    <PeopleLinks names={uniqueNames([credit])} />
-                  </dd>
-                </div>
-              ))}
-            </dl>
           </section>
         )}
       </div>

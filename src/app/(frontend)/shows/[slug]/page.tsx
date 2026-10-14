@@ -7,7 +7,7 @@ import { HideWhenStarted } from '@/components/board/HideWhenStarted'
 import { ShowCard } from '@/components/board/ShowCard'
 import { ShowBooking } from '@/components/show/ShowBooking'
 import { Gallery } from '@/components/show/Gallery'
-import { ShowAbout, type ShowStat } from '@/components/show/ShowAbout'
+import { ShowAbout } from '@/components/show/ShowAbout'
 // Варианты первого экрана: А — ShowHeader, Б — ShowHeaderSplit, В (референс заказчика) — ShowHeaderCompact.
 import { ShowHeaderCompact } from '@/components/show/ShowHeaderCompact'
 import { getShowPage, getShowsData, listPublishedShows, listUpcoming } from '@/modules/shows'
@@ -31,13 +31,6 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 const OTHER_SHOWS = 4
 
-const plural = (n: number, one: string, few: string, many: string) =>
-  n % 10 === 1 && n % 100 !== 11
-    ? one
-    : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)
-      ? few
-      : many
-
 export default async function ShowPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params
   const data = getShowsData()
@@ -54,36 +47,12 @@ export default async function ShowPage({ params }: { params: Promise<Params> }) 
   // Старый сайт театра: на нём продажи через Ticketscloud, пока не подключён банк.
   const fallbackUrl = `https://teatrturdus.ru/${show.slug}`
 
-  // Только факты из данных, без выдуманных «лет работы» (design.md §1.7).
-  const repertoire = listPublishedShows(data).length
-  const stats: ShowStat[] = [
-    {
-      value: performances.length,
-      label: plural(performances.length, 'показ впереди', 'показа впереди', 'показов впереди'),
-    },
-    {
-      value: repertoire,
-      label: plural(
-        repertoire,
-        'спектакль в репертуаре',
-        'спектакля в репертуаре',
-        'спектаклей в репертуаре',
-      ),
-    },
-    {
-      value: data.venues.length,
-      label: plural(data.venues.length, 'площадка театра', 'площадки театра', 'площадок театра'),
-    },
-  ]
-    .filter((s) => s.value > 0)
-    .map((s) => ({ value: String(s.value), label: s.label }))
-
   return (
     <>
       <ShowHeaderCompact show={show} performances={performances} />
 
       <section id="about" className={`container ${styles.about}`} aria-label="О спектакле">
-        <ShowAbout show={show} stats={stats} />
+        <ShowAbout show={show} />
       </section>
 
       <section id="tickets" className={`container ${styles.section}`} aria-label="Даты и билеты">
