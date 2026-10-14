@@ -67,6 +67,15 @@ export type ShowsData = {
   performances: Performance[]
 }
 
+export type AvailabilityLevel = 'many' | 'few' | 'none'
+
+/** Остаток на сайте. Пока нет учёта мест (T-042), считается от квот и схемы зала. */
+export type Availability = {
+  available: number
+  capacity: number
+  level: AvailabilityLevel
+}
+
 export type PerformanceView = {
   id: string
   startsAt: string
@@ -76,4 +85,6 @@ export type PerformanceView = {
   /** Хотя бы одна цена — заглушка, не утверждённая театром. */
   pricePlaceholder: boolean
   salesOpen: boolean
+  /** null — продажа на сайте не открыта, остаток неизвестен. */
+  availability: Availability | null
 }

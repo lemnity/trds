@@ -1,4 +1,6 @@
 export type {
+  Availability,
+  AvailabilityLevel,
   Credit,
   CreditEntry,
   Performance,
@@ -11,6 +13,7 @@ export type {
 } from './types'
 export {
   THEATRE_TIME_ZONE,
+  availabilityLevel,
   findPerformance,
   formatPerformanceDate,
   getShowPage,

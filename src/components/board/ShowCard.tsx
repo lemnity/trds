@@ -3,6 +3,7 @@ import Link from 'next/link'
 
 import { formatAge, formatPerformanceDate, type PerformanceView } from '@/modules/shows'
 
+import { Availability } from '../ui/Availability'
 import styles from './ShowCard.module.css'
 
 export function ShowCard({ item, posterUrl }: { item: PerformanceView; posterUrl: string }) {
@@ -32,6 +33,9 @@ export function ShowCard({ item, posterUrl }: { item: PerformanceView; posterUrl
         <p className={styles.genre}>
           {[item.show.genre, formatAge(item.show.ageLimit)].filter(Boolean).join(' · ')}
         </p>
+        <div className={styles.availability}>
+          <Availability availability={item.availability} />
+        </div>
       </div>
     </article>
   )

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  availabilityLevel,
   findPerformance,
   formatPerformanceDate,
   getShowPage,
@@ -123,6 +124,32 @@ describe('listUpcoming', () => {
     const [first] = listUpcoming(data, now)
     expect(first?.venue.kind).toBe('bar')
     expect(first?.show).toMatchObject({ slug: 'a', title: 'Спектакль А', ageLimit: 16 })
+  })
+})
+
+describe('availability', () => {
+  it('sums category quotas for performances sold by categories', () => {
+    const [first] = listUpcoming(data, now)
+    expect(first?.availability).toEqual({ available: 28, capacity: 28, level: 'many' })
+  })
+
+  it('counts free seats on the seating plan minus unavailable seats', () => {
+    const priced = listUpcoming(data, now).find((p) => p.id === 'seated-priced')
+    expect(priced?.availability).toEqual({ available: 135, capacity: 136, level: 'many' })
+  })
+
+  it('is unknown while sales on the site are closed', () => {
+    const closed = listUpcoming(data, now).find((p) => p.id === 'a-2')
+    expect(closed?.availability).toBeNull()
+  })
+})
+
+describe('availabilityLevel', () => {
+  it('marks few tickets at 20% or less and sold out at zero', () => {
+    expect(availabilityLevel(0, 20)).toBe('none')
+    expect(availabilityLevel(4, 20)).toBe('few')
+    expect(availabilityLevel(5, 20)).toBe('many')
+    expect(availabilityLevel(1, 3)).toBe('few')
   })
 })
 

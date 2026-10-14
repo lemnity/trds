@@ -132,34 +132,10 @@
 }
 
 .status {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  display: block;
+  width: 100%;
   margin-top: auto;
   padding-top: 0.6rem;
-  width: 100%;
-  border-top: 1px solid var(--color-hairline);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-muted);
-}
-
-.status::before {
-  content: '';
-  flex: none;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.status[data-open='true'] {
-  color: var(--color-success);
-}
-
-.day[aria-pressed='true'] .status {
-  color: #ffffff;
-  border-top-color: rgb(255 255 255 / 0.25);
 }
 
 .session {
@@ -192,7 +168,15 @@
 
 .sessionTimes {
   display: flex;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.sessionTime {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  min-width: 7.5rem;
 }
 
 .sessionTimes button {

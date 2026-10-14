@@ -7,9 +7,16 @@ import { useId, useState, useSyncExternalStore } from 'react'
 import { formatRub } from '@/lib/money'
 import { MAX_TICKETS_PER_ORDER, quoteOrder, selectionToSearch } from '@/modules/checkout'
 import { quoteSeats } from '@/modules/seating'
-import { formatPerformanceDate, type SalePerformance, type TicketType } from '@/modules/shows'
+import {
+  availabilityLevel,
+  formatPerformanceDate,
+  type Availability,
+  type SalePerformance,
+  type TicketType,
+} from '@/modules/shows'
 
 import buttons from '../ui/button.module.css'
+import { Availability as AvailabilityIndicator } from '../ui/Availability'
 import { VenueTag } from '../ui/VenueTag'
 import { SeatMap } from './SeatMap'
 import styles from './ShowBooking.module.css'
@@ -42,6 +49,15 @@ const daysWord = (n: number) =>
     : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)
       ? 'даты'
       : 'дат'
+
+/** Остаток дня: сумма по сеансам с открытой продажей; нет таких — неизвестен. */
+const dayAvailability = (items: SalePerformance[]): Availability | null => {
+  const known = items.flatMap((p) => (p.availability ? [p.availability] : []))
+  if (known.length === 0) return null
+  const available = known.reduce((sum, a) => sum + a.available, 0)
+  const capacity = known.reduce((sum, a) => sum + a.capacity, 0)
+  return { available, capacity, level: availabilityLevel(available, capacity) }
+}
 
 const initialQuantities = (types: TicketType[]) =>
   Object.fromEntries(types.map((t, i) => [t.id, i === 0 ? 1 : 0]))
@@ -217,7 +233,6 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
         {days.map((day) => {
           const first = day.items[0]!
           const d = formatPerformanceDate(first.startsAt)
-          const open = day.items.some((p) => p.salesOpen)
           const isSelected = day.key === selectedDay?.key
           return (
             <li key={day.key}>
@@ -238,8 +253,11 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
                     </span>
                   ))}
                 </span>
-                <span className={styles.status} data-open={open}>
-                  {open ? 'Билеты есть' : 'Продажа на сайте не открыта'}
+                <span className={styles.status}>
+                  <AvailabilityIndicator
+                    availability={dayAvailability(day.items)}
+                    tone={isSelected ? 'dark' : 'light'}
+                  />
                 </span>
               </button>
             </li>
@@ -257,17 +275,16 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
             {selected.venue.address}
           </p>
         </div>
-        {selectedDay && selectedDay.items.length > 1 && (
+        {/* Время показывается всегда — готово к нескольким сеансам в день. */}
+        {selectedDay && (
           <div className={styles.sessionTimes} role="group" aria-label="Время начала">
             {selectedDay.items.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                aria-pressed={p.id === selected.id}
-                onClick={() => select(p)}
-              >
-                {formatPerformanceDate(p.startsAt).time}
-              </button>
+              <div key={p.id} className={styles.sessionTime}>
+                <button type="button" aria-pressed={p.id === selected.id} onClick={() => select(p)}>
+                  {formatPerformanceDate(p.startsAt).time}
+                </button>
+                <AvailabilityIndicator availability={p.availability} />
+              </div>
             ))}
           </div>
         )}

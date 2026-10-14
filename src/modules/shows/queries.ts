@@ -1,6 +1,15 @@
-import { getSeatingPlan, type PerformanceSeating } from '@/modules/seating'
+import { getSeatingPlan, seatsOf, type PerformanceSeating } from '@/modules/seating'
 
-import type { Performance, PerformanceView, Show, ShowsData, TicketType, Venue } from './types'
+import type {
+  Availability,
+  AvailabilityLevel,
+  Performance,
+  PerformanceView,
+  Show,
+  ShowsData,
+  TicketType,
+  Venue,
+} from './types'
 
 // Часовой пояс театра (Екатеринбург). Открытый вопрос memory.md §5 — подтвердить у театра.
 export const THEATRE_TIME_ZONE = 'Asia/Yekaterinburg'
@@ -19,6 +28,22 @@ const resolveSeating = (p: Performance): PerformanceSeating | null => {
   }
 }
 
+/** «Мало» — 20% и меньше от вместимости или не больше 3 билетов (для камерных залов). */
+export const availabilityLevel = (available: number, capacity: number): AvailabilityLevel =>
+  available <= 0 ? 'none' : available * 5 <= capacity || available <= 3 ? 'few' : 'many'
+
+const availabilityOf = (p: Performance, salesOpen: boolean): Availability | null => {
+  if (!salesOpen) return null
+  const seating = resolveSeating(p)
+  if (seating) {
+    const capacity = seatsOf(seating.plan).length
+    const available = capacity - new Set(seating.unavailableSeatIds).size
+    return { available, capacity, level: availabilityLevel(available, capacity) }
+  }
+  const capacity = p.ticketTypes.reduce((sum, t) => sum + t.capacity, 0)
+  return { available: capacity, capacity, level: availabilityLevel(capacity, capacity) }
+}
+
 const toView = (data: ShowsData, p: Performance): PerformanceView | null => {
   const show = data.shows.find((s) => s.slug === p.showSlug)
   const venue = data.venues.find((v) => v.id === p.venueId)
@@ -34,6 +59,7 @@ const toView = (data: ShowsData, p: Performance): PerformanceView | null => {
     pricePlaceholder:
       p.ticketTypes.some((t) => t.placeholder === true) || p.seating?.pricesPlaceholder === true,
     salesOpen: prices.length > 0,
+    availability: availabilityOf(p, prices.length > 0),
   }
 }
 
