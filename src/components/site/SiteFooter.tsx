@@ -1,3 +1,7 @@
+import Image from 'next/image'
+
+import logo from '@/assets/logo.webp'
+
 import styles from './SiteFooter.module.css'
 
 // Контакты с главной страницы teatrturdus.ru (14.10.2026). На внутренних страницах старого сайта
@@ -7,8 +11,9 @@ export function SiteFooter() {
     <footer id="contacts" tabIndex={-1} className={styles.footer}>
       <div className={`container ${styles.grid}`}>
         <div>
+          <Image src={logo} alt="TURDUS — модный театр" className={styles.logo} />
           <p className={styles.slogan}>Повод выйти в свет!</p>
-          <p className={styles.muted}>Модный театр TURDUS, Екатеринбург</p>
+          <p className={styles.muted}>Екатеринбург</p>
         </div>
         <address className={styles.contacts}>
           <h2 className={styles.label}>Контакты</h2>

@@ -14,22 +14,14 @@
 }
 
 .brand {
-  display: flex;
-  flex-direction: column;
-  text-decoration: none;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
 }
 
-.wordmark {
-  font-weight: 700;
-  font-size: 1.5rem;
-  letter-spacing: 0.04em;
-}
-
-.tagline {
-  margin-top: 0.15rem;
-  font-size: 0.75rem;
-  color: var(--color-muted);
+.logo {
+  width: auto;
+  height: 2.6rem;
 }
 
 .navWrap {

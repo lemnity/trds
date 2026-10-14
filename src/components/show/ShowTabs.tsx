@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 
 import styles from './ShowTabs.module.css'
 
@@ -11,6 +11,21 @@ export function ShowTabs({ tabs }: { tabs: ShowTab[] }) {
   const base = useId()
   const [active, setActive] = useState(tabs[0]?.id)
   const refs = useRef(new Map<string, HTMLButtonElement>())
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  // Ссылка вида #photos открывает нужную вкладку (например, из медиа-карточки сайдбара).
+  useEffect(() => {
+    const ids = new Set(tabs.map((t) => t.id))
+    const onHash = () => {
+      const id = window.location.hash.slice(1)
+      if (!ids.has(id)) return
+      setActive(id)
+      rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+    onHash()
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [tabs])
 
   const activate = (index: number) => {
     const tab = tabs[(index + tabs.length) % tabs.length]!
@@ -32,7 +47,7 @@ export function ShowTabs({ tabs }: { tabs: ShowTab[] }) {
   }
 
   return (
-    <div className={styles.tabs}>
+    <div ref={rootRef} className={styles.tabs}>
       <div role="tablist" aria-label="Разделы о спектакле" className={styles.list}>
         {tabs.map((tab, i) => (
           <button

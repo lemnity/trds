@@ -11,6 +11,14 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
 }
 
+.logo {
+  width: auto;
+  height: 3rem;
+  margin-bottom: 1.5rem;
+  /* Знак чёрный на прозрачном фоне — в тёмном подвале делаем белым. */
+  filter: invert(1);
+}
+
 .slogan {
   font-weight: 700;
   font-size: var(--step-3);

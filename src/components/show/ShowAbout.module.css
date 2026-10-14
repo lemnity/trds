@@ -43,35 +43,96 @@
   object-fit: cover;
 }
 
-.facts {
+.sidebar {
   display: grid;
-  padding: 0.5rem 1.5rem;
+  gap: 1rem;
+}
+
+.factsCard {
+  padding: 1.5rem;
   border: 1px solid var(--color-hairline);
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }
 
-.facts div {
+.factsTitle {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: var(--step-1);
+}
+
+.factList {
   display: grid;
-  grid-template-columns: 9rem 1fr;
+}
+
+.fact {
+  display: flex;
+  align-items: flex-start;
   gap: 1rem;
-  padding-block: 1rem;
-  border-bottom: 1px solid var(--color-hairline);
+  padding-block: 0.85rem;
 }
 
-.facts div:last-child {
-  border-bottom: 0;
+.factIcon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--color-background);
+  color: var(--color-ink);
 }
 
-.facts dt {
+.fact dt {
   font-size: var(--step--1);
   color: var(--color-muted);
 }
 
-.facts dd {
-  margin: 0;
+.fact dd {
+  margin: 0.1rem 0 0;
+  font-weight: 600;
+}
+
+.media {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--color-night);
+}
+
+.media img {
+  object-fit: cover;
+  transition: transform var(--motion-slow) var(--ease-standard);
+}
+
+.media:hover img {
+  transform: scale(1.04);
+}
+
+.mediaBadge {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.9rem 0.35rem 0.35rem;
+  border-radius: var(--radius-control);
+  background: rgb(15 20 38 / 0.82);
+  color: #ffffff;
   font-size: var(--step--1);
-  font-weight: 500;
+  font-weight: 600;
+}
+
+.mediaIcon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  background: var(--color-brand);
 }
 
 .person {

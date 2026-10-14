@@ -1,4 +1,7 @@
+import Image from 'next/image'
 import Link from 'next/link'
+
+import logo from '@/assets/logo.webp'
 
 import buttons from '../ui/button.module.css'
 import styles from './SiteHeader.module.css'
@@ -9,10 +12,13 @@ export function SiteHeader() {
   return (
     <header className={styles.header}>
       <div className={`container ${styles.inner}`}>
-        {/* Текстовый знак до получения векторного логотипа от театра (T-004). */}
-        <Link href="/" className={styles.brand} aria-label="TURDUS — модный театр, на главную">
-          <span className={styles.wordmark}>TURDUS</span>
-          <span className={styles.tagline}>модный театр</span>
+        <Link href="/" className={styles.brand}>
+          <Image
+            src={logo}
+            alt="TURDUS — модный театр, на главную"
+            priority
+            className={styles.logo}
+          />
         </Link>
         <nav aria-label="Основная навигация" className={styles.navWrap}>
           <ul className={styles.nav}>
