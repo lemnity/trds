@@ -1,6 +1,6 @@
 import { MAX_TICKETS_PER_ORDER } from '@/modules/checkout'
 
-import type { Seat, SeatingPlan } from './types'
+import type { Seat, SeatBlock, SeatingPlan } from './types'
 
 export const seatsOf = (plan: SeatingPlan): Seat[] =>
   plan.rows.flatMap((row) => row.blocks.flatMap((block) => block.seats))
@@ -14,7 +14,14 @@ export type SeatQuoteError =
   | 'TOO_MANY_TICKETS'
 
 export type SeatQuote = {
-  seats: Array<{ id: string; row: number; number: number; priceKopecks: number }>
+  seats: Array<{
+    id: string
+    row: number
+    number: number
+    section: SeatBlock['section']
+    categoryId: string
+    priceKopecks: number
+  }>
   lines: Array<{
     categoryId: string
     title: string
@@ -43,6 +50,11 @@ export const quoteSeats = (
   if (selectedIds.length > MAX_TICKETS_PER_ORDER) return { ok: false, error: 'TOO_MANY_TICKETS' }
 
   const byId = new Map(seatsOf(plan).map((s) => [s.id, s]))
+  const sectionOf = new Map(
+    plan.rows.flatMap((r) =>
+      r.blocks.flatMap((b) => b.seats.map((s) => [s.id, b.section] as const)),
+    ),
+  )
   const seats: SeatQuote['seats'] = []
   for (const id of selectedIds) {
     const seat = byId.get(id)
@@ -51,7 +63,14 @@ export const quoteSeats = (
     const price = pricesKopecks[seat.categoryId]
     if (price === undefined || !Number.isSafeInteger(price))
       return { ok: false, error: 'PRICE_NOT_SET' }
-    seats.push({ id, row: seat.row, number: seat.number, priceKopecks: price })
+    seats.push({
+      id,
+      row: seat.row,
+      number: seat.number,
+      section: sectionOf.get(id)!,
+      categoryId: seat.categoryId,
+      priceKopecks: price,
+    })
   }
 
   const lines: SeatQuote['lines'] = []

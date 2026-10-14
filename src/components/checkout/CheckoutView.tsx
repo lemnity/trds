@@ -1,14 +1,21 @@
 'use client'
 
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useSyncExternalStore } from 'react'
 
-import { quoteOrder, selectionFromSearch } from '@/modules/checkout'
+import {
+  quoteOrder,
+  selectionFromSearch,
+  selectionToSearch,
+  type Selection,
+} from '@/modules/checkout'
 import { quoteSeats } from '@/modules/seating'
+import { formatRub } from '@/lib/money'
 import { formatPerformanceDate, type SalePerformance } from '@/modules/shows'
 
 import { OrderPanel, type OrderLine } from '../show/OrderPanel'
+import { SEAT_CATEGORY_COLORS } from '../show/SeatMap'
 import { InlineNotice } from '../ui/InlineNotice'
 
 type Props = {
@@ -18,6 +25,8 @@ type Props = {
 
 const noopSubscribe = () => () => {}
 
+const SECTION_LABELS = { left: 'левая сторона', center: 'центр', right: 'правая сторона' } as const
+
 type Order = { lines: OrderLine[]; count: number; total: number }
 
 /**
@@ -26,6 +35,7 @@ type Order = { lines: OrderLine[]; count: number; total: number }
  */
 export function CheckoutView({ performance, fallbackUrl }: Props) {
   const params = useSearchParams()
+  const router = useRouter()
   const [paymentUnavailable, setPaymentUnavailable] = useState(false)
   const started = useSyncExternalStore(
     noopSubscribe,
@@ -37,6 +47,13 @@ export function CheckoutView({ performance, fallbackUrl }: Props) {
   const backHref = `/shows/${performance.show.slug}?date=${performance.id}#tickets`
   const selection = selectionFromSearch(params)
 
+  // Удаление позиции меняет выбор в адресе; пустой заказ — назад к выбору мест.
+  const update = (next: Selection, isEmpty: boolean) => {
+    setPaymentUnavailable(false)
+    if (isEmpty) router.push(backHref)
+    else router.replace(`?${selectionToSearch(next)}`, { scroll: false })
+  }
+
   let order: Order | null = null
   if (selection?.kind === 'tickets' && !performance.seating) {
     const quote = quoteOrder(performance.ticketTypes, selection.quantities)
@@ -44,8 +61,15 @@ export function CheckoutView({ performance, fallbackUrl }: Props) {
       order = {
         lines: quote.quote.lines.map((l) => ({
           key: l.ticketTypeId,
-          title: `${l.title} × ${l.quantity}`,
+          title: l.title,
+          subtitle: `${l.quantity} × ${formatRub(l.unitPriceKopecks)}`,
           totalKopecks: l.totalKopecks,
+          onRemove: () => {
+            const rest = Object.fromEntries(
+              Object.entries(selection.quantities).filter(([id]) => id !== l.ticketTypeId),
+            )
+            update({ kind: 'tickets', quantities: rest }, Object.keys(rest).length === 0)
+          },
         })),
         count: quote.quote.ticketCount,
         total: quote.quote.totalKopecks,
@@ -53,13 +77,20 @@ export function CheckoutView({ performance, fallbackUrl }: Props) {
   }
   if (selection?.kind === 'seats' && performance.seating) {
     const { plan, pricesKopecks, unavailableSeatIds } = performance.seating
+    const categoryTitle = new Map(plan.categories.map((c) => [c.id, c.title]))
     const quote = quoteSeats(plan, pricesKopecks, new Set(unavailableSeatIds), selection.seatIds)
     if (quote.ok)
       order = {
         lines: quote.quote.seats.map((s) => ({
           key: s.id,
           title: `Ряд ${s.row}, место ${s.number}`,
+          subtitle: `${categoryTitle.get(s.categoryId)} · ${SECTION_LABELS[s.section]}`,
+          accent: SEAT_CATEGORY_COLORS[s.categoryId],
           totalKopecks: s.priceKopecks,
+          onRemove: () => {
+            const rest = selection.seatIds.filter((id) => id !== s.id)
+            update({ kind: 'seats', seatIds: rest }, rest.length === 0)
+          },
         })),
         count: quote.quote.ticketCount,
         total: quote.quote.totalKopecks,

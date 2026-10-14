@@ -59,9 +59,30 @@ describe('quoteSeats', () => {
       ok: true,
       quote: {
         seats: [
-          { id: 'r1-s3', row: 1, number: 3, priceKopecks: 250_000 },
-          { id: 'r1-s4', row: 1, number: 4, priceKopecks: 250_000 },
-          { id: 'r12-s9', row: 12, number: 9, priceKopecks: 100_000 },
+          {
+            id: 'r1-s3',
+            row: 1,
+            number: 3,
+            section: 'center',
+            categoryId: 'cat-1',
+            priceKopecks: 250_000,
+          },
+          {
+            id: 'r1-s4',
+            row: 1,
+            number: 4,
+            section: 'center',
+            categoryId: 'cat-1',
+            priceKopecks: 250_000,
+          },
+          {
+            id: 'r12-s9',
+            row: 12,
+            number: 9,
+            section: 'center',
+            categoryId: 'cat-7',
+            priceKopecks: 100_000,
+          },
         ],
         lines: [
           {
@@ -83,6 +104,11 @@ describe('quoteSeats', () => {
         totalKopecks: 600_000,
       },
     })
+  })
+
+  it('reports the section of side seats', () => {
+    const result = quoteSeats(domAkteraPlan, prices, unavailable, ['r3-s1', 'r3-s13'])
+    expect(result.ok && result.quote.seats.map((s) => s.section)).toEqual(['left', 'right'])
   })
 
   it('rejects an empty selection', () => {

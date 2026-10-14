@@ -351,8 +351,7 @@
 
 .totals {
   border-top: 1px solid var(--color-hairline);
-  padding-top: 0.5rem;
-  margin-bottom: 1.25rem;
+  padding-block: 0.5rem;
 }
 
 .totals .total {
@@ -494,4 +493,104 @@
 .orderBarButton[aria-disabled='true'] {
   border-color: rgb(255 255 255 / 0.3);
   color: var(--color-night-muted);
+}
+
+/* «Ваш заказ»: позиции-плашки с цветом категории и кнопкой «убрать». */
+.items {
+  display: grid;
+  gap: 0.6rem;
+  padding-block: 1rem;
+}
+
+.item {
+  --accent: var(--color-brand);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 0.5rem 0.85rem 1rem;
+  border-radius: var(--radius-control);
+  background: #eceef3;
+}
+
+.itemText {
+  position: relative;
+  padding-left: 1rem;
+}
+
+.itemText::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  inset-block: 0.15rem;
+  width: 4px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.itemTitle {
+  font-weight: 600;
+}
+
+.itemSubtitle {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.itemPrice {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.itemRemove {
+  display: grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.itemRemove:hover {
+  background: rgb(21 23 28 / 0.06);
+  color: var(--color-ink);
+}
+
+.grandTotal {
+  margin: 0 0 1.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.grandTotal div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.grandTotal dt {
+  font-size: var(--step-1);
+  font-weight: 600;
+}
+
+.grandTotal dd {
+  margin: 0;
+  font-size: var(--step-3);
+  font-weight: 700;
+  color: var(--color-brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.afterSubmit {
+  margin-bottom: 0.75rem;
+  font-size: var(--step--1);
+  text-align: center;
+  color: var(--color-muted);
 }

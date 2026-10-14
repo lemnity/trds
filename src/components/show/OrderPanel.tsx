@@ -8,7 +8,16 @@ import { parseContact, type ContactErrors } from '@/modules/checkout'
 import buttons from '../ui/button.module.css'
 import styles from './ShowBooking.module.css'
 
-export type OrderLine = { key: string; title: string; totalKopecks: number }
+export type OrderLine = {
+  key: string
+  title: string
+  /** «Категория 1 · центр» или количество для билетов без мест. */
+  subtitle?: string
+  /** Цвет полоски — цвет категории на схеме. */
+  accent?: string
+  totalKopecks: number
+  onRemove?: () => void
+}
 
 type Props = {
   heading: string
@@ -52,15 +61,32 @@ export function OrderPanel(props: Props) {
         Ваш заказ
       </h3>
       <p className={styles.orderFor}>{props.heading}</p>
-      {props.lines.length > 0 || !props.emptyText ? (
-        <dl className={styles.lines}>
+      {props.lines.length > 0 ? (
+        <ul className={styles.items}>
           {props.lines.map((line) => (
-            <div key={line.key}>
-              <dt>{line.title}</dt>
-              <dd>{formatRub(line.totalKopecks)}</dd>
-            </div>
+            <li
+              key={line.key}
+              className={styles.item}
+              style={line.accent ? ({ '--accent': line.accent } as React.CSSProperties) : undefined}
+            >
+              <div className={styles.itemText}>
+                <p className={styles.itemTitle}>{line.title}</p>
+                {line.subtitle && <p className={styles.itemSubtitle}>{line.subtitle}</p>}
+              </div>
+              <p className={styles.itemPrice}>{formatRub(line.totalKopecks)}</p>
+              {line.onRemove && (
+                <button
+                  type="button"
+                  className={styles.itemRemove}
+                  onClick={line.onRemove}
+                  aria-label={`Убрать из заказа: ${line.title}`}
+                >
+                  <span aria-hidden="true">×</span>
+                </button>
+              )}
+            </li>
           ))}
-        </dl>
+        </ul>
       ) : (
         <p className={styles.emptyOrder}>{props.emptyText}</p>
       )}
@@ -69,7 +95,9 @@ export function OrderPanel(props: Props) {
           <dt>Билетов</dt>
           <dd>{props.ticketCount}</dd>
         </div>
-        <div className={styles.total}>
+      </dl>
+      <dl className={styles.grandTotal}>
+        <div>
           <dt>Итого</dt>
           <dd>{formatRub(props.totalKopecks)}</dd>
         </div>
@@ -121,6 +149,7 @@ export function OrderPanel(props: Props) {
       <button type="submit" className={`${buttons.button} ${styles.submit}`}>
         Оформить заказ
       </button>
+      <p className={styles.afterSubmit}>Электронные билеты придут на почту после оплаты</p>
 
       {/* Живой регион есть всегда — сообщения появляются внутри (WCAG 4.1.3). */}
       <div role="status">
