@@ -8,6 +8,9 @@ import { formatAge, formatDuration, type Credit, type Show } from '@/modules/sho
 import styles from './ShowAbout.module.css'
 
 const isDirector = (c: Credit) => /режисс/i.test(c.role)
+/** Актёрский состав: роли с персонажами или явные «В ролях» / «Действующие лица». */
+const isCast = (c: Credit) =>
+  /в ролях|действующие лица/i.test(c.role) || c.entries.some((e) => e.character)
 
 /** Имена через запятую, каждое — ссылка на страницу человека. */
 export function PeopleLinks({ names }: { names: string[] }) {
@@ -90,7 +93,33 @@ const icons = {
   ),
 }
 
-export function ShowAbout({ show }: { show: Show }) {
+export type ShowStat = { value: string; label: string }
+
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+
+/** Актёры: одна карточка на человека; персонажи (и «в очередь») — подписью. */
+const castCards = (show: Show) => {
+  const byName = new Map<string, { roles: string[]; alternating: boolean }>()
+  for (const credit of show.credits.filter(isCast))
+    for (const e of credit.entries)
+      for (const name of e.people) {
+        const card = byName.get(name) ?? { roles: [], alternating: false }
+        if (e.character && !card.roles.includes(e.character)) card.roles.push(e.character)
+        if (e.people.length > 1) card.alternating = true
+        byName.set(name, card)
+      }
+  return [...byName].map(([name, c]) => ({
+    name,
+    role: [c.roles.join(', '), c.alternating ? 'в очередь' : ''].filter(Boolean).join(' · '),
+  }))
+}
+
+export function ShowAbout({ show, stats = [] }: { show: Show; stats?: ShowStat[] }) {
   const directors = uniqueNames(show.credits.filter(isDirector))
   const duration = formatDuration(show.durationMinutes)
   const age = formatAge(show.ageLimit)
@@ -100,35 +129,70 @@ export function ShowAbout({ show }: { show: Show }) {
   if (show.genre) facts.push(['genre', 'Жанр', show.genre])
   if (directors.length)
     facts.push(['director', 'Режиссёр', <PeopleLinks key="d" names={directors} />])
-  const collage = show.gallery.slice(0, 2)
+  const actors = castCards(show)
+  const crew = show.credits.filter((c) => !isCast(c))
   // Видео у театра пока нет: медиа-карточка ведёт к фото. Кнопку Play без видео не показываем.
-  const mediaPhoto = show.gallery[2] ?? show.gallery[0]
+  const mediaPhoto = show.gallery[1] ?? show.gallery[0]
 
   return (
     <div className={styles.about}>
-      <div>
-        <h2 className={styles.title}>О спектакле</h2>
+      <div className={styles.main}>
+        <h2 className="visually-hidden">О спектакле</h2>
         <div className={styles.prose}>
           {show.description.map((p, i) => (
             // Список статичен и не переупорядочивается.
             <p key={i}>{p}</p>
           ))}
         </div>
-        {collage.length > 0 && (
-          <div className={styles.collage} data-count={collage.length}>
-            {collage.map((src, i) => (
-              <div key={src} className={styles.photo}>
-                <Image
-                  src={src}
-                  alt={`Сцена из спектакля «${show.title}»`}
-                  fill
-                  sizes={
-                    i === 0 ? '(min-width: 60rem) 20vw, 40vw' : '(min-width: 60rem) 35vw, 60vw'
-                  }
-                />
+
+        {stats.length > 0 && (
+          <dl className={styles.stats}>
+            {stats.map((s) => (
+              <div key={s.label}>
+                <dt>{s.label}</dt>
+                <dd>{s.value}</dd>
               </div>
             ))}
-          </div>
+          </dl>
+        )}
+
+        {actors.length > 0 && (
+          <section aria-labelledby={`${show.slug}-actors`}>
+            <h3 id={`${show.slug}-actors`} className={styles.blockTitle}>
+              Актёры
+            </h3>
+            <ul className={styles.actors}>
+              {actors.map((a) => (
+                <li key={a.name} className={styles.actor}>
+                  <span className={styles.avatar} aria-hidden="true">
+                    {initials(a.name)}
+                  </span>
+                  <Link href={`/people/${personSlug(a.name)}`} className={styles.actorName}>
+                    {a.name}
+                  </Link>
+                  {a.role && <span className={styles.actorRole}>{a.role}</span>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {crew.length > 0 && (
+          <section aria-labelledby={`${show.slug}-crew`}>
+            <h3 id={`${show.slug}-crew`} className={styles.blockTitle}>
+              Создатели
+            </h3>
+            <dl className={styles.castList}>
+              {crew.map((credit) => (
+                <div key={credit.role}>
+                  <dt>{credit.role}</dt>
+                  <dd>
+                    <PeopleLinks names={uniqueNames([credit])} />
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
         )}
       </div>
 
@@ -159,45 +223,6 @@ export function ShowAbout({ show }: { show: Show }) {
           </a>
         )}
       </aside>
-    </div>
-  )
-}
-
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-
-export function ShowPeople({ show }: { show: Show }) {
-  return (
-    <div className={styles.people}>
-      {show.credits.map((credit) => (
-        <section key={credit.role} aria-labelledby={`role-${personSlug(credit.role)}`}>
-          <h3 id={`role-${personSlug(credit.role)}`} className={styles.roleTitle}>
-            {credit.role}
-          </h3>
-          <ul className={styles.cards}>
-            {credit.entries.flatMap((entry) =>
-              entry.people.map((name) => (
-                <li key={`${entry.character ?? ''}-${name}`} className={styles.card}>
-                  <span className={styles.avatar} aria-hidden="true">
-                    {initials(name)}
-                  </span>
-                  <span>
-                    <Link href={`/people/${personSlug(name)}`} className={styles.cardName}>
-                      {name}
-                    </Link>
-                    {entry.character && <span className={styles.character}>{entry.character}</span>}
-                    {entry.people.length > 1 && <span className={styles.character}>в очередь</span>}
-                  </span>
-                </li>
-              )),
-            )}
-          </ul>
-        </section>
-      ))}
     </div>
   )
 }

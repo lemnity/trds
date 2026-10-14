@@ -16,31 +16,139 @@
   margin-top: 1rem;
 }
 
-.collage {
+/* Действующие лица — как в театральной программке: персонаж … исполнитель. */
+.main {
   display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 0.75rem;
-  margin-top: 1.75rem;
+  gap: clamp(1.75rem, 4vw, 2.5rem);
+  min-width: 0;
 }
 
-.collage[data-count='1'] {
-  grid-template-columns: 1fr;
+.blockTitle {
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: var(--step-1);
 }
 
-.photo {
+/* Цифры в ряд, разделённые тонкими линиями. */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stats div {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  padding: 0.25rem clamp(0.75rem, 2.5vw, 1.5rem);
+  border-left: 1px solid var(--color-hairline);
+}
+
+.stats div:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.stats dd {
+  margin: 0;
+  font-weight: 600;
+  font-size: var(--step-3);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats dt {
+  max-width: 12ch;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.actors {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(30%, 7.5rem), 1fr));
+  gap: 1.5rem 1rem;
+}
+
+.actor {
   position: relative;
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  border-radius: var(--radius-control);
-  background: var(--color-night);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
-.photo + .photo {
-  aspect-ratio: auto;
+.actor:focus-within .avatar {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
-.photo img {
-  object-fit: cover;
+.avatar {
+  display: grid;
+  place-items: center;
+  width: clamp(4.25rem, 16vw, 5.5rem);
+  height: clamp(4.25rem, 16vw, 5.5rem);
+  margin-bottom: 0.75rem;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #e3e1dc, #cfccc4);
+  color: var(--color-ink);
+  font-weight: 600;
+  font-size: var(--step-2);
+  transition: transform var(--motion-base) var(--ease-standard);
+}
+
+.actor:hover .avatar {
+  transform: scale(1.04);
+}
+
+.actorName {
+  font-weight: 600;
+  font-size: var(--step--1);
+  text-decoration: none;
+}
+
+.actorName:focus-visible {
+  outline: none;
+}
+
+/* Вся карточка актёра — ссылка на его страницу. */
+.actorName::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.actorRole {
+  margin-top: 0.15rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.castList {
+  max-width: var(--reading-max);
+}
+
+.castList div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  padding-block: 0.7rem;
+  border-bottom: 1px dashed var(--color-hairline);
+}
+
+.castList dt {
+  flex: 1 1 10rem;
+  color: var(--color-muted);
+}
+
+.castList dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+.castList div:not(:has(dt)) dd {
+  text-align: left;
 }
 
 .sidebar {
@@ -145,93 +253,15 @@
   text-decoration-color: currentColor;
 }
 
-.people {
-  display: grid;
-  gap: 2rem;
-}
-
-.roleTitle {
-  margin-bottom: 0.75rem;
-  font-size: var(--step--1);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-muted);
-}
-
-.cards {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-}
-
-.card {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  padding: 0.85rem 1rem;
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-card);
-  transition: box-shadow var(--motion-fast) var(--ease-standard);
-}
-
-.card:hover {
-  box-shadow: 0 10px 28px rgb(21 23 28 / 0.12);
-}
-
-.card:focus-within {
-  outline: 3px solid var(--color-focus);
-  outline-offset: 2px;
-}
-
-.avatar {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
-  background: var(--color-brand);
-  color: var(--color-brand-contrast);
-  font-weight: 600;
-}
-
-.cardName {
-  display: block;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.cardName:focus-visible {
-  outline: none;
-}
-
-/* Вся карточка — ссылка на страницу человека. */
-.cardName::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-}
-
-.character {
-  display: block;
-  font-size: var(--step--1);
-  color: var(--color-muted);
-}
-
 @media (min-width: 60rem) {
   .about {
     grid-template-columns: minmax(0, 1.4fr) minmax(20rem, 1fr);
     gap: 3rem;
   }
 
-  .collage {
-    height: 20rem;
-  }
-
-  .photo {
-    aspect-ratio: auto;
+  /* Правая колонка не уезжает при чтении длинного описания и состава. */
+  .sidebar {
+    position: sticky;
+    top: 6rem;
   }
 }

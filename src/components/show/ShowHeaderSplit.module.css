@@ -1,0 +1,272 @@
+.crumbs {
+  margin-block: 0.75rem 1rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.crumbs li + li::before {
+  content: '/';
+  margin-right: 0.35rem;
+}
+
+.crumbs a {
+  text-decoration: none;
+}
+
+.crumbs a:hover {
+  color: var(--color-brand);
+  text-decoration: underline;
+}
+
+/* Вариант Б: обложка слева, информация и ближайшие даты справа, на светлом фоне. */
+.hero {
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-hero);
+  background: var(--color-night);
+}
+
+.media[data-kind='photo'] img {
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.backdrop {
+  object-fit: cover;
+  filter: blur(28px) saturate(1.2);
+  opacity: 0.55;
+  transform: scale(1.15);
+}
+
+.poster {
+  object-fit: contain;
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  animation: rise var(--motion-slow) var(--ease-standard) both;
+}
+
+.eyebrow {
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-brand);
+}
+
+.title {
+  margin-top: 0.6rem;
+  font-weight: 600;
+  font-size: var(--step-4);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.title[data-long] {
+  font-size: var(--step-3);
+}
+
+.lead {
+  margin-top: 1rem;
+  max-width: 46ch;
+  font-size: var(--step-1);
+  line-height: 1.45;
+  color: var(--color-muted);
+}
+
+.dates {
+  margin-top: clamp(1.5rem, 3vw, 2rem);
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.datesTitle {
+  margin-bottom: 0.5rem;
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* Строка показа — целиком ссылка на покупку именно этой даты. */
+.date {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 1rem;
+  min-height: var(--tap-min);
+  padding: 0.75rem 0.5rem;
+  margin-inline: -0.5rem;
+  border-radius: var(--radius-control);
+  text-decoration: none;
+  transition: background-color var(--motion-fast) var(--ease-standard);
+}
+
+li + li .date {
+  border-top: 1px solid var(--color-hairline);
+  border-radius: 0 0 var(--radius-control) var(--radius-control);
+}
+
+.date:hover {
+  background: var(--color-background);
+}
+
+.date:hover .arrow {
+  transform: translateX(3px);
+  color: var(--color-brand);
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 3.25rem;
+  line-height: 1;
+}
+
+.dayNum {
+  font-weight: 700;
+  font-size: var(--step-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.dayMonth {
+  margin-top: 0.2rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.when {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.whenMain {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.venue {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+.status::before {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status[data-open='true'] {
+  color: var(--color-success);
+}
+
+.arrow {
+  color: var(--color-muted);
+  transition: transform var(--motion-fast) var(--ease-standard);
+}
+
+.rest {
+  margin-top: 0.5rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.price {
+  color: var(--color-muted);
+}
+
+.price strong {
+  font-size: var(--step-2);
+  font-weight: 600;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.noDates {
+  margin-top: 1.5rem;
+  color: var(--color-muted);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (max-width: 30rem) {
+  /* На узком экране статус уходит под площадку, стрелка остаётся справа. */
+  .date {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .status {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .arrow {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+}
+
+@media (min-width: 60rem) {
+  .hero {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: start;
+  }
+
+  .media {
+    aspect-ratio: 4 / 5;
+    max-height: calc(100dvh - 9rem);
+    position: sticky;
+    top: 6rem;
+  }
+
+  .info {
+    padding-top: 0.5rem;
+  }
+}

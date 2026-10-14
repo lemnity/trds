@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 
@@ -6,9 +7,9 @@ import { HideWhenStarted } from '@/components/board/HideWhenStarted'
 import { ShowCard } from '@/components/board/ShowCard'
 import { ShowBooking } from '@/components/show/ShowBooking'
 import { Gallery } from '@/components/show/Gallery'
-import { ShowAbout, ShowPeople } from '@/components/show/ShowAbout'
-import { ShowHeader } from '@/components/show/ShowHeader'
-import { ShowTabs, type ShowTab } from '@/components/show/ShowTabs'
+import { ShowAbout, type ShowStat } from '@/components/show/ShowAbout'
+// Варианты первого экрана: А — ShowHeader, Б — ShowHeaderSplit, В (референс заказчика) — ShowHeaderCompact.
+import { ShowHeaderCompact } from '@/components/show/ShowHeaderCompact'
 import { getShowPage, getShowsData, listPublishedShows, listUpcoming } from '@/modules/shows'
 
 import styles from './show.module.css'
@@ -30,6 +31,13 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 const OTHER_SHOWS = 4
 
+const plural = (n: number, one: string, few: string, many: string) =>
+  n % 10 === 1 && n % 100 !== 11
+    ? one
+    : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)
+      ? few
+      : many
+
 export default async function ShowPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params
   const data = getShowsData()
@@ -46,25 +54,36 @@ export default async function ShowPage({ params }: { params: Promise<Params> }) 
   // Старый сайт театра: на нём продажи через Ticketscloud, пока не подключён банк.
   const fallbackUrl = `https://teatrturdus.ru/${show.slug}`
 
-  // Вкладки «Видео» и «Отзывы» из референса появятся, когда театр даст материалы.
-  const tabs: ShowTab[] = [
-    { id: 'about', label: 'О спектакле', content: <ShowAbout show={show} /> },
+  // Только факты из данных, без выдуманных «лет работы» (design.md §1.7).
+  const repertoire = listPublishedShows(data).length
+  const stats: ShowStat[] = [
+    {
+      value: performances.length,
+      label: plural(performances.length, 'показ впереди', 'показа впереди', 'показов впереди'),
+    },
+    {
+      value: repertoire,
+      label: plural(
+        repertoire,
+        'спектакль в репертуаре',
+        'спектакля в репертуаре',
+        'спектаклей в репертуаре',
+      ),
+    },
+    {
+      value: data.venues.length,
+      label: plural(data.venues.length, 'площадка театра', 'площадки театра', 'площадок театра'),
+    },
   ]
-  if (show.credits.length > 0)
-    tabs.push({ id: 'people', label: 'Актёры и создатели', content: <ShowPeople show={show} /> })
-  if (show.gallery.length > 0)
-    tabs.push({
-      id: 'photos',
-      label: 'Фото',
-      content: <Gallery photos={show.gallery} title={show.title} />,
-    })
+    .filter((s) => s.value > 0)
+    .map((s) => ({ value: String(s.value), label: s.label }))
 
   return (
     <>
-      <ShowHeader show={show} next={performances[0]} />
+      <ShowHeaderCompact show={show} performances={performances} />
 
-      <section id="about" className="container" aria-label="О спектакле">
-        <ShowTabs tabs={tabs} />
+      <section id="about" className={`container ${styles.about}`} aria-label="О спектакле">
+        <ShowAbout show={show} stats={stats} />
       </section>
 
       <section id="tickets" className={`container ${styles.section}`} aria-label="Даты и билеты">
@@ -73,11 +92,31 @@ export default async function ShowPage({ params }: { params: Promise<Params> }) 
         </Suspense>
       </section>
 
+      {show.gallery.length > 0 && (
+        <section
+          id="photos"
+          className={`container ${styles.section}`}
+          aria-labelledby="photos-title"
+        >
+          <h2 id="photos-title" className={styles.title}>
+            Фото
+          </h2>
+          <div className={styles.gallery}>
+            <Gallery photos={show.gallery} title={show.title} />
+          </div>
+        </section>
+      )}
+
       {others.length > 0 && (
         <section className={`container ${styles.section}`} aria-labelledby="others-title">
-          <h2 id="others-title" className={styles.title}>
-            Другие спектакли
-          </h2>
+          <div className={styles.head}>
+            <h2 id="others-title" className={styles.title}>
+              Другие спектакли
+            </h2>
+            <Link href="/afisha" className={styles.all}>
+              Вся афиша <span aria-hidden="true">→</span>
+            </Link>
+          </div>
           <ul className={styles.cards}>
             {others.map((item) => {
               const poster = posters.get(item.show.slug)

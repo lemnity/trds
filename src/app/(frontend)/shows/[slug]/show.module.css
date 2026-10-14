@@ -1,12 +1,44 @@
+.about {
+  margin-top: clamp(1.5rem, 3vw, 2.25rem);
+}
+
 .section {
   margin-top: var(--section-space);
+  scroll-margin-top: 5rem;
+}
+
+.gallery {
+  margin-top: 1.25rem;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .title {
-  margin: 0.35rem 0 1.25rem;
   font-weight: 600;
   font-size: var(--step-3);
   line-height: var(--leading-tight);
+}
+
+.all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: var(--tap-min);
+  font-weight: 600;
+  color: var(--color-brand);
+  text-decoration: none;
+}
+
+.all:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 
 .cards {

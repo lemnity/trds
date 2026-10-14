@@ -46,6 +46,9 @@ export function ShowTabs({ tabs }: { tabs: ShowTab[] }) {
     activate(next)
   }
 
+  // Одна вкладка — переключать нечего: показываем раздел без списка вкладок.
+  if (tabs.length === 1) return <div className={styles.tabs}>{tabs[0]!.content}</div>
+
   return (
     <div ref={rootRef} className={styles.tabs}>
       <div role="tablist" aria-label="Разделы о спектакле" className={styles.list}>

@@ -36,6 +36,13 @@ const groupByDay = (items: SalePerformance[]): Day[] => {
   return [...days.values()]
 }
 
+const daysWord = (n: number) =>
+  n % 10 === 1 && n % 100 !== 11
+    ? 'дата'
+    : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)
+      ? 'даты'
+      : 'дат'
+
 const initialQuantities = (types: TicketType[]) =>
   Object.fromEntries(types.map((t, i) => [t.id, i === 0 ? 1 : 0]))
 
@@ -65,6 +72,19 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
     initialQuantities(selected?.ticketTypes ?? []),
   )
   const [seatIds, setSeatIds] = useState<string[]>([])
+
+  // Дату могут выбрать на первом экране ссылкой ?date=<id>: подхватываем смену параметра
+  // без перезагрузки (паттерн «состояние от предыдущего значения», без эффекта).
+  const [seenRequested, setSeenRequested] = useState(requested)
+  if (requested !== seenRequested) {
+    setSeenRequested(requested)
+    const target = available.find((p) => p.id === requested)
+    if (target) {
+      setSelectedId(target.id)
+      setQuantities(initialQuantities(target.ticketTypes))
+      setSeatIds([])
+    }
+  }
 
   if (!selected) {
     return (
@@ -184,11 +204,13 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
       <div className={styles.sectionHead}>
         <div>
           <p className={styles.eyebrow}>
-            <span>01</span> Афиша
+            <span>Шаг 1</span> Дата
           </p>
-          <h2 className={styles.title}>Ближайшие даты</h2>
+          <h2 className={styles.title}>Когда пойдёте?</h2>
         </div>
-        <p className={styles.hint}>Выберите дату и время</p>
+        <p className={styles.hint}>
+          {days.length > 1 ? `${days.length} ${daysWord(days.length)} впереди` : 'Один показ'}
+        </p>
       </div>
 
       <ul className={styles.strip} aria-label="Даты показов">
@@ -254,9 +276,9 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
       <div className={`${styles.sectionHead} ${styles.second}`}>
         <div>
           <p className={styles.eyebrow}>
-            <span>02</span> {seating ? 'Зал' : 'Билеты'}
+            <span>Шаг 2</span> {seating ? 'Места' : 'Билеты'}
           </p>
-          <h2 className={styles.title}>{seating ? 'Выбор мест' : 'Выбор билетов'}</h2>
+          <h2 className={styles.title}>{seating ? 'Выберите места' : 'Сколько билетов?'}</h2>
         </div>
         <p className={styles.hint}>
           {!seating
