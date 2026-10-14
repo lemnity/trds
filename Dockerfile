@@ -14,7 +14,8 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN pnpm build
+RUN pnpm build \
+ && pnpm exec esbuild src/jobs/main.ts --bundle --platform=node --format=esm --target=node24 --outfile=dist/worker.mjs
 
 FROM node:24.21.0-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20 AS runner
 ENV NODE_ENV=production \
@@ -26,6 +27,8 @@ RUN groupadd --system --gid 1001 nodejs \
  && useradd --system --uid 1001 --gid nodejs nextjs
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Worker: тот же образ, отдельная команда `node worker.mjs` (docker-compose.yml).
+COPY --from=builder --chown=nextjs:nodejs /app/dist/worker.mjs ./worker.mjs
 USER nextjs
 EXPOSE 3000
 CMD ["node", "server.js"]
