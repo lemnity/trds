@@ -32,18 +32,6 @@ export function ShowHeaderCompact({ show, performances }: Props) {
 
   return (
     <div className="container">
-      <nav aria-label="Хлебные крошки" className={styles.crumbs}>
-        <ol>
-          <li>
-            <Link href="/">Главная</Link>
-          </li>
-          <li>
-            <Link href="/afisha">Афиша</Link>
-          </li>
-          <li aria-current="page">{show.title}</li>
-        </ol>
-      </nav>
-
       <div className={styles.media} data-kind={photo ? 'photo' : 'poster'}>
         {photo ? (
           <Image src={photo} alt="" fill priority sizes="(min-width: 82rem) 82rem, 100vw" />
@@ -61,6 +49,18 @@ export function ShowHeaderCompact({ show, performances }: Props) {
           </>
         )}
       </div>
+
+      <nav aria-label="Хлебные крошки" className={styles.crumbs}>
+        <ol>
+          <li>
+            <Link href="/">Главная</Link>
+          </li>
+          <li>
+            <Link href="/afisha">Афиша</Link>
+          </li>
+          <li aria-current="page">{show.title}</li>
+        </ol>
+      </nav>
 
       <header className={styles.head}>
         <h1 className={styles.title}>{show.title}</h1>

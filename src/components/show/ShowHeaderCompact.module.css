@@ -1,5 +1,5 @@
 .crumbs {
-  margin-block: 0.75rem 1rem;
+  margin-block: 1rem 0.25rem;
   font-size: var(--step--1);
   color: var(--color-muted);
 }
@@ -26,6 +26,7 @@
 
 .media {
   position: relative;
+  margin-top: 0.75rem;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: var(--radius-hero);
