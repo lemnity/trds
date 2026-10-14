@@ -6,3 +6,4 @@ export {
   type QuoteLine,
 } from './quote'
 export { parseContact, type Contact, type ContactErrors } from './contact'
+export { selectionFromSearch, selectionToSearch, type Selection } from './selection'

@@ -66,6 +66,26 @@ const data: ShowsData = {
       ticketTypes: [],
     },
     {
+      id: 'seated-priced',
+      showSlug: 'a',
+      venueId: 'bar',
+      startsAt: '2026-12-01T19:00:00+05:00',
+      ticketTypes: [],
+      seating: {
+        planId: 'dom-aktera',
+        pricesKopecks: { 'cat-1': 300_000, 'cat-7': 90_000 },
+        unavailableSeatIds: ['r1-s1'],
+      },
+    },
+    {
+      id: 'seated-unpriced',
+      showSlug: 'a',
+      venueId: 'bar',
+      startsAt: '2026-12-02T19:00:00+05:00',
+      ticketTypes: [],
+      seating: { planId: 'dom-aktera', pricesKopecks: {}, unavailableSeatIds: [] },
+    },
+    {
       id: 'draft-1',
       showSlug: 'draft',
       venueId: 'bar',
@@ -79,12 +99,21 @@ const now = new Date('2026-10-15T12:00:00+05:00')
 
 describe('listUpcoming', () => {
   it('returns only future performances of published shows, soonest first', () => {
-    expect(listUpcoming(data, now).map((p) => p.id)).toEqual(['a-1', 'a-2'])
+    expect(listUpcoming(data, now).map((p) => p.id)).toEqual([
+      'a-1',
+      'a-2',
+      'seated-priced',
+      'seated-unpriced',
+    ])
   })
 
   it('exposes the cheapest price and whether sales are open on the site', () => {
     const [first, second] = listUpcoming(data, now)
-    expect(first).toMatchObject({ minPriceKopecks: 100_000, salesOpen: true })
+    expect(first).toMatchObject({
+      minPriceKopecks: 100_000,
+      salesOpen: true,
+      pricePlaceholder: false,
+    })
     expect(second).toMatchObject({ minPriceKopecks: null, salesOpen: false })
   })
 
@@ -99,7 +128,23 @@ describe('getShowPage', () => {
   it('returns a published show with its upcoming performances', () => {
     const page = getShowPage(data, 'a', now)
     expect(page?.show.title).toBe('Спектакль А')
-    expect(page?.performances.map((p) => p.id)).toEqual(['a-1', 'a-2'])
+    expect(page?.performances.map((p) => p.id)).toEqual([
+      'a-1',
+      'a-2',
+      'seated-priced',
+      'seated-unpriced',
+    ])
+  })
+
+  it('resolves the seating plan and opens sales only when seat prices are set', () => {
+    const page = getShowPage(data, 'a', now)
+    const priced = page?.performances.find((p) => p.id === 'seated-priced')
+    const unpriced = page?.performances.find((p) => p.id === 'seated-unpriced')
+    expect(priced?.seating?.plan.id).toBe('dom-aktera')
+    expect(priced?.seating?.unavailableSeatIds).toEqual(['r1-s1'])
+    expect(priced).toMatchObject({ salesOpen: true, minPriceKopecks: 90_000 })
+    expect(unpriced).toMatchObject({ salesOpen: false, minPriceKopecks: null })
+    expect(page?.performances.find((p) => p.id === 'a-1')?.seating).toBeNull()
   })
 
   it('includes ticket categories and the venue address for booking', () => {
@@ -132,6 +177,7 @@ describe('groupByMonth', () => {
     expect(groups.map((g) => [g.label, g.items.length])).toEqual([
       ['Октябрь 2026', 1],
       ['Ноябрь 2026', 1],
+      ['Декабрь 2026', 2],
     ])
   })
 })

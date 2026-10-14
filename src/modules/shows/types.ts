@@ -12,6 +12,8 @@ export type TicketType = {
   title: string
   priceKopecks: number
   capacity: number
+  /** Цена-заглушка до утверждения театром: в интерфейсе помечается как предварительная. */
+  placeholder?: boolean
 }
 
 export type Credit = {
@@ -38,8 +40,16 @@ export type Performance = {
   venueId: string
   /** ISO 8601 со смещением театра, например 2026-10-20T19:00:00+05:00 */
   startsAt: string
-  /** Пусто — продажи на сайте ещё не открыты. */
+  /** Пусто — продажи на сайте ещё не открыты (для площадок без схемы зала). */
   ticketTypes: TicketType[]
+  /** Продажа по местам на схеме зала (Дом актёра). Без цен категорий места не продаются. */
+  seating?: {
+    planId: string
+    pricesKopecks: Record<string, number>
+    /** Цены-заглушки до утверждения театром. */
+    pricesPlaceholder?: boolean
+    unavailableSeatIds: string[]
+  }
 }
 
 export type ShowsData = {
@@ -54,5 +64,7 @@ export type PerformanceView = {
   show: Pick<Show, 'slug' | 'title' | 'ageLimit' | 'genre'>
   venue: Venue
   minPriceKopecks: number | null
+  /** Хотя бы одна цена — заглушка, не утверждённая театром. */
+  pricePlaceholder: boolean
   salesOpen: boolean
 }

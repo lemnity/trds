@@ -182,6 +182,12 @@ src/
 - Checkout выполняет атомарный `UPDATE ... WHERE sold_qty + held_qty + quantity <= capacity` под транзакцией. Для корзины из нескольких категорий строки блокируются в стабильном порядке ID, чтобы уменьшить риск deadlock.
 - При изменении вместимости админом значение нельзя уменьшить ниже уже оплаченного + зарезервированного количества.
 
+### `commerce_seats` и `commerce_seat_inventory` (выбор мест, PRD «Изменения объёма»)
+- `commerce_seats`: `id`, `venue_id`, `seating_plan_version`, `section`, `row_number`, `seat_number`, `category_id`; UNIQUE (`venue_id`, `seating_plan_version`, `section`, `row_number`, `seat_number`). Схема зала версионируется: изменение схемы не меняет проданные билеты.
+- `commerce_seat_inventory`: `performance_id`, `seat_id`, `status` (`AVAILABLE`, `HELD`, `SOLD`, `BLOCKED`), `order_id NULL`, `hold_until NULL`; PRIMARY KEY (`performance_id`, `seat_id`).
+- Резерв: одна транзакция `UPDATE ... SET status='HELD' WHERE performance_id=$1 AND seat_id = ANY($2) AND status='AVAILABLE'` с проверкой, что обновлено ровно столько строк, сколько мест выбрано; иначе откат и ответ «место уже занято». Строки блокируются в порядке `seat_id`.
+- Цена места = цена его категории для показа (`commerce_ticket_inventory` по категориям остаётся для площадок без мест). Билет хранит `seat_id`; повторная продажа места после возврата — по тем же правилам, что и квоты.
+
 ### `commerce_tickets`
 - `id`, `order_item_id`, `ticket_number UNIQUE`, `status` (`ISSUED`, `REFUND_PENDING`, `REFUNDED`).
 - `qr_token_version`, `issued_at`, `refunded_at NULL`.

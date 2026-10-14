@@ -1,3 +1,5 @@
+import { getSeatingPlan, type PerformanceSeating } from '@/modules/seating'
+
 import type { Performance, PerformanceView, Show, ShowsData, TicketType, Venue } from './types'
 
 // Часовой пояс театра (Екатеринбург). Открытый вопрос memory.md §5 — подтвердить у театра.
@@ -5,18 +7,33 @@ export const THEATRE_TIME_ZONE = 'Asia/Yekaterinburg'
 
 const isPublished = (show: Show | undefined): show is Show => show?.status === 'published'
 
+const resolveSeating = (p: Performance): PerformanceSeating | null => {
+  if (!p.seating) return null
+  const plan = getSeatingPlan(p.seating.planId)
+  if (!plan) return null
+  return {
+    plan,
+    pricesKopecks: p.seating.pricesKopecks,
+    pricesPlaceholder: p.seating.pricesPlaceholder === true,
+    unavailableSeatIds: p.seating.unavailableSeatIds,
+  }
+}
+
 const toView = (data: ShowsData, p: Performance): PerformanceView | null => {
   const show = data.shows.find((s) => s.slug === p.showSlug)
   const venue = data.venues.find((v) => v.id === p.venueId)
   if (!isPublished(show) || !venue) return null
-  const prices = p.ticketTypes.map((t) => t.priceKopecks)
+  const seatPrices = p.seating ? Object.values(p.seating.pricesKopecks) : []
+  const prices = [...p.ticketTypes.map((t) => t.priceKopecks), ...seatPrices]
   return {
     id: p.id,
     startsAt: p.startsAt,
     show: { slug: show.slug, title: show.title, ageLimit: show.ageLimit, genre: show.genre },
     venue,
     minPriceKopecks: prices.length > 0 ? Math.min(...prices) : null,
-    salesOpen: p.ticketTypes.length > 0,
+    pricePlaceholder:
+      p.ticketTypes.some((t) => t.placeholder === true) || p.seating?.pricesPlaceholder === true,
+    salesOpen: prices.length > 0,
   }
 }
 
@@ -36,7 +53,11 @@ export const listUpcoming = (data: ShowsData, now: Date): PerformanceView[] =>
 
 export const listPublishedShows = (data: ShowsData): Show[] => data.shows.filter(isPublished)
 
-export type SalePerformance = PerformanceView & { ticketTypes: TicketType[]; venue: Venue }
+export type SalePerformance = PerformanceView & {
+  ticketTypes: TicketType[]
+  venue: Venue
+  seating: PerformanceSeating | null
+}
 
 /** Спектакль и его будущие показы с категориями билетов (пусто — продажи не открыты). */
 export const getShowPage = (data: ShowsData, slug: string, now: Date) => {
@@ -44,19 +65,24 @@ export const getShowPage = (data: ShowsData, slug: string, now: Date) => {
   if (!isPublished(show)) return null
   const performances: SalePerformance[] = listUpcoming(data, now)
     .filter((p) => p.show.slug === slug)
-    .map((view) => ({
-      ...view,
-      ticketTypes: data.performances.find((p) => p.id === view.id)?.ticketTypes ?? [],
-    }))
+    .map((view) => {
+      const source = data.performances.find((p) => p.id === view.id)
+      return {
+        ...view,
+        ticketTypes: source?.ticketTypes ?? [],
+        seating: source ? resolveSeating(source) : null,
+      }
+    })
   return { show, performances }
 }
 
 /** Показ, доступный для покупки: будущий, опубликованный, с открытыми продажами (TICKETS-01). */
 export const findPerformance = (data: ShowsData, id: string, now: Date): SalePerformance | null => {
   const p = data.performances.find((x) => x.id === id)
-  if (!p || !isUpcoming(p, now) || p.ticketTypes.length === 0) return null
+  if (!p || !isUpcoming(p, now)) return null
   const view = toView(data, p)
-  return view ? { ...view, ticketTypes: p.ticketTypes } : null
+  if (!view?.salesOpen) return null
+  return { ...view, ticketTypes: p.ticketTypes, seating: resolveSeating(p) }
 }
 
 const partsFormatter = new Intl.DateTimeFormat('ru-RU', {

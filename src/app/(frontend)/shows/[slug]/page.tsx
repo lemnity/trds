@@ -47,19 +47,9 @@ export default async function ShowPage({ params }: { params: Promise<Params> }) 
     <>
       <ShowHero show={show} next={performances[0]} />
 
-      <section id="tickets" className={`container ${styles.section}`} aria-label="Даты и билеты">
-        <Suspense>
-          <ShowBooking
-            showTitle={show.title}
-            performances={performances}
-            fallbackUrl={fallbackUrl}
-          />
-        </Suspense>
-      </section>
-
       <section id="about" className={`container ${styles.section}`} aria-labelledby="about-title">
         <p className={styles.eyebrow}>
-          <span>03</span> О спектакле
+          <span>01</span> О спектакле
         </p>
         <h2 id="about-title" className={styles.title}>
           {show.title}
@@ -82,6 +72,12 @@ export default async function ShowPage({ params }: { params: Promise<Params> }) 
             </dl>
           )}
         </div>
+      </section>
+
+      <section id="tickets" className={`container ${styles.section}`} aria-label="Даты и билеты">
+        <Suspense>
+          <ShowBooking performances={performances} fallbackUrl={fallbackUrl} />
+        </Suspense>
       </section>
 
       {others.length > 0 && (

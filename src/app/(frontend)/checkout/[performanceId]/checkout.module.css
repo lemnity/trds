@@ -1,0 +1,48 @@
+.layout {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.ticket {
+  padding: 1.5rem;
+  border-radius: var(--radius-card);
+  background: var(--color-night);
+  color: #ffffff;
+}
+
+.show {
+  font-weight: 600;
+  font-size: var(--step-2);
+  line-height: 1.15;
+}
+
+.when {
+  margin-top: 0.75rem;
+  font-weight: 600;
+}
+
+.where {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.address {
+  margin-top: 0.25rem;
+  font-size: var(--step--1);
+  color: var(--color-night-muted);
+}
+
+@media (min-width: 60rem) {
+  .layout {
+    grid-template-columns: minmax(18rem, 1fr) minmax(0, 1.6fr);
+  }
+
+  .ticket {
+    position: sticky;
+    top: 6rem;
+  }
+}

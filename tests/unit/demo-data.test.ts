@@ -30,6 +30,32 @@ describe('demo shows data', () => {
   })
 })
 
+describe('placeholder prices', () => {
+  it('opens November seat sales of «В бананово-лимонном Сингапуре» with flagged placeholder prices', () => {
+    const november = performances.filter(
+      (p) => p.showSlug === 'concertsp' && p.startsAt.startsWith('2026-11'),
+    )
+    expect(november.length).toBeGreaterThan(0)
+    for (const p of november) {
+      expect(p.seating?.planId).toBe('dom-kultury')
+      expect(Object.keys(p.seating?.pricesKopecks ?? {})).toHaveLength(7)
+      // Цены не утверждены театром — обязаны быть помечены как заглушка.
+      expect(p.seating?.pricesPlaceholder).toBe(true)
+    }
+  })
+
+  it('puts every show at the bar «Дом Культуры» on its seating plan', () => {
+    for (const p of performances.filter((x) => x.venueId === 'dk')) {
+      expect(p.seating?.planId, p.id).toBe('dom-kultury')
+    }
+  })
+
+  it('keeps theatre-confirmed prices unflagged', () => {
+    const poets = performances.filter((p) => p.showSlug === 'three-poets')
+    expect(poets.flatMap((p) => p.ticketTypes).every((t) => !t.placeholder)).toBe(true)
+  })
+})
+
 describe('labels', () => {
   it('formats duration and age for display', () => {
     expect(formatDuration(150)).toBe('2 ч 30 мин')

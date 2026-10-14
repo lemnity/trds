@@ -11,6 +11,26 @@ import type { ShowsData } from './types'
 const tz = '+05:00'
 const at = (date: string, time: string) => `${date}T${time}:00${tz}`
 
+// ЗАГЛУШКА по просьбе заказчика (15.10.2026): цены категорий не утверждены театром.
+// Заменить на утверждённые до запуска продаж (memory.md).
+const vertinskyNovemberSeating = {
+  planId: 'dom-kultury',
+  pricesKopecks: {
+    'cat-1': 300_000,
+    'cat-2': 280_000,
+    'cat-3': 260_000,
+    'cat-4': 240_000,
+    'cat-5': 220_000,
+    'cat-6': 200_000,
+    'cat-7': 180_000,
+  },
+  pricesPlaceholder: true,
+  unavailableSeatIds: [],
+}
+
+// Схема зала есть, цены театр не передал — места видны, продажа закрыта.
+const dkSeatingClosed = { planId: 'dom-kultury', pricesKopecks: {}, unavailableSeatIds: [] }
+
 const threePoetsTickets = [
   { id: 'standard', title: 'Входной билет', priceKopecks: 100_000, capacity: 20 },
 ]
@@ -278,6 +298,7 @@ export const demoShowsData: ShowsData = {
       venueId: 'dk',
       startsAt: at('2026-10-08', '19:00'),
       ticketTypes: [],
+      seating: dkSeatingClosed,
     },
     {
       id: 'guests-1004',
@@ -369,6 +390,7 @@ export const demoShowsData: ShowsData = {
       venueId: 'dk',
       startsAt: at('2026-10-15', '19:00'),
       ticketTypes: [],
+      seating: dkSeatingClosed,
     },
     {
       id: '8women-1020',
@@ -376,6 +398,8 @@ export const demoShowsData: ShowsData = {
       venueId: 'dom-aktera',
       startsAt: at('2026-10-20', '19:00'),
       ticketTypes: [],
+      // Схема зала есть; цены 7 категорий театр ещё не передал — места видны, продажа закрыта.
+      seating: { planId: 'dom-aktera', pricesKopecks: {}, unavailableSeatIds: [] },
     },
     {
       id: 'normalflight-1022',
@@ -383,6 +407,7 @@ export const demoShowsData: ShowsData = {
       venueId: 'dk',
       startsAt: at('2026-10-22', '19:00'),
       ticketTypes: [],
+      seating: dkSeatingClosed,
     },
     {
       id: 'concertsp-1105',
@@ -390,6 +415,7 @@ export const demoShowsData: ShowsData = {
       venueId: 'dk',
       startsAt: at('2026-11-05', '19:00'),
       ticketTypes: [],
+      seating: vertinskyNovemberSeating,
     },
     {
       id: 'three-poets-1006',

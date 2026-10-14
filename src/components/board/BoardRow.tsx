@@ -47,7 +47,10 @@ export function BoardRow({ item, highlight = false, showTitle = true }: Props) {
       <div className={styles.action}>
         {item.salesOpen && item.minPriceKopecks !== null ? (
           <>
-            <span className={styles.price}>от {formatRub(item.minPriceKopecks)}</span>
+            <span className={styles.price}>
+              от {formatRub(item.minPriceKopecks)}
+              {item.pricePlaceholder && <span className={styles.placeholder}>предварительно</span>}
+            </span>
             <Link href={`/shows/${item.show.slug}?date=${item.id}#tickets`} className={styles.cta}>
               Билеты
               <span className="visually-hidden">
