@@ -161,20 +161,27 @@ export function ShowAbout({ show }: { show: Show }) {
           </section>
         )}
         {actors.length > 0 && (
-          <section aria-labelledby={`${show.slug}-actors`}>
-            <h3 id={`${show.slug}-actors`} className={styles.blockTitle}>
-              Актёры
+          <section aria-labelledby={`${show.slug}-actors`} className={styles.performers}>
+            <h3 id={`${show.slug}-actors`} className={styles.performersTitle}>
+              Исполнители
             </h3>
+            {/* Текст по референсу заказчика — подтвердить у театра (memory.md). */}
+            <p className={styles.performersNote}>
+              Театр оставляет за собой право замены исполнителей
+            </p>
             <ul className={styles.actors}>
               {actors.map((a) => (
                 <li key={a.name} className={styles.actor}>
+                  {/* Фото людей театр ещё не передал — инициалы. */}
                   <span className={styles.avatar} aria-hidden="true">
                     {initials(a.name)}
                   </span>
-                  <Link href={`/people/${personSlug(a.name)}`} className={styles.actorName}>
-                    {a.name}
-                  </Link>
-                  {a.role && <span className={styles.actorRole}>{a.role}</span>}
+                  <span className={styles.actorText}>
+                    {a.role && <span className={styles.actorRole}>{a.role}</span>}
+                    <Link href={`/people/${personSlug(a.name)}`} className={styles.actorName}>
+                      {a.name}
+                    </Link>
+                  </span>
                 </li>
               ))}
             </ul>
