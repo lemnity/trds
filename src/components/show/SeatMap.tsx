@@ -156,7 +156,7 @@ export function SeatMap({ seating, selectedIds, interactive, maxSeats, onToggle 
   }
 
   return (
-    <div className={styles.wrap}>
+    <div className={styles.wrap} data-inactive={!interactive}>
       <ul className={styles.legend} aria-label="Ценовые категории">
         {plan.categories.map((c) => (
           <li key={c.id}>

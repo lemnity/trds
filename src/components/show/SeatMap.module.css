@@ -203,3 +203,21 @@ button.seat:focus-visible .seatNumber {
     margin-left: 0.6rem;
   }
 }
+
+/* Продажа на сайте не открыта: схема видна, но серая и неактивная. */
+.wrap[data-inactive='true'] .seat,
+.wrap[data-inactive='true'] .swatch {
+  background: #cfcdc7;
+}
+
+.wrap[data-inactive='true'] .legend,
+.wrap[data-inactive='true'] .stage,
+.wrap[data-inactive='true'] .zone,
+.wrap[data-inactive='true'] .rowNum {
+  color: var(--color-control-border);
+}
+
+.wrap[data-inactive='true'] .upper,
+.wrap[data-inactive='true'] .lower {
+  box-shadow: none;
+}

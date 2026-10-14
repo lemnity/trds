@@ -295,7 +295,9 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
 
       <div className={`${styles.sectionHead} ${styles.second}`}>
         <div>
-          <h2 className={styles.title}>{seating ? 'Выберите места' : 'Сколько билетов?'}</h2>
+          <h2 className={styles.title}>
+            {seating ? (seatPricesSet ? 'Выберите места' : 'Схема зала') : 'Сколько билетов?'}
+          </h2>
         </div>
         <p className={styles.hint}>
           {!seating
