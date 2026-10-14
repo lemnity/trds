@@ -7,6 +7,7 @@ import {
   findPerformance,
   formatPerformanceDate,
   getShowPage,
+  heroSlides,
   groupByMonth,
   listUpcoming,
   type ShowsData,
@@ -192,6 +193,42 @@ describe('filterPerformances', () => {
   it('searches by title ignoring case and ё', () => {
     expect(filterPerformances(all(), { query: 'спектакль а' })).toHaveLength(4)
     expect(filterPerformances(all(), { query: 'нет такого' })).toEqual([])
+  })
+})
+
+describe('heroSlides', () => {
+  it('takes the next performance of each show plus premieres, without duplicates', () => {
+    const slides = heroSlides(data, now, 4)
+    expect(slides.map((p) => p.id)).toEqual(['a-1'])
+  })
+
+  it('adds premieres beyond the nearest limit and keeps the order by date', () => {
+    const withMore: ShowsData = {
+      ...data,
+      shows: [
+        ...data.shows,
+        { ...data.shows[0]!, slug: 'b', title: 'Б', premiere: false },
+        { ...data.shows[0]!, slug: 'c', title: 'В', premiere: true },
+      ],
+      performances: [
+        ...data.performances,
+        {
+          id: 'b-1',
+          showSlug: 'b',
+          venueId: 'bar',
+          startsAt: '2026-10-16T19:00:00+05:00',
+          ticketTypes: [],
+        },
+        {
+          id: 'c-1',
+          showSlug: 'c',
+          venueId: 'bar',
+          startsAt: '2026-12-20T19:00:00+05:00',
+          ticketTypes: [],
+        },
+      ],
+    }
+    expect(heroSlides(withMore, now, 1).map((p) => p.id)).toEqual(['b-1', 'a-1', 'c-1'])
   })
 })
 

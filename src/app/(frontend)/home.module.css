@@ -2,99 +2,6 @@
   padding-top: 0.5rem;
 }
 
-.hero {
-  position: relative;
-  display: grid;
-  min-height: clamp(26rem, 62vh, 38rem);
-  overflow: hidden;
-  border-radius: var(--radius-hero);
-  background: var(--color-night);
-  color: #ffffff;
-  isolation: isolate;
-}
-
-.heroMedia {
-  position: absolute;
-  inset: 0 0 0 34%;
-  z-index: -1;
-}
-
-.heroMedia img {
-  object-fit: cover;
-  object-position: 70% center;
-}
-
-/* Затемнение слева — читаемость текста поверх любой афиши. */
-.heroMedia::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      90deg,
-      rgb(15 20 38 / 0.96) 0%,
-      rgb(15 20 38 / 0.82) 38%,
-      rgb(15 20 38 / 0.2) 75%
-    ),
-    linear-gradient(0deg, rgb(15 20 38 / 0.7) 0%, transparent 40%);
-}
-
-.heroContent {
-  align-self: center;
-  max-width: 46rem;
-  padding: clamp(1.75rem, 6vw, 5rem);
-  animation: rise var(--motion-slow) var(--ease-standard) both;
-}
-
-.rule {
-  display: block;
-  width: 4rem;
-  height: 2px;
-  margin-bottom: 1.75rem;
-  background: rgb(255 255 255 / 0.5);
-}
-
-.heroTitle {
-  max-width: 13ch;
-  font-weight: 600;
-  font-size: clamp(2.5rem, 1.8rem + 3vw, 4.5rem);
-  line-height: var(--leading-tight);
-  letter-spacing: -0.02em;
-}
-
-.heroLead {
-  margin-block: 1.25rem 2rem;
-  max-width: 28ch;
-  font-size: var(--step-1);
-  color: #dde1ea;
-}
-
-.heroCaption {
-  position: absolute;
-  right: clamp(1.25rem, 4vw, 2.5rem);
-  bottom: clamp(1.25rem, 4vw, 2.5rem);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  max-width: 22rem;
-  padding: 0.6rem 0.9rem;
-  border-radius: var(--radius-control);
-  background: rgb(15 20 38 / 0.85);
-  font-size: var(--step--1);
-  text-align: right;
-}
-
-.heroCaption span {
-  color: var(--color-night-muted);
-}
-
-.heroCaption a {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--tap-min);
-  font-weight: 600;
-}
-
 .section {
   margin-top: var(--section-space);
 }
@@ -183,18 +90,6 @@
 }
 
 @media (max-width: 40rem) {
-  .heroMedia {
-    inset: 0;
-    opacity: 0.35;
-  }
-
-  .heroCaption {
-    position: static;
-    align-items: flex-start;
-    padding: 0 clamp(1.75rem, 6vw, 5rem) 1.75rem;
-    text-align: left;
-  }
-
   .bannerMedia::after {
     background: linear-gradient(180deg, var(--color-brand) 0%, rgb(31 58 138 / 0) 50%);
   }

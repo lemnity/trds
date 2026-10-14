@@ -218,3 +218,17 @@ export const filterPerformances = (
         )),
   )
 }
+
+/**
+ * Слайды главного экрана: ближайший показ каждого спектакля (первые `limit`)
+ * плюс все премьеры, без повторов, по дате.
+ */
+export const heroSlides = (data: ShowsData, now: Date, limit: number): PerformanceView[] => {
+  const seen = new Set<string>()
+  const nextPerShow = listUpcoming(data, now).filter(
+    (p) => !seen.has(p.show.slug) && seen.add(p.show.slug),
+  )
+  const nearest = nextPerShow.slice(0, limit)
+  const premieres = nextPerShow.filter((p) => p.show.premiere && !nearest.includes(p))
+  return [...nearest, ...premieres].sort(byStart)
+}

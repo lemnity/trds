@@ -3,18 +3,15 @@ import Link from 'next/link'
 
 import { HideWhenStarted } from '@/components/board/HideWhenStarted'
 import { ShowCard } from '@/components/board/ShowCard'
+import { HeroSlider } from '@/components/home/HeroSlider'
 import buttons from '@/components/ui/button.module.css'
 import { aboutTheatre, news, partners } from '@/modules/content'
-import {
-  formatPerformanceDate,
-  getShowsData,
-  listUpcoming,
-  type PerformanceView,
-} from '@/modules/shows'
+import { getShowsData, heroSlides, listUpcoming, type PerformanceView } from '@/modules/shows'
 
 import styles from './home.module.css'
 
 const CARDS = 4
+const HERO_NEAREST = 4
 
 /** Ближайший показ каждого спектакля — без повторов одного названия в подборке. */
 const nextPerShow = (items: PerformanceView[]) => {
@@ -27,44 +24,21 @@ export default function HomePage() {
   const upcoming = listUpcoming(data, new Date())
   const posters = new Map(data.shows.map((s) => [s.slug, s.posterUrl]))
   const featured = nextPerShow(upcoming).slice(0, CARDS)
-  const next = upcoming[0]
-  const nextDate = next ? formatPerformanceDate(next.startsAt) : null
-  const heroPoster = next ? posters.get(next.show.slug) : undefined
+  // Слайд — фото спектакля, если есть, иначе афиша.
+  const covers = new Map(data.shows.map((s) => [s.slug, s.gallery[0] ?? s.posterUrl]))
+  const slides = heroSlides(data, new Date(), HERO_NEAREST).map((performance) => ({
+    performance,
+    imageUrl: covers.get(performance.show.slug)!,
+  }))
   const bannerPoster = posters.get('guests')
 
   return (
     <>
       <section className={`container ${styles.heroWrap}`} aria-labelledby="hero-title">
-        <div className={styles.hero}>
-          {heroPoster && (
-            <div className={styles.heroMedia}>
-              <Image src={heroPoster} alt="" fill priority sizes="(min-width: 60rem) 70vw, 100vw" />
-            </div>
-          )}
-          <div className={styles.heroContent}>
-            <span className={styles.rule} aria-hidden="true" />
-            <h1 id="hero-title" className={styles.heroTitle}>
-              Модный театр TURDUS
-            </h1>
-            <p className={styles.heroLead}>
-              Повод выйти в свет! Иммерсивные спектакли в баре, ресторане, квартире и на улицах
-              Екатеринбурга.
-            </p>
-            <Link href="/afisha" className={buttons.button}>
-              Афиша спектаклей <span aria-hidden="true">→</span>
-            </Link>
-          </div>
-          {next && nextDate && (
-            <HideWhenStarted startsAt={next.startsAt}>
-              <p className={styles.heroCaption}>
-                <span>Ближайший показ</span>
-                <Link href={`/shows/${next.show.slug}`}>
-                  {nextDate.longDate}, {nextDate.time} — {next.show.title}
-                </Link>
-              </p>
-            </HideWhenStarted>
-          )}
-        </div>
+        <h1 id="hero-title" className="visually-hidden">
+          Модный театр TURDUS — повод выйти в свет
+        </h1>
+        <HeroSlider slides={slides} />
       </section>
 
       <section className={`container ${styles.section}`} aria-labelledby="upcoming-title">

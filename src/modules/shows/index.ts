@@ -21,6 +21,7 @@ export {
   formatPerformanceDate,
   getShowPage,
   groupByMonth,
+  heroSlides,
   listPublishedShows,
   listUpcoming,
   type MonthGroup,
