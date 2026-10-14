@@ -46,9 +46,52 @@
   color: var(--color-brand);
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.account {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--tap-min);
+  padding-inline: 1rem;
+  border: 1.5px solid var(--color-control-border);
+  border-radius: var(--radius-control);
+  font-size: var(--step--1);
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color var(--motion-fast) var(--ease-standard);
+}
+
+.account:hover {
+  border-color: var(--color-brand);
+  color: var(--color-brand);
+}
+
 .cta {
   font-size: var(--step--1);
   padding-inline: 1.1rem;
+}
+
+/* На узких экранах кнопка кабинета — только иконка (подпись остаётся для экранного диктора). */
+@media (max-width: 48rem) {
+  .account {
+    width: var(--tap-min);
+    padding: 0;
+    justify-content: center;
+  }
+
+  .accountLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
 }
 
 @media (max-width: 30rem) {

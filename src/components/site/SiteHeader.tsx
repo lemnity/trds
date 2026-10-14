@@ -6,8 +6,8 @@ import logo from '@/assets/logo.webp'
 import buttons from '../ui/button.module.css'
 import styles from './SiteHeader.module.css'
 
-// Пункты «О театре», «Корпоративы», поиск появятся вместе со своими страницами (T-022, T-034):
-// ссылки в никуда не показываем.
+// «Корпоративы» и поиск появятся вместе со своими страницами (T-034): ссылки в никуда не показываем.
+// «Личный кабинет» ведёт на /account: до T-050/T-051 там честное объяснение, без формы входа.
 export function SiteHeader() {
   return (
     <header className={styles.header}>
@@ -33,9 +33,24 @@ export function SiteHeader() {
             </li>
           </ul>
         </nav>
-        <Link href="/afisha" className={`${buttons.button} ${styles.cta}`}>
-          Купить билет
-        </Link>
+        <div className={styles.actions}>
+          <Link href="/account" className={styles.account}>
+            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
+              <circle cx="10" cy="7" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
+              <path
+                d="M3.8 17c.9-3.1 3.3-4.7 6.2-4.7s5.3 1.6 6.2 4.7"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
+            <span className={styles.accountLabel}>Личный кабинет</span>
+          </Link>
+          <Link href="/afisha" className={`${buttons.button} ${styles.cta}`}>
+            Купить билет
+          </Link>
+        </div>
       </div>
     </header>
   )
