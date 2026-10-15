@@ -1,0 +1,98 @@
+.marquee {
+  position: relative;
+  min-width: 0;
+}
+
+/* Лента выходит за поля до краёв экрана. */
+.viewport {
+  overflow: hidden;
+  margin-inline: calc(-1 * var(--page-gutter));
+}
+
+.track {
+  display: flex;
+  width: max-content;
+  animation: marquee var(--marquee-duration, 60s) linear infinite;
+}
+
+.marquee[data-paused] .track,
+.viewport:hover .track,
+.viewport:focus-within .track {
+  animation-play-state: paused;
+}
+
+.list {
+  display: flex;
+  gap: 1rem;
+  padding-right: 1rem;
+}
+
+/* Плитки одной высоты, широкие через одну — ритм ленты. */
+.tile {
+  position: relative;
+  flex: none;
+  width: clamp(14rem, 22vw, 20rem);
+  height: clamp(12rem, 24vw, 22rem);
+  overflow: hidden;
+  background: var(--color-night);
+}
+
+.tile[data-wide] {
+  width: clamp(20rem, 34vw, 32rem);
+}
+
+.tile img {
+  object-fit: cover;
+}
+
+.toggle {
+  position: absolute;
+  right: 0;
+  bottom: 1rem;
+  border-color: rgb(255 255 255 / 0.7);
+  background: rgb(21 23 28 / 0.55);
+  color: #ffffff;
+  backdrop-filter: blur(6px);
+}
+
+.marquee .toggle:hover,
+.marquee .toggle[data-hovered='true'] {
+  border-color: #ffffff;
+  background: rgb(21 23 28 / 0.8);
+  color: #ffffff;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Без движения: одна копия, прокрутка вбок, кнопка не нужна. */
+@media (prefers-reduced-motion: reduce) {
+  .viewport {
+    overflow-x: auto;
+  }
+
+  .track {
+    animation: none;
+  }
+
+  .list[aria-hidden],
+  .toggle {
+    display: none;
+  }
+}
+
+:global(:root[data-low-vision='1']) .viewport {
+  overflow-x: auto;
+}
+
+:global(:root[data-low-vision='1']) .track {
+  animation: none;
+}
+
+:global(:root[data-low-vision='1']) .list[aria-hidden],
+:global(:root[data-low-vision='1']) .toggle {
+  display: none;
+}

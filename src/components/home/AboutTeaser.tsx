@@ -1,21 +1,27 @@
-import Image from 'next/image'
 import Link from 'next/link'
 
 import { aboutTheatre } from '@/modules/content'
-import { VENUE_KIND_LABELS, type VenueKind } from '@/modules/shows'
+import { VENUE_KIND_LABELS, getShowsData, type VenueKind } from '@/modules/shows'
 
 import { ButtonLink } from '../ui/ButtonLink'
 import styles from './AboutTeaser.module.css'
+import { PhotoMarquee, type MarqueePhoto } from './PhotoMarquee'
 
 /** Площадки, где играет театр, — фильтры афиши («сцена — везде»). */
 const VENUES: VenueKind[] = ['stage', 'bar', 'restaurant', 'loft', 'apartment', 'city']
 
 /**
- * «О театре» на главной: крупная фраза и абзац на 12-колоночной сетке, мозаика из трёх фото,
+ * «О театре» на главной: крупная фраза и абзац на 12-колоночной сетке, бесконечная лента фото,
  * строка «Где мы играем» — площадки ведут в афишу с фильтром. Тексты — с сайта театра.
  */
 export function AboutTeaser() {
-  const [wide, ...rest] = aboutTheatre.photos
+  // Фото театра и по одному кадру из галереи каждого спектакля — длинная лента.
+  const photos: MarqueePhoto[] = [
+    ...aboutTheatre.photos.map((src) => ({ src, alt: 'Модный театр TURDUS на сцене' })),
+    ...getShowsData().shows.flatMap((show) =>
+      show.gallery[0] ? [{ src: show.gallery[0], alt: `Сцена из спектакля «${show.title}»` }] : [],
+    ),
+  ]
   return (
     <div className={styles.about}>
       <div className={styles.intro}>
@@ -31,28 +37,7 @@ export function AboutTeaser() {
         </div>
       </div>
 
-      <div className={styles.mosaic}>
-        {wide && (
-          <div className={`${styles.photo} ${styles.photoWide}`}>
-            <Image
-              src={wide}
-              alt="Спектакль модного театра TURDUS"
-              fill
-              sizes="(min-width: 60rem) 50vw, 100vw"
-            />
-          </div>
-        )}
-        {rest.slice(0, 2).map((src) => (
-          <div key={src} className={styles.photo}>
-            <Image
-              src={src}
-              alt="Актёры модного театра TURDUS"
-              fill
-              sizes="(min-width: 60rem) 25vw, 50vw"
-            />
-          </div>
-        ))}
-      </div>
+      <PhotoMarquee photos={photos} />
 
       <div className={styles.venues}>
         <p className={styles.venuesTitle} id="about-venues">

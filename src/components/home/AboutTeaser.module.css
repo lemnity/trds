@@ -1,6 +1,8 @@
 /* «О театре»: всё на одной 12-колоночной сетке; ряды — фраза+текст, фото, площадки. */
 .about {
   display: grid;
+  /* Лента фото шире экрана — колонка не растягивается под неё. */
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(2rem, 4vw, 3rem);
 }
 
@@ -27,33 +29,6 @@
   font-size: var(--step-0);
   line-height: 1.65;
   color: #3c4048;
-}
-
-/* Мозаика: широкое фото и два узких одной высоты. */
-.mosaic {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-}
-
-.photo {
-  position: relative;
-  height: clamp(12rem, 28vw, 24rem);
-  overflow: hidden;
-  background: var(--color-night);
-}
-
-.photo img {
-  object-fit: cover;
-  transition: transform var(--motion-slow) var(--ease-standard);
-}
-
-.photo:hover img {
-  transform: scale(1.03);
-}
-
-.photoWide {
-  grid-column: 1 / -1;
 }
 
 /* «Где мы играем»: подпись слева, площадки-плашки справа, линия сверху. */
@@ -111,19 +86,6 @@
     grid-column: 9 / span 4;
   }
 
-  .mosaic {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 1rem;
-  }
-
-  .photoWide {
-    grid-column: span 6;
-  }
-
-  .photo:not(.photoWide) {
-    grid-column: span 3;
-  }
-
   .venues {
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: 1.5rem;
@@ -136,11 +98,5 @@
   .venueList {
     grid-column: 4 / -1;
     justify-content: flex-end;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .photo img {
-    transition: none;
   }
 }
