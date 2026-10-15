@@ -1,81 +1,20 @@
+/* Форма слева, «Ваши места» справа (референс заказчика); на телефоне — сводка под формой. */
 .layout {
   display: grid;
-  gap: 1.25rem;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
   align-items: start;
+  margin-top: clamp(1.5rem, 4vw, 2.75rem);
 }
 
-.main {
+.form {
   display: grid;
-  gap: 1.25rem;
+  gap: 1.5rem;
   min-width: 0;
-}
-
-/* ——— Напоминание о бонусах ——— */
-.bonus {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.75rem 1rem;
-  padding: clamp(1.25rem, 3vw, 1.75rem);
-  border: 1px solid color-mix(in srgb, var(--color-brand) 30%, transparent);
-  border-radius: var(--radius-card);
-  background: color-mix(in srgb, var(--color-brand) 7%, var(--color-surface));
-}
-
-.bonusIcon {
-  width: 2.75rem;
-  height: 2.75rem;
-  padding: 0.6rem;
-  border-radius: 50%;
-  background: var(--color-brand);
-  color: var(--color-brand-contrast);
-}
-
-.bonusText {
-  display: grid;
-  gap: 0.35rem;
-  font-size: var(--step--1);
-  color: var(--color-muted);
-}
-
-.bonusTitle {
-  font-size: var(--step-1);
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--color-ink);
-}
-
-.bonusAction {
-  grid-column: 1 / -1;
-  justify-self: start;
-}
-
-@media (min-width: 40rem) {
-  .bonus {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-  }
-
-  .bonusAction {
-    grid-column: auto;
-  }
-}
-
-/* ——— Контакты ——— */
-.section {
-  display: grid;
-  gap: 1.25rem;
-  padding: clamp(1.25rem, 3vw, 1.75rem);
-}
-
-.sectionTitle {
-  font-size: var(--step-2);
-  font-weight: 600;
-  line-height: 1.15;
 }
 
 .field {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.6rem;
 }
 
 .field label {
@@ -83,221 +22,92 @@
   font-size: var(--step--1);
 }
 
-.field [data-slot='description'] {
+.field input {
+  min-height: 3.25rem;
+  padding-inline: 1.1rem;
+  border: 1.5px solid var(--color-control-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  font-size: var(--step-0);
+}
+
+.row {
+  display: grid;
+  gap: 1.5rem;
+}
+
+/* Оплата: серая панель с подписью на рамке, как fieldset в референсе. */
+.payment {
+  position: relative;
+  display: grid;
+  gap: 1.1rem;
+  margin-top: 0.5rem;
+  padding: 1.75rem 1.5rem 1.5rem;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  background: #eceef3;
+}
+
+.paymentLegend {
+  position: absolute;
+  top: 0;
+  left: 1.25rem;
+  padding-inline: 0.5rem;
+  transform: translateY(-50%);
+  border-radius: 0.25rem;
+  background: linear-gradient(var(--color-surface) 50%, #eceef3 50%);
+  font-weight: 600;
   font-size: var(--step--1);
   color: var(--color-muted);
 }
 
-.consent {
-  font-size: var(--step--1);
+/* Подписи у Radio/Checkbox HeroUI — span[data-slot=label], не label. */
+.payment .radio [data-slot='label'],
+.form .check [data-slot='label'] {
+  font-size: var(--step-0);
+  font-weight: 400;
 }
 
-.consent label {
-  font-size: inherit;
+/* Галочки — квадратные, как в референсе (у HeroUI круглые). */
+.check [data-slot='checkbox-control'] {
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 0.3rem;
 }
 
-.field [data-slot='field-error'],
-.consent [data-slot='field-error'] {
+.payment [data-slot='radio-control'] {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.check [data-slot='field-error'] {
   color: var(--color-danger);
   font-weight: 600;
 }
 
-/* ——— Сводка-«билет» ——— */
-.summary {
-  display: block;
-  gap: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-.cover {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  max-width: 100%;
-  background: var(--color-night);
-}
-
-.cover img {
-  object-fit: cover;
-}
-
-.show {
-  display: grid;
-  gap: 0.5rem;
-  padding: 1.25rem clamp(1.25rem, 3vw, 1.5rem) 1rem;
-}
-
-.showTitle {
-  font-size: var(--step-2);
-  font-weight: 600;
-  line-height: 1.15;
-}
-
-.when {
-  font-weight: 600;
-}
-
-.where {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  font-size: var(--step--1);
-}
-
-.address {
-  display: block;
-  color: var(--color-muted);
-}
-
-/* Линия отрыва билета: пунктир с полукруглыми вырезами по краям. */
-.tear {
-  position: relative;
-  height: 1.5rem;
-}
-
-.tear::before {
-  content: '';
-  position: absolute;
-  inset-inline: 1.25rem;
-  top: 50%;
-  border-top: 2px dashed var(--color-hairline);
-}
-
-.tear::after {
-  content: '';
-  position: absolute;
-  inset-inline: -0.75rem;
-  top: 0;
-  height: 1.5rem;
-  background:
-    radial-gradient(circle at 0.75rem 50%, var(--color-background) 0.75rem, transparent 0.8rem),
-    radial-gradient(
-      circle at calc(100% - 0.75rem) 50%,
-      var(--color-background) 0.75rem,
-      transparent 0.8rem
-    );
-}
-
-.order {
-  padding: 0.25rem clamp(1.25rem, 3vw, 1.5rem) 1.5rem;
-}
-
-.items {
-  display: grid;
-  gap: 0.5rem;
-  padding: 0;
-  list-style: none;
-}
-
-.item {
-  --accent: var(--color-brand);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 0.25rem 0.6rem 0.9rem;
-  border-radius: var(--radius-control);
-  background: var(--color-background);
-}
-
-.itemText {
-  position: relative;
-  padding-left: 0.85rem;
-}
-
-.itemText::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  inset-block: 0.15rem;
-  width: 4px;
-  border-radius: 2px;
-  background: var(--accent);
-}
-
-.itemTitle {
-  font-weight: 600;
-}
-
-.itemSubtitle {
-  font-size: var(--step--1);
-  color: var(--color-muted);
-}
-
-.itemPrice {
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.itemRemove {
-  width: var(--tap-min);
-  height: var(--tap-min);
-}
-
-.totals {
-  display: grid;
-  margin: 1rem 0 0;
-}
-
-.totals div {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-block: 0.4rem;
-  font-size: var(--step--1);
-}
-
-.totals dt {
-  color: var(--color-muted);
-}
-
-.totals dd {
-  margin: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.totals dd a {
-  color: var(--color-brand);
-  font-weight: 600;
-}
-
-.totals .grandTotal {
+.form .pay {
+  height: 3.5rem;
   margin-top: 0.5rem;
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: var(--color-night);
+  font-size: var(--step-0);
 }
 
-.totals .grandTotal dt {
-  font-size: var(--step-1);
-  font-weight: 600;
-  color: var(--color-ink);
-}
-
-.totals .grandTotal dd {
-  font-size: var(--step-3);
-  font-weight: 700;
-  color: var(--color-brand);
-}
-
-.pay {
-  margin-top: 1.25rem;
-}
-
-.afterPay {
-  margin-block: 0.75rem;
-  font-size: var(--step--1);
-  text-align: center;
-  color: var(--color-muted);
+.form .pay:hover,
+.form .pay[data-hovered='true'] {
+  background: var(--color-brand);
 }
 
 .notice {
   padding: 1rem 1.1rem;
-  border-left: 5px solid var(--color-warning);
   border-radius: var(--radius-control);
-  background: var(--color-warning-surface);
+  background: #fff4e5;
   font-size: var(--step--1);
+}
+
+.noticeTitle {
+  margin-bottom: 0.25rem;
+  font-weight: 700;
 }
 
 .notice a {
@@ -305,15 +115,79 @@
   font-weight: 600;
 }
 
-.noticeTitle {
+/* Сводка: светлая голубовато-серая панель, строки с тонкими разделителями. */
+.summary {
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border-radius: var(--radius-card);
+  background: #eceef3;
+}
+
+.summaryTitle {
+  margin-bottom: 1rem;
   font-weight: 600;
-  color: var(--color-warning);
+  font-size: var(--step-0);
+  color: var(--color-muted);
+}
+
+.lines {
+  display: grid;
+}
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding-block: 1rem;
+  border-bottom: 1px solid rgb(21 23 28 / 0.1);
+  font-size: var(--step-0);
+}
+
+.amount {
+  flex: none;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.placeholder {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid rgb(21 23 28 / 0.35);
+  font-size: var(--step-1);
+}
+
+.totalAmount {
+  font-weight: 700;
+  font-size: var(--step-3);
+  color: var(--color-brand);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.note {
+  margin-top: 1rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+@media (min-width: 40rem) {
+  .row {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (min-width: 60rem) {
   .layout {
-    grid-template-columns: minmax(0, 1.5fr) minmax(20rem, 1fr);
-    gap: 1.5rem;
+    grid-template-columns: minmax(0, 1.4fr) minmax(20rem, 1fr);
   }
 
   .summary {

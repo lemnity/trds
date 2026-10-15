@@ -8,6 +8,7 @@ type Props = ComponentProps<typeof Link> & {
   variant?: Variant
   size?: 'sm' | 'md' | 'lg'
   fullWidth?: boolean
+  isIconOnly?: boolean
 }
 
 /**
@@ -18,8 +19,14 @@ export function ButtonLink({
   variant = 'primary',
   size = 'md',
   fullWidth = false,
+  isIconOnly = false,
   className,
   ...props
 }: Props) {
-  return <Link {...props} className={buttonVariants({ variant, size, fullWidth, className })} />
+  return (
+    <Link
+      {...props}
+      className={buttonVariants({ variant, size, fullWidth, isIconOnly, className })}
+    />
+  )
 }

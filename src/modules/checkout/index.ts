@@ -6,5 +6,13 @@ export {
   type QuoteError,
   type QuoteLine,
 } from './quote'
-export { parseContact, type Contact, type ContactErrors } from './contact'
+export {
+  PAYMENT_METHODS,
+  formatPhoneInput,
+  parseContact,
+  type Contact,
+  type ContactErrors,
+  type PaymentMethod,
+} from './contact'
+export { SERVICE_FEE, serviceFee } from './fees'
 export { selectionFromSearch, selectionToSearch, type Selection } from './selection'

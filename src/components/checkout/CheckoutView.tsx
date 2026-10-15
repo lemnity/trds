@@ -1,26 +1,33 @@
 'use client'
 
-import { Checkbox, Description, FieldError, Input, Label, TextField } from '@heroui/react'
+import {
+  Button,
+  Checkbox,
+  FieldError,
+  Input,
+  Label,
+  Radio,
+  RadioGroup,
+  TextField,
+} from '@heroui/react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useRef, useState, useSyncExternalStore, type FormEvent } from 'react'
 
 import {
+  formatPhoneInput,
   parseContact,
   quoteOrder,
   selectionFromSearch,
-  selectionToSearch,
+  serviceFee,
   type ContactErrors,
-  type Selection,
+  type PaymentMethod,
 } from '@/modules/checkout'
 import { quoteSeats } from '@/modules/seating'
 import { formatRub } from '@/lib/money'
 import type { SalePerformance } from '@/modules/shows'
 
-import { SEAT_CATEGORY_COLORS } from '../show/SeatMap'
 import { InlineNotice } from '../ui/InlineNotice'
-import { cardClass } from '../ui/card'
-import { BonusReminder } from './BonusReminder'
 import styles from './Checkout.module.css'
 import { CheckoutSummary, type OrderLine } from './CheckoutSummary'
 
@@ -34,9 +41,14 @@ const noopSubscribe = () => () => {}
 
 const SECTION_LABELS = { left: 'левая сторона', center: 'центр', right: 'правая сторона' } as const
 
-const FORM_ID = 'checkout-contact'
+/** Способы оплаты из референса заказчика; банк ещё не подключён (T-001), касса не подтверждена. */
+const PAYMENT_LABELS: Record<PaymentMethod, string> = {
+  card: 'Банковская карта',
+  sbp: 'СБП',
+  boxoffice: 'В кассе театра',
+}
 
-type Order = { lines: OrderLine[]; count: number; total: number }
+type Order = { lines: OrderLine[]; count: number; total: number; seats: boolean }
 
 /**
  * Оформление: выбор приходит из адреса, но суммы и доступность пересчитываются заново
@@ -44,10 +56,16 @@ type Order = { lines: OrderLine[]; count: number; total: number }
  */
 export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
   const params = useSearchParams()
-  const router = useRouter()
+  const nameRef = useRef<HTMLInputElement>(null)
   const emailRef = useRef<HTMLInputElement>(null)
+  const phoneRef = useRef<HTMLInputElement>(null)
   const consentRef = useRef<HTMLDivElement>(null)
+  const rulesRef = useRef<HTMLDivElement>(null)
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [payment, setPayment] = useState<PaymentMethod>('card')
+  const [rulesAccepted, setRulesAccepted] = useState(false)
   const [consent, setConsent] = useState(false)
   const [errors, setErrors] = useState<ContactErrors>({})
   const [paymentUnavailable, setPaymentUnavailable] = useState(false)
@@ -59,13 +77,6 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
 
   const selection = selectionFromSearch(params)
 
-  // Удаление позиции меняет выбор в адресе; пустой заказ — назад к выбору мест.
-  const update = (next: Selection, isEmpty: boolean) => {
-    setPaymentUnavailable(false)
-    if (isEmpty) router.push(backHref)
-    else router.replace(`?${selectionToSearch(next)}`, { scroll: false })
-  }
-
   let order: Order | null = null
   if (selection?.kind === 'tickets' && !performance.seating) {
     const quote = quoteOrder(performance.ticketTypes, selection.quantities)
@@ -73,18 +84,12 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
       order = {
         lines: quote.quote.lines.map((l) => ({
           key: l.ticketTypeId,
-          title: l.title,
-          subtitle: `${l.quantity} × ${formatRub(l.unitPriceKopecks)}`,
+          title: `${l.title} × ${l.quantity}`,
           totalKopecks: l.totalKopecks,
-          onRemove: () => {
-            const rest = Object.fromEntries(
-              Object.entries(selection.quantities).filter(([id]) => id !== l.ticketTypeId),
-            )
-            update({ kind: 'tickets', quantities: rest }, Object.keys(rest).length === 0)
-          },
         })),
         count: quote.quote.ticketCount,
         total: quote.quote.totalKopecks,
+        seats: false,
       }
   }
   if (selection?.kind === 'seats' && performance.seating) {
@@ -95,17 +100,12 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
       order = {
         lines: quote.quote.seats.map((s) => ({
           key: s.id,
-          title: `Ряд ${s.row}, место ${s.number}`,
-          subtitle: `${categoryTitle.get(s.categoryId)} · ${SECTION_LABELS[s.section]}`,
-          accent: SEAT_CATEGORY_COLORS[s.categoryId],
+          title: `${categoryTitle.get(s.categoryId)} · ${SECTION_LABELS[s.section]}, р.${s.row} м.${s.number}`,
           totalKopecks: s.priceKopecks,
-          onRemove: () => {
-            const rest = selection.seatIds.filter((id) => id !== s.id)
-            update({ kind: 'seats', seatIds: rest }, rest.length === 0)
-          },
         })),
         count: quote.quote.ticketCount,
         total: quote.quote.totalKopecks,
+        seats: true,
       }
   }
 
@@ -130,12 +130,19 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
     )
   }
 
+  const fee = serviceFee(order.count)
+  const toPay = order.total + fee
+
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    const contact = parseContact({ email, consent })
+    const contact = parseContact({ name, email, phone, payment, rulesAccepted, consent })
     const nextErrors = contact.ok ? {} : contact.errors
     setErrors(nextErrors)
+    // Фокус — на первое поле с ошибкой, в порядке формы.
+    if (nextErrors.name) return nameRef.current?.focus()
     if (nextErrors.email) return emailRef.current?.focus()
+    if (nextErrors.phone) return phoneRef.current?.focus()
+    if (nextErrors.rulesAccepted) return rulesRef.current?.querySelector('input')?.focus()
     if (nextErrors.consent) return consentRef.current?.querySelector('input')?.focus()
     // Банк и параметры чека ещё не подтверждены (T-001/T-002): платёж не создаём,
     // ничего не бронируем и не показываем «оплачено» (rules.md §7, §9).
@@ -144,19 +151,21 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
 
   return (
     <div className={styles.layout}>
-      <div className={styles.main}>
-        <BonusReminder />
-
-        <form
-          id={FORM_ID}
-          className={cardClass(styles.section)}
-          onSubmit={submit}
-          noValidate
-          aria-labelledby={`${FORM_ID}-title`}
+      <form className={styles.form} onSubmit={submit} noValidate aria-label="Данные покупателя">
+        <TextField
+          autoComplete="name"
+          value={name}
+          onChange={setName}
+          isInvalid={Boolean(errors.name)}
+          validationBehavior="aria"
+          className={styles.field}
         >
-          <h2 id={`${FORM_ID}-title`} className={styles.sectionTitle}>
-            Куда прислать билеты
-          </h2>
+          <Label>Имя и фамилия</Label>
+          <Input ref={nameRef} placeholder="Степан Верховенский" />
+          <FieldError>{errors.name}</FieldError>
+        </TextField>
+
+        <div className={styles.row}>
           <TextField
             type="email"
             inputMode="email"
@@ -168,40 +177,87 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
             validationBehavior="aria"
             className={styles.field}
           >
-            {/* Обязательность HeroUI показывает звёздочкой, у поля — aria-required. */}
-            <Label>Электронная почта</Label>
-            <Input ref={emailRef} placeholder="name@example.ru" />
-            <Description>На этот адрес придут электронные билеты</Description>
+            <Label>E-mail</Label>
+            <Input ref={emailRef} placeholder="you@theatre.ru" />
             <FieldError>{errors.email}</FieldError>
           </TextField>
-          <Checkbox
-            ref={consentRef}
-            isSelected={consent}
-            onChange={setConsent}
-            isRequired
-            isInvalid={Boolean(errors.consent)}
+          <TextField
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            value={phone}
+            onChange={(value) => setPhone(formatPhoneInput(value))}
+            isInvalid={Boolean(errors.phone)}
             validationBehavior="aria"
-            className={styles.consent}
+            className={styles.field}
           >
-            <Checkbox.Content>
-              <Checkbox.Control>
-                <Checkbox.Indicator />
-              </Checkbox.Control>
-              <Label>Согласен на обработку персональных данных для оформления билетов</Label>
-            </Checkbox.Content>
-            <FieldError>{errors.consent}</FieldError>
-          </Checkbox>
-        </form>
-      </div>
+            <Label>Телефон</Label>
+            <Input ref={phoneRef} placeholder="+7 ___ ___-__-__" />
+            <FieldError>{errors.phone}</FieldError>
+          </TextField>
+        </div>
 
-      <CheckoutSummary
-        performance={performance}
-        lines={order.lines}
-        ticketCount={order.count}
-        totalKopecks={order.total}
-        formId={FORM_ID}
-        status={
-          paymentUnavailable && (
+        <RadioGroup
+          value={payment}
+          onChange={(value) => setPayment(value as PaymentMethod)}
+          className={styles.payment}
+        >
+          <Label className={styles.paymentLegend}>Оплата</Label>
+          {(Object.keys(PAYMENT_LABELS) as PaymentMethod[]).map((method) => (
+            <Radio key={method} value={method} className={styles.radio}>
+              <Radio.Content>
+                <Radio.Control>
+                  <Radio.Indicator />
+                </Radio.Control>
+                <Label>{PAYMENT_LABELS[method]}</Label>
+              </Radio.Content>
+            </Radio>
+          ))}
+        </RadioGroup>
+
+        <Checkbox
+          ref={rulesRef}
+          isSelected={rulesAccepted}
+          onChange={setRulesAccepted}
+          isRequired
+          isInvalid={Boolean(errors.rulesAccepted)}
+          validationBehavior="aria"
+          className={styles.check}
+        >
+          <Checkbox.Content>
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+            <Label>Согласен с правилами продажи и возврата билетов</Label>
+          </Checkbox.Content>
+          <FieldError>{errors.rulesAccepted}</FieldError>
+        </Checkbox>
+        {/* Согласие на ПД — отдельное от правил продажи (152-ФЗ), не объединяем. */}
+        <Checkbox
+          ref={consentRef}
+          isSelected={consent}
+          onChange={setConsent}
+          isRequired
+          isInvalid={Boolean(errors.consent)}
+          validationBehavior="aria"
+          className={styles.check}
+        >
+          <Checkbox.Content>
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+            <Label>Согласен на обработку персональных данных для оформления билетов</Label>
+          </Checkbox.Content>
+          <FieldError>{errors.consent}</FieldError>
+        </Checkbox>
+
+        <Button type="submit" fullWidth className={styles.pay}>
+          Оплатить&nbsp; {formatRub(toPay)}
+        </Button>
+
+        {/* Живой регион есть всегда — сообщения появляются внутри (WCAG 4.1.3). */}
+        <div role="status">
+          {paymentUnavailable && (
             <div className={styles.notice}>
               <p className={styles.noticeTitle}>Оплата на сайте ещё не подключена</p>
               <p>
@@ -213,8 +269,16 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
                 .
               </p>
             </div>
-          )
-        }
+          )}
+        </div>
+      </form>
+
+      <CheckoutSummary
+        heading={order.seats ? 'Ваши места' : 'Ваши билеты'}
+        lines={order.lines}
+        ticketCount={order.count}
+        feeKopecks={fee}
+        totalKopecks={toPay}
       />
     </div>
   )

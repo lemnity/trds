@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { MAX_TICKETS_PER_ORDER, parseContact, quoteOrder } from '../../src/modules/checkout'
+import {
+  MAX_TICKETS_PER_ORDER,
+  SERVICE_FEE,
+  formatPhoneInput,
+  parseContact,
+  quoteOrder,
+  serviceFee,
+} from '../../src/modules/checkout'
 
 const ticketTypes = [
   { id: 'std', title: 'Входной', priceKopecks: 100_000, capacity: 20 },
@@ -81,22 +88,88 @@ describe('quoteOrder with sold tickets', () => {
   })
 })
 
+const valid = { email: 'a@b.ru', consent: true, rulesAccepted: true, payment: 'card' }
+
 describe('parseContact', () => {
-  it('normalizes the email', () => {
-    expect(parseContact({ email: '  Guest@Mail.RU ', consent: true })).toEqual({
+  it('normalizes the email and keeps optional fields empty', () => {
+    expect(parseContact({ ...valid, email: '  Guest@Mail.RU ' })).toEqual({
       ok: true,
-      contact: { email: 'guest@mail.ru' },
+      contact: { email: 'guest@mail.ru', payment: 'card' },
     })
   })
 
-  it('requires a valid email and explicit consent', () => {
-    expect(parseContact({ email: 'not-an-email', consent: true })).toEqual({
+  it('requires a valid email and both consents', () => {
+    expect(parseContact({ ...valid, email: 'not-an-email' })).toEqual({
       ok: false,
       errors: { email: 'Проверьте адрес электронной почты' },
     })
-    expect(parseContact({ email: 'a@b.ru', consent: false })).toEqual({
+    expect(parseContact({ ...valid, consent: false })).toEqual({
       ok: false,
       errors: { consent: 'Нужно согласие на обработку персональных данных' },
     })
+    expect(parseContact({ ...valid, rulesAccepted: false })).toEqual({
+      ok: false,
+      errors: { rulesAccepted: 'Нужно согласиться с правилами продажи и возврата' },
+    })
+  })
+
+  it('keeps a trimmed name when given', () => {
+    expect(parseContact({ ...valid, name: '  Степан Верховенский ' })).toEqual({
+      ok: true,
+      contact: { email: 'a@b.ru', payment: 'card', name: 'Степан Верховенский' },
+    })
+  })
+
+  it('normalizes a Russian phone to +7XXXXXXXXXX and rejects incomplete ones', () => {
+    for (const phone of ['+7 912 345-67-89', '8 (912) 345-67-89', '9123456789']) {
+      expect(parseContact({ ...valid, phone })).toEqual({
+        ok: true,
+        contact: { email: 'a@b.ru', payment: 'card', phone: '+79123456789' },
+      })
+    }
+    expect(parseContact({ ...valid, phone: '+7 912 345' })).toEqual({
+      ok: false,
+      errors: { phone: 'Номер телефона: 10 цифр после +7' },
+    })
+    // Пустая маска — телефон не указан.
+    expect(parseContact({ ...valid, phone: '+7' })).toMatchObject({ ok: true })
+  })
+
+  it('accepts only known payment methods', () => {
+    for (const payment of ['card', 'sbp', 'boxoffice'])
+      expect(parseContact({ ...valid, payment })).toMatchObject({ ok: true })
+    expect(parseContact({ ...valid, payment: 'crypto' })).toEqual({
+      ok: false,
+      errors: { payment: 'Выберите способ оплаты' },
+    })
+  })
+})
+
+describe('serviceFee', () => {
+  it('charges a flat fee per ticket in kopecks and is flagged as a placeholder', () => {
+    expect(SERVICE_FEE.placeholder).toBe(true)
+    expect(serviceFee(3)).toBe(3 * SERVICE_FEE.perTicketKopecks)
+    expect(serviceFee(0)).toBe(0)
+  })
+})
+
+describe('formatPhoneInput', () => {
+  it('formats typed digits as +7 XXX XXX-XX-XX progressively', () => {
+    expect(formatPhoneInput('')).toBe('')
+    expect(formatPhoneInput('9')).toBe('+7 9')
+    expect(formatPhoneInput('912345')).toBe('+7 912 345')
+    expect(formatPhoneInput('+7 912 345-67-89')).toBe('+7 912 345-67-89')
+    expect(formatPhoneInput('89123456789')).toBe('+7 912 345-67-89')
+  })
+
+  it('treats a leading 8 or 7 as the country code while typing', () => {
+    expect(formatPhoneInput('8')).toBe('+7 ')
+    expect(formatPhoneInput('8912345')).toBe('+7 912 345')
+    // Стирание до «+7» очищает поле.
+    expect(formatPhoneInput('+7')).toBe('')
+  })
+
+  it('ignores digits beyond the ten-digit number', () => {
+    expect(formatPhoneInput('+7 912 345-67-890')).toBe('+7 912 345-67-89')
   })
 })
