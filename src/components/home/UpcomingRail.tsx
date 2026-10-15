@@ -1,17 +1,21 @@
 'use client'
 
 import { Button } from '@heroui/react'
-import { useLayoutEffect, useRef, type ReactNode } from 'react'
+import { useLayoutEffect, useRef, useSyncExternalStore, type ReactNode } from 'react'
 
 import type { PerformanceView } from '@/modules/shows'
 
-import { HideWhenStarted } from '../board/HideWhenStarted'
 import { ShowCard } from '../board/ShowCard'
 import styles from './UpcomingRail.module.css'
 
 export type RailItem = { item: PerformanceView; posterUrl: string }
 
 const COPIES = [-1, 0, 1] as const
+/** Сколько спектаклей в ленте. */
+const MAX_SHOWS = 12
+
+const noopSubscribe = () => () => {}
+const EPSILON = 4
 
 const Chevron = ({ dir }: { dir: 'left' | 'right' }) => (
   <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
@@ -33,6 +37,7 @@ const Chevron = ({ dir }: { dir: 'left' | 'right' }) => (
  * и клавиатуры (aria-hidden + inert).
  */
 type Props = {
+  /** Все предстоящие показы по возрастанию даты; лента берёт ближайший показ каждого спектакля. */
   items: RailItem[]
   /** Заголовок секции — слева в строке со стрелками. */
   title: ReactNode
@@ -42,6 +47,25 @@ type Props = {
 }
 
 export function UpcomingRail({ items, title, more, headClassName }: Props) {
+  // Статическая сборка фиксирует список на момент build: начавшиеся показы убираем в
+  // браузере ДО выбора ближайших, иначе спектакль пропал бы целиком, а лента стартовала бы
+  // не с первой карточки. На сервере ничего не скрываем (снимок «ничего не началось»).
+  const startedKey = useSyncExternalStore(
+    noopSubscribe,
+    () =>
+      items
+        .filter(({ item }) => Date.parse(item.startsAt) <= Date.now())
+        .map(({ item }) => item.id)
+        .join(','),
+    () => '',
+  )
+  const started = new Set(startedKey ? startedKey.split(',') : [])
+  const seen = new Set<string>()
+  const shows = items
+    .filter(({ item }) => !started.has(item.id))
+    .filter(({ item }) => !seen.has(item.show.slug) && Boolean(seen.add(item.show.slug)))
+    .slice(0, MAX_SHOWS)
+
   const viewportRef = useRef<HTMLDivElement>(null)
   const middleRef = useRef<HTMLUListElement>(null)
   const settleTimer = useRef<number>(undefined)
@@ -64,14 +88,16 @@ export function UpcomingRail({ items, title, more, headClassName }: Props) {
     if (!range || !range.width) return
     const { viewport, start, width } = range
     const pos = viewport.scrollLeft
-    const shift = pos < start ? width : pos >= start + width ? -width : 0
+    // Допуск на дробные пиксели: scroll-padding в rem (32.0013px), а scrollLeft — целый.
+    const shift = pos < start - EPSILON ? width : pos >= start + width - EPSILON ? -width : 0
     if (shift) viewport.scrollTo({ left: pos + shift, behavior: 'instant' })
   }
 
+  // Старт — с самого ближайшего показа; пересчёт, когда список поменялся.
   useLayoutEffect(() => {
     const range = middleRange()
     range?.viewport.scrollTo({ left: range.start, behavior: 'instant' })
-  }, [items])
+  }, [items, startedKey])
 
   // scrollend есть не во всех браузерах — ждём паузу в прокрутке.
   const onScroll = () => {
@@ -127,12 +153,10 @@ export function UpcomingRail({ items, title, more, headClassName }: Props) {
               aria-hidden={copy !== 0 || undefined}
               inert={copy !== 0 || undefined}
             >
-              {items.map(({ item, posterUrl }) => (
-                <HideWhenStarted key={item.id} startsAt={item.startsAt}>
-                  <li className={styles.item}>
-                    <ShowCard item={item} posterUrl={posterUrl} />
-                  </li>
-                </HideWhenStarted>
+              {shows.map(({ item, posterUrl }) => (
+                <li key={item.id} className={styles.item}>
+                  <ShowCard item={item} posterUrl={posterUrl} />
+                </li>
               ))}
             </ul>
           ))}

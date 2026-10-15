@@ -5,28 +5,19 @@ import Link from 'next/link'
 import { HeroSlider } from '@/components/home/HeroSlider'
 import { UpcomingRail } from '@/components/home/UpcomingRail'
 import { aboutTheatre, news, partners } from '@/modules/content'
-import { getShowsData, heroSlides, listUpcoming, type PerformanceView } from '@/modules/shows'
+import { getShowsData, heroSlides, listUpcoming } from '@/modules/shows'
 
 import styles from './home.module.css'
 import { buttonVariants } from '@heroui/styles'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { cardClass } from '@/components/ui/card'
 
-/** Лента «Ближайшие спектакли»: по одному ближайшему показу каждого спектакля. */
-const RAIL_MAX = 12
 const HERO_NEAREST = 4
-
-/** Ближайший показ каждого спектакля — без повторов одного названия в подборке. */
-const nextPerShow = (items: PerformanceView[]) => {
-  const seen = new Set<string>()
-  return items.filter((p) => !seen.has(p.show.slug) && seen.add(p.show.slug))
-}
 
 export default function HomePage() {
   const data = getShowsData()
   const upcoming = listUpcoming(data, new Date())
   const posters = new Map(data.shows.map((s) => [s.slug, s.posterUrl]))
-  const featured = nextPerShow(upcoming).slice(0, RAIL_MAX)
   // Слайд — фото спектакля, если есть, иначе афиша.
   const covers = new Map(data.shows.map((s) => [s.slug, s.gallery[0] ?? s.posterUrl]))
   const slides = heroSlides(data, new Date(), HERO_NEAREST).map((performance) => ({
@@ -45,6 +36,7 @@ export default function HomePage() {
       </section>
 
       <section className={`container ${styles.section}`} aria-labelledby="upcoming-title">
+        {/* Все предстоящие показы: лента сама берёт ближайший показ каждого спектакля. */}
         <UpcomingRail
           headClassName={styles.sectionHead}
           title={
@@ -57,7 +49,7 @@ export default function HomePage() {
               Вся афиша
             </Link>
           }
-          items={featured.flatMap((item) => {
+          items={upcoming.flatMap((item) => {
             const posterUrl = posters.get(item.show.slug)
             return posterUrl ? [{ item, posterUrl }] : []
           })}
