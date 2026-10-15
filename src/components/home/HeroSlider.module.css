@@ -36,25 +36,26 @@
 }
 
 .media img {
+  /* Фото на весь блок, по центру — без сдвига вбок. */
   object-fit: cover;
-  object-position: 75% center;
+  object-position: center center;
 }
 
 .media::after {
   content: '';
   position: absolute;
   inset: 0;
-  /* Фото на всю ширину, левая треть закрыта — без стыка на границе изображения. */
+  /* Слева — полупрозрачное затемнение (фото видно), а не сплошная заливка; белый
+     текст на нём читается (≥ 4.5:1 у самого тёмного края). */
   background:
     linear-gradient(
       90deg,
-      var(--color-night) 0%,
-      var(--color-night) 30%,
-      rgb(15 20 38 / 0.75) 45%,
-      rgb(15 20 38 / 0.3) 70%,
-      rgb(15 20 38 / 0.1) 100%
+      rgb(15 20 38 / 0.72) 0%,
+      rgb(15 20 38 / 0.55) 35%,
+      rgb(15 20 38 / 0.2) 65%,
+      rgb(15 20 38 / 0) 100%
     ),
-    linear-gradient(0deg, rgb(15 20 38 / 0.75) 0%, transparent 45%);
+    linear-gradient(0deg, rgb(15 20 38 / 0.55) 0%, transparent 40%);
 }
 
 /*
