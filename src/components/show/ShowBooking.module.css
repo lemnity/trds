@@ -25,7 +25,7 @@
 
 .eyebrow span {
   padding: 0.15rem 0.55rem;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--color-brand);
   color: var(--color-brand-contrast);
   font-weight: 600;
@@ -85,9 +85,9 @@
 }
 
 .day[aria-pressed='true'] {
-  border-color: var(--color-brand);
-  background: var(--color-brand);
-  color: var(--color-brand-contrast);
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-surface);
 }
 
 .dayNum {
@@ -118,7 +118,7 @@
 
 .timePill {
   padding: 0.15rem 0.6rem;
-  border-radius: 999px;
+  border-radius: 0;
   background: #eceae5;
   color: var(--color-ink);
   font-size: var(--step--1);

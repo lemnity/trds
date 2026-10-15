@@ -11,7 +11,6 @@
 
 .close {
   position: absolute;
-  border-radius: 0.75rem;
   top: clamp(1rem, 2.5vw, 1.5rem);
   right: clamp(1rem, 2.5vw, 1.5rem);
 }

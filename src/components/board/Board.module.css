@@ -92,7 +92,7 @@
   display: inline-block;
   margin-bottom: 0.35rem;
   padding: 0.15rem 0.55rem;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--color-brand);
   color: var(--color-brand-contrast);
   font-weight: 600;

@@ -44,9 +44,10 @@
   --content-max: 88rem;
   --reading-max: 42rem;
   --section-space: clamp(3rem, 6vw, 5.5rem);
-  --radius-control: 10px;
-  --radius-card: 16px;
-  --radius-hero: 20px;
+  /* Прямые углы по всему сайту (решение заказчика 15.10.2026). */
+  --radius-control: 0;
+  --radius-card: 0;
+  --radius-hero: 0;
   --shadow-card: 0 1px 2px rgb(21 23 28 / 0.04), 0 8px 24px rgb(21 23 28 / 0.06);
   --tap-min: 44px;
 

@@ -38,7 +38,7 @@
   --focus: var(--color-focus);
   --link: var(--color-brand);
 
-  --radius: 0.625rem;
+  --radius: 0;
   --field-radius: var(--radius-control);
 }
 
@@ -82,16 +82,10 @@
 }
 
 .toggle-button:not(.toggle-button--icon-only) {
-  /* Выбранное состояние — цвет бренда; высота как у кнопок. */
-  --toggle-button-bg-selected: var(--accent);
-  --toggle-button-fg-selected: var(--accent-foreground);
+  /* Высота как у кнопок. */
   height: var(--tap-min);
   padding-inline: 1.25rem;
   font-size: 0.9375rem;
-}
-
-.toggle-button[data-selected='true'] {
-  border-color: var(--accent);
 }
 
 /* Карточка HeroUI (Card / cardClass): наше скругление и тень; раскладку задаёт модуль. */
@@ -112,6 +106,48 @@
 .button:active,
 .button[data-pressed='true'] {
   transform: none;
+}
+
+/*
+ * Прямые углы у компонентов HeroUI (у кнопок, плашек, переключателей свои rounded-3xl).
+ * Круглыми остаются аватары, места на схеме, точки статусов и кружки радиокнопок.
+ */
+.button,
+.close-button,
+.toggle-button,
+.chip,
+.input,
+.select__trigger,
+.select__popover,
+.search-field__group,
+.number-field__group,
+.list-box,
+.list-box-item,
+.alert,
+.skeleton,
+.meter__track,
+.meter__fill,
+.checkbox__control,
+[data-slot='checkbox-control'] {
+  border-radius: 0;
+}
+
+/* Выбранное — чёрным (решение заказчика); основные кнопки покупки остаются синими. */
+.toggle-button:not(.toggle-button--icon-only) {
+  --toggle-button-bg-selected: var(--color-ink);
+  --toggle-button-fg-selected: var(--color-surface);
+}
+
+.toggle-button[data-selected='true'] {
+  border-color: var(--color-ink);
+}
+
+.checkbox,
+.radio,
+.radio-group,
+.list-box {
+  --accent: var(--color-ink);
+  --accent-foreground: var(--color-surface);
 }
 
 @theme {

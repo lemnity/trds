@@ -17,7 +17,7 @@
 .pill {
   min-height: var(--tap-min);
   border: 1.5px solid var(--color-ink);
-  border-radius: 999px;
+  border-radius: 0;
   background: transparent;
   box-shadow: none;
   font-size: 0.9375rem;
@@ -25,16 +25,15 @@
 }
 
 .pill:hover:not(.active, [data-selected='true']) {
-  border-color: var(--color-brand);
-  color: var(--color-brand);
+  background: rgb(21 23 28 / 0.06);
 }
 
-/* Выбранный фильтр — заливка брендом. */
+/* Выбранный фильтр — чёрная заливка. */
 .active,
 .pill[data-selected='true'] {
-  border-color: var(--color-brand);
-  background: var(--color-brand);
-  color: var(--color-brand-contrast);
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-surface);
 }
 
 .select {
