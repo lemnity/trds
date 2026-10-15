@@ -140,15 +140,13 @@
 
 .session {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   margin-top: 1rem;
   padding: 1.25rem 1.5rem;
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-card);
 }
 
 .sessionTitle {
@@ -179,20 +177,13 @@
   min-width: 7.5rem;
 }
 
-.sessionTimes button {
-  min-height: var(--tap-min);
-  padding-inline: 1.25rem;
+.timeButton {
   border: 1.5px solid var(--color-control-border);
-  border-radius: 999px;
-  background: var(--color-surface);
   font-weight: 600;
-  cursor: pointer;
 }
 
-.sessionTimes button[aria-pressed='true'] {
-  border-color: var(--color-brand);
-  background: var(--color-brand);
-  color: var(--color-brand-contrast);
+.timeButton:not([data-selected='true']) {
+  background: var(--color-surface);
 }
 
 .booking {
@@ -206,9 +197,8 @@
   margin: 0;
   padding: clamp(1.25rem, 3vw, 1.75rem);
   border: 0;
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-card);
+  display: block;
+  gap: 0;
 }
 
 .cardTitle {
@@ -251,39 +241,15 @@
   color: var(--color-warning);
 }
 
+/* Счётчик билетов — HeroUI NumberField: кнопки −/+ и поле с числом. */
 .stepper {
-  display: inline-flex;
-  overflow: hidden;
-  border: 1.5px solid var(--color-control-border);
-  border-radius: var(--radius-control);
+  width: 8.5rem;
 }
 
-.stepper button {
-  width: var(--tap-min);
-  min-height: var(--tap-min);
-  border: 0;
-  background: transparent;
-  font-size: var(--step-1);
-  cursor: pointer;
-}
-
-.stepper button:hover:not([aria-disabled='true']) {
-  background: var(--color-background);
-  color: var(--color-brand);
-}
-
-.stepper button[aria-disabled='true'] {
-  color: var(--color-control-border);
-  cursor: not-allowed;
-}
-
-.stepper output {
-  display: grid;
-  place-items: center;
-  min-width: 3rem;
-  border-inline: 1.5px solid var(--color-control-border);
+.stepperInput {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
 .note {
@@ -349,44 +315,32 @@
   font-weight: 600;
 }
 
-.label {
-  display: block;
-  margin-bottom: 0.35rem;
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.field label {
   font-weight: 600;
   font-size: var(--step--1);
 }
 
-.required {
-  font-weight: 400;
-  color: var(--color-muted);
-}
-
 .input {
   width: 100%;
-  min-height: var(--tap-min);
-  padding: 0.6rem 0.85rem;
-  border: 1.5px solid var(--color-control-border);
-  border-radius: var(--radius-control);
-  background: var(--color-surface);
-}
-
-.input[aria-invalid='true'] {
-  border-color: var(--color-danger);
 }
 
 .consent {
-  display: flex;
-  gap: 0.6rem;
-  align-items: flex-start;
   margin-top: 1rem;
   font-size: var(--step--1);
 }
 
-.consent input {
-  flex: none;
-  width: 1.5rem;
-  height: 1.5rem;
-  accent-color: var(--color-brand);
+.consent label {
+  font-size: inherit;
+}
+
+.consent [data-slot='field-error'] {
+  color: var(--color-danger);
+  font-weight: 600;
 }
 
 .error {
@@ -421,9 +375,9 @@
 
 .empty {
   padding: 1.5rem;
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
   color: var(--color-muted);
+  display: block;
+  gap: 0;
 }
 
 @media (min-width: 60rem) {
@@ -534,22 +488,8 @@
 }
 
 .itemRemove {
-  display: grid;
-  place-items: center;
   width: var(--tap-min);
   height: var(--tap-min);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  color: var(--color-muted);
-  font-size: 1.5rem;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.itemRemove:hover {
-  background: rgb(21 23 28 / 0.06);
-  color: var(--color-ink);
 }
 
 .grandTotal {

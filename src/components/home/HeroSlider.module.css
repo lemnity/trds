@@ -128,16 +128,16 @@
   margin-left: 1rem;
 }
 
-.dots button {
+/* Точки-индикаторы — HeroUI Button (ghost): полоска рисуется ::after, область нажатия 44px. */
+.dot {
   position: relative;
   width: 1.75rem;
+  min-width: 0;
   height: var(--tap-min);
-  border: 0;
   background: none;
-  cursor: pointer;
 }
 
-.dots button::after {
+.dot::after {
   content: '';
   position: absolute;
   inset: 50% 0.25rem auto;
@@ -147,7 +147,7 @@
   transition: background-color var(--motion-fast) var(--ease-standard);
 }
 
-.dots button[aria-current='true']::after {
+.dot[aria-current='true']::after {
   background: #ffffff;
 }
 
@@ -156,22 +156,17 @@
   gap: 0.5rem;
 }
 
-.arrows button {
-  display: grid;
-  place-items: center;
-  width: var(--tap-min);
-  height: var(--tap-min);
-  border: 1.5px solid rgb(255 255 255 / 0.45);
-  border-radius: 50%;
+.arrow {
+  border-color: rgb(255 255 255 / 0.45);
   background: rgb(15 20 38 / 0.4);
   color: #ffffff;
-  font-size: var(--step-1);
-  cursor: pointer;
 }
 
-.arrows button:hover {
+.arrows .arrow:hover,
+.arrows .arrow[data-hovered='true'] {
   border-color: #ffffff;
   background: rgb(255 255 255 / 0.12);
+  color: #ffffff;
 }
 
 @media (max-width: 40rem) {

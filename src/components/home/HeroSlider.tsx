@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@heroui/react'
 import Image from 'next/image'
 import { useState, useSyncExternalStore, type KeyboardEvent } from 'react'
 
@@ -14,6 +15,19 @@ import { TicketIcon } from '../ui/TicketIcon'
 export type HeroSlide = { performance: PerformanceView; imageUrl: string }
 
 const noopSubscribe = () => () => {}
+
+const Chevron = ({ dir }: { dir: 'left' | 'right' }) => (
+  <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+    <path
+      d={dir === 'left' ? 'M12.5 4.5 7 10l5.5 5.5' : 'M7.5 4.5 13 10l-5.5 5.5'}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+)
 const pad = (n: number) => String(n).padStart(2, '0')
 
 /**
@@ -123,22 +137,36 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
           </p>
           <div className={styles.dots} role="group" aria-label="Выбор слайда">
             {visible.map((s, i) => (
-              <button
+              <Button
                 key={s.performance.id}
-                type="button"
+                variant="ghost"
+                isIconOnly
+                className={styles.dot}
                 aria-label={`Слайд ${i + 1}: ${s.performance.show.title}`}
                 aria-current={i === current}
-                onClick={() => go(i)}
+                onPress={() => go(i)}
               />
             ))}
           </div>
           <div className={styles.arrows}>
-            <button type="button" onClick={() => go(current - 1)} aria-label="Предыдущий слайд">
-              <span aria-hidden="true">←</span>
-            </button>
-            <button type="button" onClick={() => go(current + 1)} aria-label="Следующий слайд">
-              <span aria-hidden="true">→</span>
-            </button>
+            <Button
+              variant="outline"
+              isIconOnly
+              className={styles.arrow}
+              onPress={() => go(current - 1)}
+              aria-label="Предыдущий слайд"
+            >
+              <Chevron dir="left" />
+            </Button>
+            <Button
+              variant="outline"
+              isIconOnly
+              className={styles.arrow}
+              onPress={() => go(current + 1)}
+              aria-label="Следующий слайд"
+            >
+              <Chevron dir="right" />
+            </Button>
           </div>
         </div>
       )}

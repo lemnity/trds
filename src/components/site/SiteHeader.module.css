@@ -39,6 +39,7 @@
   min-height: var(--tap-min);
   font-weight: 500;
   font-size: var(--step--1);
+  white-space: nowrap;
   text-decoration: none;
 }
 

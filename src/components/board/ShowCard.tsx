@@ -6,11 +6,12 @@ import { formatAge, formatPerformanceDate, type PerformanceView } from '@/module
 import { Availability } from '../ui/Availability'
 import { PremiereBadge } from '../ui/PremiereBadge'
 import styles from './ShowCard.module.css'
+import { cardClass } from '../ui/card'
 
 export function ShowCard({ item, posterUrl }: { item: PerformanceView; posterUrl: string }) {
   const date = formatPerformanceDate(item.startsAt)
   return (
-    <article className={styles.card}>
+    <article className={cardClass(styles.card)}>
       <div className={styles.media}>
         {item.show.premiere && <PremiereBadge overlay />}
         <Image

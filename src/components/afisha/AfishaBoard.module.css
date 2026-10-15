@@ -13,107 +13,63 @@
   gap: 0.4rem;
 }
 
-/* Пилюли по референсу: тёмная обводка, шеврон у выпадающих. */
-.select,
-.toggle,
-.reset {
-  min-height: 2.5rem;
+/* Пилюли HeroUI (Select, ToggleButton, SearchField): одна высота, тёмная обводка. */
+.pill {
+  min-height: var(--tap-min);
   border: 1.5px solid var(--color-ink);
   border-radius: 999px;
   background: transparent;
+  box-shadow: none;
+  font-size: 0.9375rem;
   font-weight: 500;
-  font-size: var(--step--1);
 }
 
-.select {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
+.pill:hover:not(.active, [data-selected='true']) {
+  border-color: var(--color-brand);
+  color: var(--color-brand);
 }
 
-.select::after {
-  content: '';
-  position: absolute;
-  right: 0.9rem;
-  width: 0.42rem;
-  height: 0.42rem;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  transform: translateY(-25%) rotate(45deg);
-  pointer-events: none;
-}
-
-.select select {
-  appearance: none;
-  min-height: calc(2.5rem - 3px);
-  padding: 0.3rem 2.1rem 0.3rem 0.95rem;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-}
-
-.select select:focus-visible {
-  outline: 3px solid var(--color-focus);
-  outline-offset: 3px;
-}
-
-.select[data-active='true'],
-.toggle[aria-pressed='true'] {
+/* Выбранный фильтр — заливка брендом. */
+.active,
+.pill[data-selected='true'] {
   border-color: var(--color-brand);
   background: var(--color-brand);
   color: var(--color-brand-contrast);
 }
 
-.select[data-active='true'] select option {
-  color: var(--color-ink);
+.select {
+  width: auto;
 }
 
-.toggle,
-.reset {
-  padding: 0.3rem 0.95rem;
-  cursor: pointer;
+.select .pill {
+  align-items: center;
+  padding-block: 0;
+  padding-inline: 1.1rem 2.4rem;
 }
 
-.toggle:hover:not([aria-pressed='true']),
-.select:hover:not([data-active='true']) {
-  border-color: var(--color-brand);
-  color: var(--color-brand);
+/* Значение — цветом пилюли (не серым плейсхолдером), стрелка справа в поле отступа. */
+.select .pill :global(.select__value) {
+  color: inherit;
+  font-size: inherit;
+  white-space: nowrap;
 }
 
-.reset {
-  border-color: transparent;
-  color: var(--color-brand);
-  text-decoration: underline;
+.select .pill :global(.select__indicator) {
+  inset-inline-end: 0.9rem;
+  color: inherit;
 }
 
 .search {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  flex: 0 1 14rem;
-  min-width: min(100%, 11rem);
+  flex: 0 1 16rem;
+  min-width: min(100%, 12rem);
   margin-left: auto;
 }
 
-.search input {
+.search .pill {
   width: 100%;
-  min-height: 2.5rem;
-  padding: 0.3rem 2.5rem 0.3rem 1rem;
-  font-size: var(--step--1);
-  border: 1px solid var(--color-control-border);
-  border-radius: 999px;
+  border-width: 1px;
+  border-color: var(--color-control-border);
   background: var(--color-surface);
-  font: inherit;
-}
-
-.search svg {
-  position: absolute;
-  right: 0.9rem;
-  color: var(--color-muted);
-  pointer-events: none;
 }
 
 .month + .month {
@@ -127,11 +83,5 @@
 }
 
 .resetInline {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--color-brand);
-  font-weight: 600;
-  text-decoration: underline;
-  cursor: pointer;
+  margin-top: 0.75rem;
 }

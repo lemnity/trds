@@ -61,9 +61,8 @@
 .work {
   position: relative;
   padding: 1.1rem 1.25rem;
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-card);
+  display: block;
+  gap: 0;
 }
 
 .work:focus-within {
@@ -103,10 +102,9 @@
 
 .bio {
   padding: 1.25rem 1.5rem;
-  border: 1px solid var(--color-hairline);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
   color: var(--color-muted);
+  display: block;
+  gap: 0;
 }
 
 @media (min-width: 60rem) {

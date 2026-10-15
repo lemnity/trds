@@ -179,10 +179,9 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-card);
   transition: transform var(--motion-base) var(--ease-standard);
+  padding: 0;
+  gap: 0;
 }
 
 .newsCard:hover {
@@ -213,10 +212,6 @@
 
 .newsTag {
   justify-self: start;
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-  background: #e9e7e2;
-  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -260,9 +255,6 @@
   align-content: center;
   min-height: 6rem;
   padding: 1rem 1.25rem;
-  border: 1px solid var(--color-hairline);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
 }
 
 .partnerName {

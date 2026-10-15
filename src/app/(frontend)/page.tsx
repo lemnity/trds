@@ -1,3 +1,4 @@
+import { Chip } from '@heroui/react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -10,6 +11,7 @@ import { getShowsData, heroSlides, listUpcoming, type PerformanceView } from '@/
 import styles from './home.module.css'
 import { buttonVariants } from '@heroui/styles'
 import { ButtonLink } from '@/components/ui/ButtonLink'
+import { cardClass } from '@/components/ui/card'
 
 const CARDS = 4
 const HERO_NEAREST = 4
@@ -99,12 +101,14 @@ export default function HomePage() {
         <ul className={styles.news}>
           {news.map((item) => (
             <li key={item.id}>
-              <article className={styles.newsCard}>
+              <article className={cardClass(styles.newsCard)}>
                 <div className={styles.newsMedia}>
                   <Image src={item.imageUrl} alt="" fill sizes="(min-width: 60rem) 25vw, 100vw" />
                 </div>
                 <div className={styles.newsBody}>
-                  <span className={styles.newsTag}>{item.tag}</span>
+                  <Chip size="sm" variant="soft" className={styles.newsTag}>
+                    {item.tag}
+                  </Chip>
                   <h3 className={styles.newsTitle}>
                     <Link href={item.href}>{item.title}</Link>
                   </h3>
@@ -148,7 +152,7 @@ export default function HomePage() {
         {/* Логотипы партнёров театр ещё не передал — пока названия. */}
         <ul className={styles.partners}>
           {partners.map((p) => (
-            <li key={p.name} className={styles.partner}>
+            <li key={p.name} className={cardClass(styles.partner)}>
               <span className={styles.partnerName}>{p.name}</span>
               <span className={styles.partnerRole}>{p.role}</span>
             </li>

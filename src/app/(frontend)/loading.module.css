@@ -1,9 +1,9 @@
+/* Размеры заглушек; анимация и цвет — HeroUI Skeleton (при prefers-reduced-motion её гасит правило в globals.css). */
 .title {
   width: min(60%, 28rem);
   height: var(--step-4);
   margin-block: clamp(1.5rem, 5vw, 3.5rem) 2rem;
   border-radius: var(--radius-control);
-  background: var(--color-hairline);
 }
 
 .board {
@@ -14,16 +14,4 @@
 .row {
   height: 5.5rem;
   border-radius: var(--radius-card);
-  background: linear-gradient(90deg, var(--color-surface), #ebe9e4, var(--color-surface));
-  background-size: 200% 100%;
-  animation: sweep 1.4s linear infinite;
-}
-
-@keyframes sweep {
-  from {
-    background-position: 100% 0;
-  }
-  to {
-    background-position: -100% 0;
-  }
 }

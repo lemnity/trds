@@ -8,6 +8,7 @@ import { formatPerformanceDate, getShowsData } from '@/modules/shows'
 import styles from './person.module.css'
 import { PageCrumbs } from '@/components/ui/PageCrumbs'
 import { PersonAvatar } from '@/components/ui/PersonAvatar'
+import { cardClass } from '@/components/ui/card'
 
 type Params = { slug: string }
 
@@ -74,7 +75,7 @@ export default async function PersonPage({ params }: { params: Promise<Params> }
             {[...byShow].map(([showSlug, work]) => {
               const next = work.nextStartsAt ? formatPerformanceDate(work.nextStartsAt) : null
               return (
-                <li key={showSlug} className={styles.work}>
+                <li key={showSlug} className={cardClass(styles.work)}>
                   <Link href={`/shows/${showSlug}`} className={styles.workTitle}>
                     {work.title}
                   </Link>
@@ -90,7 +91,7 @@ export default async function PersonPage({ params }: { params: Promise<Params> }
           </ul>
         </section>
 
-        <aside className={styles.bio} aria-labelledby="bio-title">
+        <aside className={cardClass(styles.bio)} aria-labelledby="bio-title">
           <h2 id="bio-title" className={styles.sectionTitle}>
             О человеке
           </h2>

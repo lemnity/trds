@@ -1,5 +1,6 @@
 'use client'
 
+import { Button, ListBox, SearchField, Select, ToggleButton } from '@heroui/react'
 import { useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 
@@ -47,12 +48,52 @@ const toParams = (f: AfishaFilters) => {
   return params
 }
 
-const SearchIcon = () => (
-  <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
-    <circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-    <path d="M13.2 13.2 17 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-  </svg>
-)
+const ALL = '__all'
+
+type Option<K extends string> = { id: K; label: string }
+
+/** Выпадающий фильтр (HeroUI Select): первый пункт «Все» снимает фильтр. */
+function FilterSelect<K extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  value: K | undefined
+  options: Array<Option<K>>
+  onChange: (value: K | undefined) => void
+}) {
+  const ids = new Set<string>(options.map((o) => o.id))
+  return (
+    <Select
+      aria-label={label}
+      placeholder={label}
+      value={value ?? null}
+      onChange={(key) => onChange(typeof key === 'string' && ids.has(key) ? (key as K) : undefined)}
+      className={styles.select}
+    >
+      <Select.Trigger className={value ? `${styles.pill} ${styles.active}` : styles.pill}>
+        <Select.Value />
+        <Select.Indicator />
+      </Select.Trigger>
+      <Select.Popover>
+        <ListBox>
+          <ListBox.Item id={ALL} textValue={`${label}: все`}>
+            Все
+            <ListBox.ItemIndicator />
+          </ListBox.Item>
+          {options.map((o) => (
+            <ListBox.Item key={o.id} id={o.id} textValue={o.label}>
+              {o.label}
+              <ListBox.ItemIndicator />
+            </ListBox.Item>
+          ))}
+        </ListBox>
+      </Select.Popover>
+    </Select>
+  )
+}
 
 export function AfishaBoard({ items }: { items: PerformanceView[] }) {
   const params = useSearchParams()
@@ -95,79 +136,52 @@ export function AfishaBoard({ items }: { items: PerformanceView[] }) {
     <>
       <div className={styles.bar}>
         <div className={styles.filters} role="group" aria-label="Фильтры афиши">
-          <label className={styles.select} data-active={Boolean(filters.month)}>
-            <span className="visually-hidden">Месяц</span>
-            <select
-              value={filters.month ?? ''}
-              onChange={(e) => update({ month: e.target.value || undefined })}
-            >
-              <option value="">Месяц</option>
-              {months.map((m) => (
-                <option key={m.key} value={m.key}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className={styles.select} data-active={Boolean(filters.venueKind)}>
-            <span className="visually-hidden">Место проведения</span>
-            <select
-              value={filters.venueKind ?? ''}
-              onChange={(e) =>
-                update({ venueKind: isKind(e.target.value) ? e.target.value : undefined })
-              }
-            >
-              <option value="">Место проведения</option>
-              {kinds.map((k) => (
-                <option key={k} value={k}>
-                  {VENUE_KIND_LABELS[k]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className={styles.select} data-active={Boolean(filters.eventType)}>
-            <span className="visually-hidden">Тип мероприятия</span>
-            <select
-              value={filters.eventType ?? ''}
-              onChange={(e) =>
-                update({ eventType: isType(e.target.value) ? e.target.value : undefined })
-              }
-            >
-              <option value="">Тип мероприятия</option>
-              {types.map((t) => (
-                <option key={t} value={t}>
-                  {EVENT_TYPE_LABELS[t]}
-                </option>
-              ))}
-            </select>
-          </label>
+          <FilterSelect
+            label="Месяц"
+            value={filters.month}
+            options={months.map((m) => ({ id: m.key, label: m.label }))}
+            onChange={(month) => update({ month })}
+          />
+          <FilterSelect
+            label="Место проведения"
+            value={filters.venueKind}
+            options={kinds.map((k) => ({ id: k, label: VENUE_KIND_LABELS[k] }))}
+            onChange={(venueKind) => update({ venueKind })}
+          />
+          <FilterSelect
+            label="Тип мероприятия"
+            value={filters.eventType}
+            options={types.map((t) => ({ id: t, label: EVENT_TYPE_LABELS[t] }))}
+            onChange={(eventType) => update({ eventType })}
+          />
           {toggles.map(([key, label]) => (
-            <button
+            <ToggleButton
               key={key}
-              type="button"
-              className={styles.toggle}
-              aria-pressed={Boolean(filters[key])}
-              onClick={() => update({ [key]: filters[key] ? undefined : true })}
+              className={styles.pill}
+              isSelected={Boolean(filters[key])}
+              onChange={(on) => update({ [key]: on || undefined })}
             >
               {label}
-            </button>
+            </ToggleButton>
           ))}
           {active && (
-            <button type="button" className={styles.reset} onClick={resetAll}>
+            <Button variant="ghost" onPress={resetAll}>
               Сбросить
-            </button>
+            </Button>
           )}
         </div>
-        <label className={styles.search}>
-          <span className="visually-hidden">Поиск по афише</span>
-          <input
-            type="search"
-            placeholder="Поиск по афише"
-            value={filters.query ?? ''}
-            onChange={(e) => update({ query: e.target.value || undefined })}
-          />
-          <SearchIcon />
-        </label>
+        <SearchField
+          aria-label="Поиск по афише"
+          value={filters.query ?? ''}
+          onChange={(query) => update({ query: query || undefined })}
+          className={styles.search}
+        >
+          <SearchField.Group className={styles.pill}>
+            <SearchField.SearchIcon />
+            <SearchField.Input placeholder="Поиск по афише" />
+            <SearchField.ClearButton aria-label="Очистить поиск" />
+          </SearchField.Group>
+        </SearchField>
       </div>
 
       <p className="visually-hidden" aria-live="polite">
@@ -182,9 +196,9 @@ export function AfishaBoard({ items }: { items: PerformanceView[] }) {
               : filters.kids
                 ? 'Сейчас в афише нет спектаклей для детей.'
                 : 'Попробуйте изменить фильтры или поиск.'}{' '}
-            <button type="button" className={styles.resetInline} onClick={resetAll}>
+            <Button variant="tertiary" onPress={resetAll} className={styles.resetInline}>
               Показать всю афишу
-            </button>
+            </Button>
           </p>
         </EmptyState>
       ) : (

@@ -7,6 +7,7 @@ import { formatAge, formatDuration, type Credit, type Show } from '@/modules/sho
 
 import styles from './ShowAbout.module.css'
 import { PersonAvatar } from '../ui/PersonAvatar'
+import { cardClass } from '../ui/card'
 
 const isDirector = (c: Credit) => /режисс/i.test(c.role)
 /** Актёрский состав: роли с персонажами или явные «В ролях» / «Действующие лица». */
@@ -192,7 +193,7 @@ export function ShowAbout({ show, intro, buy }: AboutProps) {
 
       <aside className={styles.sidebar} aria-label="Коротко о спектакле">
         {(facts.length > 0 || buy) && (
-          <div className={styles.factsCard}>
+          <div className={cardClass(styles.factsCard)}>
             <p className={styles.factsTitle}>О спектакле</p>
             <dl className={styles.factList}>
               {facts.map(([icon, term, value]) => (

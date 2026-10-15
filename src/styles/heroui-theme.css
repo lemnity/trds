@@ -64,10 +64,44 @@
   font-weight: 600;
 }
 
+.button--icon-only {
+  /* Кнопки-иконки — квадрат 44px (цель касания) на любой ширине. */
+  width: var(--tap-min);
+  height: var(--tap-min);
+}
+
 .button svg:not([data-slot='spinner'] svg) {
   width: 1.125rem;
   height: 1.125rem;
   margin-block: 0;
+}
+
+.toggle-button:not(.toggle-button--icon-only) {
+  /* Выбранное состояние — цвет бренда; высота как у кнопок. */
+  --toggle-button-bg-selected: var(--accent);
+  --toggle-button-fg-selected: var(--accent-foreground);
+  height: var(--tap-min);
+  padding-inline: 1.25rem;
+  font-size: 0.9375rem;
+}
+
+.toggle-button[data-selected='true'] {
+  border-color: var(--accent);
+}
+
+/* Карточка HeroUI (Card / cardClass): наше скругление и тень; раскладку задаёт модуль. */
+.card {
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.input,
+.select__trigger,
+.search-field__group,
+.number-field__group {
+  /* Поля ввода — той же высоты, что и кнопки. */
+  min-height: var(--tap-min);
+  font-size: 0.9375rem;
 }
 
 .button:active,

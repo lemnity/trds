@@ -4,6 +4,7 @@ import { ButtonLink } from '@/components/ui/ButtonLink'
 
 import head from '../page-head.module.css'
 import styles from './account.module.css'
+import { cardClass } from '@/components/ui/card'
 
 export const metadata: Metadata = {
   title: 'Личный кабинет',
@@ -22,7 +23,7 @@ export default function AccountPage() {
         </p>
       </header>
 
-      <div className={styles.card}>
+      <div className={cardClass(styles.card)}>
         <h2 className={styles.title}>Где мои билеты сейчас?</h2>
         <p>
           Пока билеты продаются через текущий сайт театра — электронный билет приходит на почту,

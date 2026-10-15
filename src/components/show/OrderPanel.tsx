@@ -6,7 +6,8 @@ import { formatRub } from '@/lib/money'
 import { parseContact, type ContactErrors } from '@/modules/checkout'
 
 import styles from './ShowBooking.module.css'
-import { Button } from '@heroui/react'
+import { Button, Checkbox, CloseButton, FieldError, Input, Label, TextField } from '@heroui/react'
+import { cardClass } from '../ui/card'
 
 export type OrderLine = {
   key: string
@@ -35,7 +36,7 @@ type Props = {
 export function OrderPanel(props: Props) {
   const ids = useId()
   const emailRef = useRef<HTMLInputElement>(null)
-  const consentRef = useRef<HTMLInputElement>(null)
+  const consentRef = useRef<HTMLDivElement>(null)
   const [email, setEmail] = useState('')
   const [consent, setConsent] = useState(false)
   const [errors, setErrors] = useState<ContactErrors>({})
@@ -46,13 +47,13 @@ export function OrderPanel(props: Props) {
     const nextErrors = contact.ok ? {} : contact.errors
     setErrors(nextErrors)
     if (nextErrors.email) return emailRef.current?.focus()
-    if (nextErrors.consent) return consentRef.current?.focus()
+    if (nextErrors.consent) return consentRef.current?.querySelector('input')?.focus()
     props.onConfirm()
   }
 
   return (
     <form
-      className={`${styles.card} ${styles.summary}`}
+      className={cardClass(`${styles.card} ${styles.summary}`)}
       onSubmit={submit}
       noValidate
       aria-labelledby={`${ids}-order`}
@@ -75,14 +76,11 @@ export function OrderPanel(props: Props) {
               </div>
               <p className={styles.itemPrice}>{formatRub(line.totalKopecks)}</p>
               {line.onRemove && (
-                <button
-                  type="button"
+                <CloseButton
                   className={styles.itemRemove}
-                  onClick={line.onRemove}
+                  onPress={line.onRemove}
                   aria-label={`Убрать из заказа: ${line.title}`}
-                >
-                  <span aria-hidden="true">×</span>
-                </button>
+                />
               )}
             </li>
           ))}
@@ -103,48 +101,39 @@ export function OrderPanel(props: Props) {
         </div>
       </dl>
 
-      <label htmlFor={`${ids}-email`} className={styles.label}>
-        Электронная почта <span className={styles.required}>(обязательно)</span>
-      </label>
-      <input
-        ref={emailRef}
-        id={`${ids}-email`}
+      <TextField
         type="email"
         inputMode="email"
         autoComplete="email"
-        className={styles.input}
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        aria-required="true"
-        aria-invalid={Boolean(errors.email)}
-        aria-describedby={errors.email ? `${ids}-email-error` : undefined}
-      />
-      {errors.email && (
-        <p id={`${ids}-email-error`} className={styles.error}>
-          {errors.email}
-        </p>
-      )}
-      <div className={styles.consent}>
-        <input
-          ref={consentRef}
-          id={`${ids}-consent`}
-          type="checkbox"
-          checked={consent}
-          onChange={(e) => setConsent(e.target.checked)}
-          aria-required="true"
-          aria-invalid={Boolean(errors.consent)}
-          aria-describedby={errors.consent ? `${ids}-consent-error` : undefined}
-        />
-        <label htmlFor={`${ids}-consent`}>
-          Согласен на обработку персональных данных для оформления билетов{' '}
-          <span className={styles.required}>(обязательно)</span>
-        </label>
-      </div>
-      {errors.consent && (
-        <p id={`${ids}-consent-error`} className={styles.error}>
-          {errors.consent}
-        </p>
-      )}
+        onChange={setEmail}
+        isRequired
+        isInvalid={Boolean(errors.email)}
+        validationBehavior="aria"
+        className={styles.field}
+      >
+        {/* Обязательность HeroUI показывает звёздочкой, у поля — aria-required. */}
+        <Label>Электронная почта</Label>
+        <Input ref={emailRef} className={styles.input} />
+        <FieldError>{errors.email}</FieldError>
+      </TextField>
+      <Checkbox
+        ref={consentRef}
+        isSelected={consent}
+        onChange={setConsent}
+        isRequired
+        isInvalid={Boolean(errors.consent)}
+        validationBehavior="aria"
+        className={styles.consent}
+      >
+        <Checkbox.Content>
+          <Checkbox.Control>
+            <Checkbox.Indicator />
+          </Checkbox.Control>
+          <Label>Согласен на обработку персональных данных для оформления билетов</Label>
+        </Checkbox.Content>
+        <FieldError>{errors.consent}</FieldError>
+      </Checkbox>
 
       <Button type="submit" fullWidth className={styles.submit}>
         Оформить заказ

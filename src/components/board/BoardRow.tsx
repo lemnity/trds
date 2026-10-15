@@ -9,6 +9,7 @@ import { Availability } from '../ui/Availability'
 import { PremiereBadge } from '../ui/PremiereBadge'
 import { VenueTag } from '../ui/VenueTag'
 import styles from './Board.module.css'
+import { cardClass } from '../ui/card'
 
 type Props = {
   item: PerformanceView
@@ -22,7 +23,7 @@ export function BoardRow({ item, highlight = false, showTitle = true }: Props) {
   const age = formatAge(item.show.ageLimit)
 
   return (
-    <article className={`${styles.row} ${highlight ? styles.highlight : ''}`}>
+    <article className={cardClass(`${styles.row} ${highlight ? styles.highlight : ''}`)}>
       <div className={styles.thumb} aria-hidden="true">
         <Image src={item.show.imageUrl} alt="" fill sizes="7rem" />
       </div>

@@ -23,8 +23,9 @@ import { Availability as AvailabilityIndicator } from '../ui/Availability'
 import { VenueTag } from '../ui/VenueTag'
 import { SeatMap } from './SeatMap'
 import styles from './ShowBooking.module.css'
-import { Button } from '@heroui/react'
+import { Button, NumberField, ToggleButton } from '@heroui/react'
 import { ButtonLink } from '../ui/ButtonLink'
+import { cardClass } from '../ui/card'
 
 type Props = {
   performances: SalePerformance[]
@@ -110,7 +111,7 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
 
   if (!selected) {
     return (
-      <p className={styles.empty} role="status">
+      <p className={cardClass(styles.empty)} role="status">
         Ближайших показов нет. Новые даты появятся здесь, как только театр их откроет.
       </p>
     )
@@ -155,12 +156,16 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
     setSeatIds([])
   }
 
-  const change = (type: TicketType, delta: number) => {
+  /** Потолок для категории: остаток мест и общий лимит заказа (с учётом других категорий). */
+  const maxFor = (type: TicketType) => {
     const current = quantities[type.id] ?? 0
-    const max = Math.min(remainingOf(type), MAX_TICKETS_PER_ORDER)
-    const next = current + delta
-    // aria-disabled вместо disabled: кнопка не теряет фокус (WCAG 2.4.3).
-    if (next < 0 || next > max || (delta > 0 && ticketCount >= MAX_TICKETS_PER_ORDER)) return
+    const room = MAX_TICKETS_PER_ORDER - ticketCount + current
+    return Math.max(0, Math.min(remainingOf(type), MAX_TICKETS_PER_ORDER, room))
+  }
+
+  const setQuantity = (type: TicketType, value: number) => {
+    // Пустое поле (NaN) — ноль; значение зажато в допустимые границы.
+    const next = Number.isFinite(value) ? Math.max(0, Math.min(maxFor(type), Math.trunc(value))) : 0
     setQuantities((prev) => ({ ...prev, [type.id]: next }))
   }
 
@@ -204,7 +209,7 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
   )
 
   const closedNotice = (
-    <div className={styles.card}>
+    <div className={cardClass(styles.card)}>
       <p className={styles.cardTitle}>Продажа на сайте пока не открыта</p>
       <p className={styles.note}>
         {seating
@@ -266,7 +271,7 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
         })}
       </ul>
 
-      <div className={styles.session}>
+      <div className={cardClass(styles.session)}>
         <div>
           <p className={styles.sessionTitle}>
             {date.longDate}, {date.weekday} в {date.time}
@@ -281,9 +286,13 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
           <div className={styles.sessionTimes} role="group" aria-label="Время начала">
             {selectedDay.items.map((p) => (
               <div key={p.id} className={styles.sessionTime}>
-                <button type="button" aria-pressed={p.id === selected.id} onClick={() => select(p)}>
+                <ToggleButton
+                  className={styles.timeButton}
+                  isSelected={p.id === selected.id}
+                  onChange={(on) => on && select(p)}
+                >
                   {formatPerformanceDate(p.startsAt).time}
-                </button>
+                </ToggleButton>
                 <AvailabilityIndicator availability={p.availability} />
               </div>
             ))}
@@ -308,7 +317,7 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
 
       {seating ? (
         <div className={styles.stack}>
-          <div className={styles.card}>
+          <div className={cardClass(styles.card)}>
             <SeatMap
               seating={seating}
               selectedIds={seatIds}
@@ -320,7 +329,7 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
           {seatPricesSet ? orderBar : closedNotice}
         </div>
       ) : selected.availability?.level === 'none' ? (
-        <div className={styles.card}>
+        <div className={cardClass(styles.card)}>
           <p className={styles.cardTitle}>Билетов нет</p>
           <p className={styles.note}>
             На этот показ все билеты проданы. Выберите другую дату выше.
@@ -328,12 +337,11 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
         </div>
       ) : selected.salesOpen ? (
         <div className={styles.stack}>
-          <fieldset className={styles.card}>
+          <fieldset className={cardClass(styles.card)}>
             <legend className={styles.cardTitle}>Категории</legend>
             <ul className={styles.types}>
               {selected.ticketTypes.map((type) => {
                 const qty = quantities[type.id] ?? 0
-                const max = Math.min(remainingOf(type), MAX_TICKETS_PER_ORDER)
                 const labelId = `${ids}-${type.id}`
                 return (
                   <li key={type.id} className={styles.type}>
@@ -348,28 +356,21 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
                         )}
                       </p>
                     </div>
-                    <div className={styles.stepper} role="group" aria-labelledby={labelId}>
-                      <button
-                        type="button"
-                        onClick={() => change(type, -1)}
-                        aria-disabled={qty === 0}
-                        aria-label={`Убрать билет: ${type.title}`}
-                      >
-                        −
-                      </button>
-                      <output>
-                        <span className="visually-hidden">Количество: </span>
-                        {qty}
-                      </output>
-                      <button
-                        type="button"
-                        onClick={() => change(type, 1)}
-                        aria-disabled={qty >= max || ticketCount >= MAX_TICKETS_PER_ORDER}
-                        aria-label={`Добавить билет: ${type.title}`}
-                      >
-                        +
-                      </button>
-                    </div>
+                    <NumberField
+                      aria-labelledby={labelId}
+                      value={qty}
+                      minValue={0}
+                      maxValue={maxFor(type)}
+                      onChange={(value) => setQuantity(type, value)}
+                      formatOptions={{ maximumFractionDigits: 0 }}
+                      className={styles.stepper}
+                    >
+                      <NumberField.Group>
+                        <NumberField.DecrementButton aria-label={`Убрать билет: ${type.title}`} />
+                        <NumberField.Input className={styles.stepperInput} />
+                        <NumberField.IncrementButton aria-label={`Добавить билет: ${type.title}`} />
+                      </NumberField.Group>
+                    </NumberField>
                   </li>
                 )
               })}
