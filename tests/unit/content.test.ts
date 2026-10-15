@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { aboutTheatre, legalDocuments, news, partners } from '../../src/modules/content'
+import { aboutTheatre, legalDocuments, news, partners, reviews } from '../../src/modules/content'
 import { demoShowsData } from '../../src/modules/shows'
 
 describe('home content', () => {
@@ -33,6 +33,18 @@ describe('legalDocuments', () => {
     for (const doc of legalDocuments) {
       expect(doc.slug).toMatch(/^[a-z0-9-]+$/)
       expect(doc.title.length).toBeGreaterThan(0)
+    }
+  })
+})
+
+describe('reviews', () => {
+  it('keeps every review attributed: unique id, non-empty quote, author and role', () => {
+    expect(reviews.length).toBeGreaterThan(0)
+    expect(new Set(reviews.map((r) => r.id)).size).toBe(reviews.length)
+    for (const r of reviews) {
+      expect(r.quote.trim().length).toBeGreaterThan(20)
+      expect(r.author.trim()).not.toBe('')
+      expect(r.role.trim()).not.toBe('')
     }
   })
 })

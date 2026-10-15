@@ -99,10 +99,11 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
             </div>
             <div className={styles.content}>
               <div className={styles.badges}>
-                {p.show.premiere && <PremiereBadge />}
+                {/* Дата первой — её место не зависит от бейджа. */}
                 <span className={styles.when}>
                   {date.longDate}, {date.weekday} · {date.time}
                 </span>
+                {p.show.premiere && <PremiereBadge />}
               </div>
               <h2 className={styles.title}>{p.show.title}</h2>
               <p className={styles.meta}>

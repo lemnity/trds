@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 import { HeroSlider } from '@/components/home/HeroSlider'
 import { UpcomingRail } from '@/components/home/UpcomingRail'
-import { aboutTheatre, news, partners } from '@/modules/content'
+import { aboutTheatre, news, partners, reviews } from '@/modules/content'
 import { getShowsData, heroSlides, listUpcoming } from '@/modules/shows'
 
 import styles from './home.module.css'
@@ -144,6 +144,30 @@ export default function HomePage() {
             <li key={p.name} className={cardClass(styles.partner)}>
               <span className={styles.partnerName}>{p.name}</span>
               <span className={styles.partnerRole}>{p.role}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className={`container ${styles.section}`} aria-labelledby="reviews-title">
+        <h2 id="reviews-title" className={styles.sectionTitle}>
+          Отзывы
+        </h2>
+        <ul className={styles.reviews}>
+          {reviews.map((review) => (
+            <li key={review.id}>
+              <figure className={styles.review}>
+                <span className={styles.quoteMark} aria-hidden="true">
+                  “
+                </span>
+                <figcaption className={styles.reviewAuthor}>
+                  <span className={styles.reviewName}>{review.author}</span>
+                  <span className={styles.reviewRole}>{review.role}</span>
+                </figcaption>
+                <blockquote className={styles.quote}>
+                  <p>{review.quote}</p>
+                </blockquote>
+              </figure>
             </li>
           ))}
         </ul>
