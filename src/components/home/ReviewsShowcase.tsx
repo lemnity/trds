@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@heroui/react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 
 import type { Review } from '@/modules/content'
 
@@ -23,13 +23,19 @@ const Chevron = ({ dir }: { dir: 'left' | 'right' }) => (
 )
 
 /**
- * «Отзывы» (варианты А + В с холста): тёмная полоса; слева крупная выдержка и полный
- * текст, справа «Кто говорит». Все отзывы лежат в одной ячейке сетки — высота блока по
- * самому длинному, при переключении ничего не прыгает. Без автопрокрутки.
+ * «Отзывы», вариант В с холста: тёмная полоса, одна крупная цитата (дословная выдержка),
+ * автор и «Читать отзыв полностью» — полный текст раскрывается на месте. Цитаты лежат в
+ * одной ячейке сетки: высота по самой длинной, переключение без скачков. Без автопрокрутки.
  */
 export function ReviewsShowcase({ reviews }: { reviews: Review[] }) {
+  const ids = useId()
   const [current, setCurrent] = useState(0)
-  const go = (next: number) => setCurrent((next + reviews.length) % reviews.length)
+  const [expanded, setExpanded] = useState(false)
+  const go = (next: number) => {
+    setCurrent((next + reviews.length) % reviews.length)
+    setExpanded(false)
+  }
+  const active = reviews[current]!
 
   return (
     <div className={styles.band}>
@@ -37,7 +43,7 @@ export function ReviewsShowcase({ reviews }: { reviews: Review[] }) {
         <h2 id="reviews-title" className={styles.title}>
           Отзывы
         </h2>
-        <div className={`${styles.controls} on-dark`}>
+        <div className={styles.controls}>
           <p className={styles.counter} aria-live="polite">
             <span className={styles.counterCurrent}>{pad(current + 1)}</span> /{' '}
             {pad(reviews.length)}
@@ -63,7 +69,7 @@ export function ReviewsShowcase({ reviews }: { reviews: Review[] }) {
         </div>
       </div>
 
-      <div className={styles.body}>
+      <div className={styles.stage}>
         <div className={styles.stack}>
           {reviews.map((review, i) => (
             <figure
@@ -73,42 +79,31 @@ export function ReviewsShowcase({ reviews }: { reviews: Review[] }) {
               aria-hidden={i !== current || undefined}
               inert={i !== current || undefined}
             >
-              <span className={styles.mark} aria-hidden="true">
-                “
-              </span>
-              <p className={styles.lead}>{review.lead}</p>
-              <blockquote className={styles.quote}>
-                <p>{review.quote}</p>
+              <blockquote className={styles.lead}>
+                <p>«{review.lead}»</p>
               </blockquote>
-              <figcaption className="visually-hidden">
-                {review.author}, {review.role}
+              <figcaption className={styles.author}>
+                <span className={styles.name}>{review.author}</span>
+                <span className={styles.role}>{review.role}</span>
               </figcaption>
             </figure>
           ))}
         </div>
 
-        <div className={styles.who}>
-          <p className={styles.whoLabel} id="reviews-who">
-            Кто говорит
-          </p>
-          <ul aria-labelledby="reviews-who" className={styles.people}>
-            {reviews.map((review, i) => (
-              <li key={review.id}>
-                <button
-                  type="button"
-                  className={styles.person}
-                  aria-pressed={i === current}
-                  onClick={() => setCurrent(i)}
-                >
-                  <span className={styles.marker} aria-hidden="true" />
-                  <span className={styles.personText}>
-                    <span className={styles.personName}>{review.author}</span>
-                    <span className={styles.personRole}>{review.role}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+        <div className={styles.more}>
+          <button
+            type="button"
+            className={styles.toggle}
+            aria-expanded={expanded}
+            aria-controls={`${ids}-full`}
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded ? 'Свернуть отзыв' : 'Читать отзыв полностью'}
+          </button>
+        </div>
+
+        <div id={`${ids}-full`} className={styles.full} hidden={!expanded}>
+          <p>{active.quote}</p>
         </div>
       </div>
 
