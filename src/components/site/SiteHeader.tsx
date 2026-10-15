@@ -6,6 +6,7 @@ import logo from '@/assets/logo.webp'
 import styles from './SiteHeader.module.css'
 import { ButtonLink } from '../ui/ButtonLink'
 import { TicketIcon } from '../ui/TicketIcon'
+import { LogoBird } from './LogoBird'
 import { LowVisionToggle } from './LowVisionToggle'
 
 // «Корпоративы» и поиск появятся вместе со своими страницами (T-034): ссылки в никуда не показываем.
@@ -21,6 +22,7 @@ export function SiteHeader() {
             priority
             className={styles.logo}
           />
+          <LogoBird className={styles.bird} />
         </Link>
         <nav aria-label="Основная навигация" className={styles.navWrap}>
           <ul className={styles.nav}>
