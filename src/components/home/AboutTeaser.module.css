@@ -11,15 +11,6 @@
   border-top: 2px solid var(--color-ink);
 }
 
-.label {
-  margin-bottom: 1rem;
-  font-size: var(--step--1);
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-muted);
-}
-
 .lead {
   font-weight: 700;
   font-size: clamp(2rem, 1.3rem + 3vw, 4rem);

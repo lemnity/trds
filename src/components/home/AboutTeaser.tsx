@@ -20,10 +20,10 @@ export function AboutTeaser() {
     <div className={styles.about}>
       <div className={styles.intro}>
         <div className={styles.statement}>
-          <h2 id="about-title" className={styles.label}>
-            {aboutTheatre.title}
+          {/* Надзаголовка нет: заголовок секции — сама фраза. */}
+          <h2 id="about-title" className={styles.lead}>
+            {aboutTheatre.lead}
           </h2>
-          <p className={styles.lead}>{aboutTheatre.lead}</p>
         </div>
         <div className={styles.text}>
           <p>{aboutTheatre.paragraphs[0]}</p>
