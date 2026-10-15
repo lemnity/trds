@@ -14,7 +14,7 @@ type Params = { performanceId: string }
 export const dynamicParams = false
 
 export const metadata: Metadata = {
-  title: 'Оформление заказа',
+  title: 'Билетная касса',
   robots: { index: false, follow: false },
 }
 
@@ -56,7 +56,7 @@ export default async function CheckoutPage({ params }: { params: Promise<Params>
         </ButtonLink>
         <p className={styles.eyebrow}>Шаг 2 из 2 · Оформление</p>
         <h1 id="checkout-title" className={styles.title}>
-          Почти на сцене
+          Билетная касса
         </h1>
         <p className={styles.show}>
           {performance.show.title} · {date.longDate}, {date.weekday}, {date.time} ·{' '}
