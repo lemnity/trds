@@ -1,12 +1,11 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 
 import { CheckoutView } from '@/components/checkout/CheckoutView'
-import { VenueTag } from '@/components/ui/VenueTag'
-import { findPerformance, formatPerformanceDate, getShowsData } from '@/modules/shows'
+import { findPerformance, getShowsData } from '@/modules/shows'
 
-import head from '../../page-head.module.css'
 import styles from './checkout.module.css'
 
 type Params = { performanceId: string }
@@ -32,31 +31,43 @@ export default async function CheckoutPage({ params }: { params: Promise<Params>
   const { performanceId } = await params
   const performance = findPerformance(getShowsData(), performanceId, new Date())
   if (!performance) notFound()
-  const date = formatPerformanceDate(performance.startsAt)
+  const backHref = `/shows/${performance.show.slug}?date=${performance.id}#tickets`
 
   return (
     <div className="container">
-      <header className={head.head}>
-        <h1 className={head.title}>Оформление заказа</h1>
+      <header className={styles.head}>
+        <Link href={backHref} className={styles.back}>
+          ← Изменить выбор
+        </Link>
+        <h1 className={styles.title}>Оформление заказа</h1>
+        <ol className={styles.steps} aria-label="Шаги покупки">
+          <li data-state="done">
+            <span className={styles.stepMark} aria-hidden="true">
+              ✓
+            </span>
+            Билеты<span className="visually-hidden"> — готово</span>
+          </li>
+          <li data-state="current" aria-current="step">
+            <span className={styles.stepMark} aria-hidden="true">
+              2
+            </span>
+            Контакты
+          </li>
+          <li>
+            <span className={styles.stepMark} aria-hidden="true">
+              3
+            </span>
+            Оплата
+          </li>
+        </ol>
       </header>
-      <div className={styles.layout}>
-        <aside className={styles.ticket} aria-label="Показ">
-          <p className={styles.show}>{performance.show.title}</p>
-          <p className={styles.when}>
-            {date.longDate}, {date.weekday} · {date.time}
-          </p>
-          <p className={styles.where}>
-            <VenueTag kind={performance.venue.kind} /> {performance.venue.title}
-          </p>
-          <p className={styles.address}>{performance.venue.address}</p>
-        </aside>
-        <Suspense>
-          <CheckoutView
-            performance={performance}
-            fallbackUrl={`https://teatrturdus.ru/${performance.show.slug}`}
-          />
-        </Suspense>
-      </div>
+      <Suspense>
+        <CheckoutView
+          performance={performance}
+          backHref={backHref}
+          fallbackUrl={`https://teatrturdus.ru/${performance.show.slug}`}
+        />
+      </Suspense>
     </div>
   )
 }

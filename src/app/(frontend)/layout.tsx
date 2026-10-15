@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
+import { PageLoader } from '@/components/site/PageLoader'
 import { SiteFooter } from '@/components/site/SiteFooter'
 import { SiteHeader } from '@/components/site/SiteHeader'
 
@@ -20,6 +21,7 @@ export default function FrontendLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ru" className={onest.variable}>
       <body>
+        <PageLoader />
         <a className="skip-link" href="#main">
           К содержанию
         </a>

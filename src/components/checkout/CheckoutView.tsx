@@ -1,25 +1,32 @@
 'use client'
 
+import { Checkbox, Description, FieldError, Input, Label, TextField } from '@heroui/react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState, useSyncExternalStore } from 'react'
+import { useRef, useState, useSyncExternalStore, type FormEvent } from 'react'
 
 import {
+  parseContact,
   quoteOrder,
   selectionFromSearch,
   selectionToSearch,
+  type ContactErrors,
   type Selection,
 } from '@/modules/checkout'
 import { quoteSeats } from '@/modules/seating'
 import { formatRub } from '@/lib/money'
-import { formatPerformanceDate, type SalePerformance } from '@/modules/shows'
+import type { SalePerformance } from '@/modules/shows'
 
-import { OrderPanel, type OrderLine } from '../show/OrderPanel'
 import { SEAT_CATEGORY_COLORS } from '../show/SeatMap'
 import { InlineNotice } from '../ui/InlineNotice'
+import { cardClass } from '../ui/card'
+import { BonusReminder } from './BonusReminder'
+import styles from './Checkout.module.css'
+import { CheckoutSummary, type OrderLine } from './CheckoutSummary'
 
 type Props = {
   performance: SalePerformance
+  backHref: string
   fallbackUrl: string
 }
 
@@ -27,15 +34,22 @@ const noopSubscribe = () => () => {}
 
 const SECTION_LABELS = { left: 'левая сторона', center: 'центр', right: 'правая сторона' } as const
 
+const FORM_ID = 'checkout-contact'
+
 type Order = { lines: OrderLine[]; count: number; total: number }
 
 /**
  * Оформление: выбор приходит из адреса, но суммы и доступность пересчитываются заново
  * по данным показа — параметрам ссылки не доверяем (rules.md §3).
  */
-export function CheckoutView({ performance, fallbackUrl }: Props) {
+export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
   const params = useSearchParams()
   const router = useRouter()
+  const emailRef = useRef<HTMLInputElement>(null)
+  const consentRef = useRef<HTMLDivElement>(null)
+  const [email, setEmail] = useState('')
+  const [consent, setConsent] = useState(false)
+  const [errors, setErrors] = useState<ContactErrors>({})
   const [paymentUnavailable, setPaymentUnavailable] = useState(false)
   const started = useSyncExternalStore(
     noopSubscribe,
@@ -43,8 +57,6 @@ export function CheckoutView({ performance, fallbackUrl }: Props) {
     () => false,
   )
 
-  const date = formatPerformanceDate(performance.startsAt)
-  const backHref = `/shows/${performance.show.slug}?date=${performance.id}#tickets`
   const selection = selectionFromSearch(params)
 
   // Удаление позиции меняет выбор в адресе; пустой заказ — назад к выбору мест.
@@ -118,23 +130,91 @@ export function CheckoutView({ performance, fallbackUrl }: Props) {
     )
   }
 
+  const submit = (event: FormEvent) => {
+    event.preventDefault()
+    const contact = parseContact({ email, consent })
+    const nextErrors = contact.ok ? {} : contact.errors
+    setErrors(nextErrors)
+    if (nextErrors.email) return emailRef.current?.focus()
+    if (nextErrors.consent) return consentRef.current?.querySelector('input')?.focus()
+    // Банк и параметры чека ещё не подтверждены (T-001/T-002): платёж не создаём,
+    // ничего не бронируем и не показываем «оплачено» (rules.md §7, §9).
+    setPaymentUnavailable(true)
+  }
+
   return (
-    <div>
-      <p>
-        <Link href={backHref}>← Изменить выбор</Link>
-      </p>
-      <OrderPanel
-        heading={`${performance.show.title} · ${date.longDate} ${date.time}`}
+    <div className={styles.layout}>
+      <div className={styles.main}>
+        <BonusReminder />
+
+        <form
+          id={FORM_ID}
+          className={cardClass(styles.section)}
+          onSubmit={submit}
+          noValidate
+          aria-labelledby={`${FORM_ID}-title`}
+        >
+          <h2 id={`${FORM_ID}-title`} className={styles.sectionTitle}>
+            Куда прислать билеты
+          </h2>
+          <TextField
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            value={email}
+            onChange={setEmail}
+            isRequired
+            isInvalid={Boolean(errors.email)}
+            validationBehavior="aria"
+            className={styles.field}
+          >
+            {/* Обязательность HeroUI показывает звёздочкой, у поля — aria-required. */}
+            <Label>Электронная почта</Label>
+            <Input ref={emailRef} placeholder="name@example.ru" />
+            <Description>На этот адрес придут электронные билеты</Description>
+            <FieldError>{errors.email}</FieldError>
+          </TextField>
+          <Checkbox
+            ref={consentRef}
+            isSelected={consent}
+            onChange={setConsent}
+            isRequired
+            isInvalid={Boolean(errors.consent)}
+            validationBehavior="aria"
+            className={styles.consent}
+          >
+            <Checkbox.Content>
+              <Checkbox.Control>
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+              <Label>Согласен на обработку персональных данных для оформления билетов</Label>
+            </Checkbox.Content>
+            <FieldError>{errors.consent}</FieldError>
+          </Checkbox>
+        </form>
+      </div>
+
+      <CheckoutSummary
+        performance={performance}
         lines={order.lines}
         ticketCount={order.count}
         totalKopecks={order.total}
-        emptyText=""
-        selectionError={null}
-        paymentUnavailable={paymentUnavailable}
-        fallbackUrl={fallbackUrl}
-        // Банк и параметры чека ещё не подтверждены (T-001/T-002): платёж не создаём,
-        // ничего не бронируем и не показываем «оплачено» (rules.md §7, §9).
-        onConfirm={() => setPaymentUnavailable(true)}
+        formId={FORM_ID}
+        status={
+          paymentUnavailable && (
+            <div className={styles.notice}>
+              <p className={styles.noticeTitle}>Оплата на сайте ещё не подключена</p>
+              <p>
+                Мы подключаем банк театра. Места не забронированы, деньги не списаны. Купить билет
+                сейчас можно на{' '}
+                <a href={fallbackUrl} rel="noopener">
+                  текущем сайте театра
+                </a>
+                .
+              </p>
+            </div>
+          )
+        }
       />
     </div>
   )
