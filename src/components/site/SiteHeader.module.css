@@ -52,28 +52,11 @@
   gap: 0.5rem;
 }
 
-.account {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+.btn {
+  /* Обе кнопки шапки — одной высоты и формы (HeroUI Button), не ниже цели касания. */
   min-height: var(--tap-min);
-  padding-inline: 1rem;
-  border: 1.5px solid var(--color-control-border);
-  border-radius: var(--radius-control);
-  font-size: var(--step--1);
-  font-weight: 600;
-  text-decoration: none;
-  transition: border-color var(--motion-fast) var(--ease-standard);
-}
-
-.account:hover {
-  border-color: var(--color-brand);
-  color: var(--color-brand);
-}
-
-.cta {
-  font-size: var(--step--1);
   padding-inline: 1.1rem;
+  font-size: var(--step--1);
 }
 
 /* На узких экранах кнопка кабинета — только иконка (подпись остаётся для экранного диктора). */

@@ -35,7 +35,11 @@ export function SiteHeader() {
           </ul>
         </nav>
         <div className={styles.actions}>
-          <Link href="/account" className={styles.account}>
+          <ButtonLink
+            href="/account"
+            variant="outline"
+            className={`${styles.btn} ${styles.account}`}
+          >
             <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
               <circle cx="10" cy="7" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
               <path
@@ -47,8 +51,8 @@ export function SiteHeader() {
               />
             </svg>
             <span className={styles.accountLabel}>Личный кабинет</span>
-          </Link>
-          <ButtonLink href="/afisha" size="sm" className={styles.cta}>
+          </ButtonLink>
+          <ButtonLink href="/afisha" className={`${styles.btn} ${styles.cta}`}>
             <TicketIcon />
             Купить билет
           </ButtonLink>
