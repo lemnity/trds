@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
+import { LOW_VISION_KEY } from '@/components/site/LowVisionToggle'
 import { PageLoader } from '@/components/site/PageLoader'
 import { SiteFooter } from '@/components/site/SiteFooter'
 import { SiteHeader } from '@/components/site/SiteHeader'
@@ -19,7 +20,16 @@ export const metadata: Metadata = {
 
 export default function FrontendLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="ru" className={onest.variable}>
+    // suppressHydrationWarning: data-low-vision ставит скрипт ниже до гидрации.
+    <html lang="ru" className={onest.variable} suppressHydrationWarning>
+      <head>
+        {/* Версия для слабовидящих включается до первой отрисовки — без мигания. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem('${LOW_VISION_KEY}')==='1')document.documentElement.dataset.lowVision='1'}catch(e){}`,
+          }}
+        />
+      </head>
       <body>
         <PageLoader />
         <a className="skip-link" href="#main">

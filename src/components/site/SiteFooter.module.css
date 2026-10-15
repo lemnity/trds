@@ -1,52 +1,154 @@
+/* Светлый подвал: логотип, разделы, контакты; внизу — документы и разработчик. */
 .footer {
   margin-top: var(--section-space);
-  padding-block: clamp(2.5rem, 5vw, 3.5rem);
-  background: var(--color-night);
-  color: #ffffff;
+  border-top: 1px solid var(--color-hairline);
+  background: var(--color-surface);
+  color: var(--color-ink);
 }
 
-.grid {
+.top {
   display: grid;
   gap: 2rem;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  padding-block: clamp(2.5rem, 5vw, 3.5rem);
 }
 
 .logo {
   width: auto;
   height: 3rem;
-  margin-bottom: 1.5rem;
-  /* Знак чёрный на прозрачном фоне — в тёмном подвале делаем белым. */
-  filter: invert(1);
+  margin-bottom: 1.25rem;
 }
 
 .slogan {
   font-weight: 700;
-  font-size: var(--step-3);
+  font-size: var(--step-2);
   line-height: var(--leading-tight);
 }
 
 .muted {
-  color: var(--color-night-muted);
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
+  color: var(--color-muted);
 }
 
-.contacts {
+.column {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   font-style: normal;
 }
 
-.contacts a {
+.label {
+  margin-bottom: 0.5rem;
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.column a {
   display: inline-flex;
   align-items: center;
   min-height: var(--tap-min);
-  font-size: var(--step-1);
   font-weight: 500;
+  text-decoration: none;
 }
 
-.label {
+.column a:hover {
+  text-decoration: underline;
+}
+
+.column .big {
+  font-size: var(--step-1);
+}
+
+/* Нижняя строка по референсу: тонкая линия, документы слева, разработчик справа. */
+.bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 2rem;
+  padding-block: 1rem 1.5rem;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.docs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.75rem;
+}
+
+.docs a,
+.credit {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
   font-size: var(--step--1);
-  font-weight: 600;
-  color: var(--color-night-muted);
+  color: var(--color-muted);
+  text-decoration: none;
+}
+
+.docs a:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+
+.credit {
+  gap: 0.35em;
+  white-space: nowrap;
+}
+
+.creditName {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.creditWord {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* «oo» — знак бесконечности в строку с текстом. */
+.infinity {
+  width: 2em;
+  height: 1em;
+  margin-inline: 0.08em;
+  overflow: visible;
+}
+
+.infinity path {
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.infinityBase {
+  stroke: currentColor;
+  opacity: 0.2;
+}
+
+/* По знаку бесконечно бежит штрих. */
+.infinityTrace {
+  stroke: currentColor;
+  stroke-dasharray: 34 66;
+  animation: infinity-run 2.4s linear infinite;
+}
+
+@keyframes infinity-run {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .infinityTrace {
+    animation: none;
+    stroke-dasharray: none;
+  }
+}
+
+@media (min-width: 48rem) {
+  .top {
+    grid-template-columns: 1.4fr 1fr 1.2fr;
+  }
 }

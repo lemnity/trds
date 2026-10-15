@@ -6,6 +6,7 @@ import logo from '@/assets/logo.webp'
 import styles from './SiteHeader.module.css'
 import { ButtonLink } from '../ui/ButtonLink'
 import { TicketIcon } from '../ui/TicketIcon'
+import { LowVisionToggle } from './LowVisionToggle'
 
 // «Корпоративы» и поиск появятся вместе со своими страницами (T-034): ссылки в никуда не показываем.
 // «Личный кабинет» ведёт на /account: до T-050/T-051 там честное объяснение, без формы входа.
@@ -35,6 +36,7 @@ export function SiteHeader() {
           </ul>
         </nav>
         <div className={styles.actions}>
+          <LowVisionToggle />
           <ButtonLink href="/account" variant="outline" className={styles.account}>
             <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
               <circle cx="10" cy="7" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.6" />

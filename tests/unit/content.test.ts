@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { aboutTheatre, news, partners } from '../../src/modules/content'
+import { aboutTheatre, legalDocuments, news, partners } from '../../src/modules/content'
 import { demoShowsData } from '../../src/modules/shows'
 
 describe('home content', () => {
@@ -23,5 +23,16 @@ describe('home content', () => {
     expect(aboutTheatre.photos.every((u) => u.startsWith('https://static.tildacdn.com/'))).toBe(
       true,
     )
+  })
+})
+
+describe('legalDocuments', () => {
+  it('has unique, URL-safe slugs and titles for every footer document', () => {
+    const slugs = legalDocuments.map((d) => d.slug)
+    expect(new Set(slugs).size).toBe(slugs.length)
+    for (const doc of legalDocuments) {
+      expect(doc.slug).toMatch(/^[a-z0-9-]+$/)
+      expect(doc.title.length).toBeGreaterThan(0)
+    }
   })
 })

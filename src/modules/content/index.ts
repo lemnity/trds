@@ -86,3 +86,18 @@ export const partners: Partner[] = [
   { name: 'АНО «Ген Гуманизма»', role: 'Организационная поддержка' },
   { name: 'Студия Fontanta Lanta', role: 'Творческий партнёр' },
 ]
+
+/**
+ * Юридические документы для подвала сайта. Тексты театр ещё не передал — страницы
+ * честно говорят, что документ готовится (никаких выдуманных формулировок).
+ * Обязательны до запуска продаж: ПД, политика, оферта, возвраты, реквизиты (T-001/T-002).
+ */
+export type LegalDocument = { slug: string; title: string }
+
+export const legalDocuments: LegalDocument[] = [
+  { slug: 'personal-data', title: 'Персональные данные' },
+  { slug: 'privacy', title: 'Политика конфиденциальности' },
+  { slug: 'terms', title: 'Пользовательское соглашение' },
+  { slug: 'refunds', title: 'Возврат и претензии' },
+  { slug: 'requisites', title: 'Реквизиты' },
+]

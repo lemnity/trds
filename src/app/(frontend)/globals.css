@@ -135,3 +135,33 @@
   margin-inline: auto;
   padding-inline: var(--page-gutter);
 }
+
+/*
+ * Версия для слабовидящих (кнопка-глаз в шапке, html[data-low-vision]): крупный текст,
+ * чёрное на белом, подчёркнутые ссылки, ч/б изображения. Вне слоя — перебивает модули.
+ */
+:root[data-low-vision='1'] {
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+  --color-ink: #000000;
+  --color-muted: #000000;
+  --color-hairline: #000000;
+  --color-control-border: #000000;
+  --color-brand: #000000;
+  --color-brand-hover: #000000;
+  --shadow-card: 0 0 0 2px #000000;
+  font-size: clamp(125%, 1rem + 0.6vw, 150%);
+}
+
+:root[data-low-vision='1'] body {
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+}
+
+:root[data-low-vision='1'] a {
+  text-decoration: underline;
+}
+
+:root[data-low-vision='1'] img {
+  filter: grayscale(1) contrast(1.1);
+}

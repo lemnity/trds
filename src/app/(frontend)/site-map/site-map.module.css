@@ -1,0 +1,19 @@
+.grid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.title {
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  font-size: var(--step-1);
+}
+
+.list a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  color: var(--color-brand);
+  font-weight: 500;
+}

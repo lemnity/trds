@@ -80,3 +80,39 @@
     margin-inline: auto 0;
   }
 }
+
+/* «Версия для слабовидящих»: глаз + подпись в две строки; на узких экранах — только глаз. */
+.lowVision {
+  gap: 0.6rem;
+  padding-inline: 0.75rem;
+  text-align: left;
+}
+
+.lowVisionLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+@media (max-width: 80rem) {
+  .lowVision {
+    width: var(--tap-min);
+    padding: 0;
+  }
+
+  .lowVisionLabel {
+    display: none;
+  }
+}
+
+.lowVision[data-selected='true'] .lowVisionLabel {
+  color: inherit;
+}
+
+:global(:root[data-low-vision='1']) .header {
+  background: #ffffff;
+  border-bottom: 2px solid #000000;
+}
