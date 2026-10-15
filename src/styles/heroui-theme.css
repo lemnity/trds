@@ -42,6 +42,11 @@
   --field-radius: var(--radius-control);
 }
 
+/* Контурная кнопка: заметная рамка цвета обводки полей (светлая рамка HeroUI сливается с фоном). */
+.button--outline {
+  border: 1.5px solid var(--color-control-border);
+}
+
 /* Контурная кнопка: на ховере — синяя рамка, синий текст и лёгкая заливка. */
 @media (hover: hover) {
   .button--outline:hover,

@@ -2,9 +2,8 @@ import { Chip } from '@heroui/react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { HideWhenStarted } from '@/components/board/HideWhenStarted'
-import { ShowCard } from '@/components/board/ShowCard'
 import { HeroSlider } from '@/components/home/HeroSlider'
+import { UpcomingRail } from '@/components/home/UpcomingRail'
 import { aboutTheatre, news, partners } from '@/modules/content'
 import { getShowsData, heroSlides, listUpcoming, type PerformanceView } from '@/modules/shows'
 
@@ -13,7 +12,8 @@ import { buttonVariants } from '@heroui/styles'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { cardClass } from '@/components/ui/card'
 
-const CARDS = 4
+/** Лента «Ближайшие спектакли»: по одному ближайшему показу каждого спектакля. */
+const RAIL_MAX = 12
 const HERO_NEAREST = 4
 
 /** Ближайший показ каждого спектакля — без повторов одного названия в подборке. */
@@ -26,7 +26,7 @@ export default function HomePage() {
   const data = getShowsData()
   const upcoming = listUpcoming(data, new Date())
   const posters = new Map(data.shows.map((s) => [s.slug, s.posterUrl]))
-  const featured = nextPerShow(upcoming).slice(0, CARDS)
+  const featured = nextPerShow(upcoming).slice(0, RAIL_MAX)
   // Слайд — фото спектакля, если есть, иначе афиша.
   const covers = new Map(data.shows.map((s) => [s.slug, s.gallery[0] ?? s.posterUrl]))
   const slides = heroSlides(data, new Date(), HERO_NEAREST).map((performance) => ({
@@ -45,26 +45,23 @@ export default function HomePage() {
       </section>
 
       <section className={`container ${styles.section}`} aria-labelledby="upcoming-title">
-        <div className={styles.sectionHead}>
-          <h2 id="upcoming-title" className={styles.sectionTitle}>
-            Ближайшие спектакли
-          </h2>
-          <Link href="/afisha" className={styles.more}>
-            Вся афиша
-          </Link>
-        </div>
-        <ul className={styles.cards}>
-          {featured.map((item) => {
-            const poster = posters.get(item.show.slug)
-            return poster ? (
-              <HideWhenStarted key={item.id} startsAt={item.startsAt}>
-                <li>
-                  <ShowCard item={item} posterUrl={poster} />
-                </li>
-              </HideWhenStarted>
-            ) : null
+        <UpcomingRail
+          headClassName={styles.sectionHead}
+          title={
+            <h2 id="upcoming-title" className={styles.sectionTitle}>
+              Ближайшие спектакли
+            </h2>
+          }
+          more={
+            <Link href="/afisha" className={styles.more}>
+              Вся афиша
+            </Link>
+          }
+          items={featured.flatMap((item) => {
+            const posterUrl = posters.get(item.show.slug)
+            return posterUrl ? [{ item, posterUrl }] : []
           })}
-        </ul>
+        />
       </section>
 
       <section className={`container ${styles.section}`} aria-labelledby="about-title">

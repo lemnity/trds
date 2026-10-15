@@ -1,0 +1,58 @@
+.rail {
+  display: grid;
+}
+
+/* Лента выходит за поля контейнера до краёв экрана, края мягко гаснут. */
+.viewport {
+  overflow-x: auto;
+  margin-inline: calc(-1 * var(--page-gutter));
+  padding-block: 0.5rem 1.25rem;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--page-gutter);
+  scrollbar-width: none;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 var(--page-gutter),
+    #000 calc(100% - var(--page-gutter)),
+    transparent
+  );
+}
+
+.viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.track {
+  display: flex;
+  width: max-content;
+}
+
+.list {
+  display: flex;
+  gap: 1.25rem;
+  /* Копии одинаковой ширины, отступ после последней карточки = промежутку: шва не видно. */
+  padding-right: 1.25rem;
+}
+
+.item {
+  flex: none;
+  width: clamp(15rem, 22vw, 20rem);
+  scroll-snap-align: start;
+}
+
+.rail .head {
+  align-items: center;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.arrows {
+  display: flex;
+  gap: 0.5rem;
+}

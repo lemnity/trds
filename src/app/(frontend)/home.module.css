@@ -35,16 +35,6 @@
   text-decoration: underline;
 }
 
-.cards {
-  display: grid;
-  gap: 1.25rem;
-  /* Не больше 4 колонок: при 4 карточках ряд заполнен на любой ширине. */
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(min(100%, max(16rem, (100% - 3 * 1.25rem) / 4)), 1fr)
-  );
-}
-
 .banner {
   display: grid;
   overflow: hidden;
@@ -274,12 +264,15 @@
 }
 
 /* Контурная кнопка HeroUI на тёмно-синем баннере. */
-.onDark {
+.bannerContent .onDark {
   border-color: rgb(255 255 255 / 0.6);
   color: #ffffff;
 }
 
-.onDark:hover {
+.bannerContent .onDark:hover,
+.bannerContent .onDark[data-hovered='true'] {
+  /* На тёмном фоне ховер — белая рамка и светлая заливка, текст остаётся белым. */
   border-color: #ffffff;
-  background: rgb(255 255 255 / 0.12);
+  background: rgb(255 255 255 / 0.16);
+  color: #ffffff;
 }
