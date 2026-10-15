@@ -149,13 +149,7 @@
   height: 3.5rem;
   margin-top: 0.5rem;
   border-radius: var(--radius-control);
-  background: var(--color-night);
   font-size: var(--step-0);
-}
-
-.form .pay:hover,
-.form .pay[data-hovered='true'] {
-  background: var(--color-brand);
 }
 
 .notice {

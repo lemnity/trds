@@ -183,7 +183,7 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
         : 'билетов'
 
   const orderBar = (
-    <div className={styles.orderBar} role="status">
+    <div className={`${styles.orderBar} on-dark`} role="status">
       <p className={styles.orderBarText}>
         {order.ok ? (
           <>

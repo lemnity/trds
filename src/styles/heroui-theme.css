@@ -15,10 +15,11 @@
   --default: #eceae5;
   --default-foreground: var(--color-ink);
 
-  --accent: var(--color-brand);
-  --accent-foreground: var(--color-brand-contrast);
-  /* Ховер заметно ярче бренда (по просьбе заказчика); белый текст на нём ≥ 4.5:1. */
-  --accent-hover: #2d55d6;
+  /* Акцент кнопок — чёрный (решение заказчика 15.10.2026); синий бренд остаётся у ссылок. */
+  --accent: var(--color-ink);
+  --accent-foreground: #ffffff;
+  /* Ховер — заметно светлее чёрного; белый текст на нём ≥ 4.5:1. */
+  --accent-hover: #3a3d47;
 
   --success: var(--color-success);
   --success-foreground: #ffffff;
@@ -148,6 +149,14 @@
 .list-box {
   --accent: var(--color-ink);
   --accent-foreground: var(--color-surface);
+}
+
+/* Основные кнопки на тёмном фоне (слайдер, строка заказа) — светлые: чёрная пропала бы. */
+.on-dark .button--primary {
+  --button-bg: #ffffff;
+  --button-bg-hover: #e4e4e7;
+  --button-bg-pressed: #e4e4e7;
+  --button-fg: var(--color-ink);
 }
 
 @theme {

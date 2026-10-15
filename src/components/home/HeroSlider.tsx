@@ -110,7 +110,7 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
                   .filter(Boolean)
                   .join(' · ')}
               </p>
-              <div className={styles.actions}>
+              <div className={`${styles.actions} on-dark`}>
                 <ButtonLink href={`/shows/${p.show.slug}?date=${p.id}#tickets`}>
                   {p.salesOpen ? (
                     <>
