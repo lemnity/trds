@@ -7,6 +7,7 @@ import styles from './SiteHeader.module.css'
 import { ButtonLink } from '../ui/ButtonLink'
 import { TicketIcon } from '../ui/TicketIcon'
 import { LogoBird } from './LogoBird'
+import { MainNav } from './MainNav'
 import { LowVisionToggle } from './LowVisionToggle'
 
 // «Корпоративы» и поиск появятся вместе со своими страницами (T-034): ссылки в никуда не показываем.
@@ -24,19 +25,7 @@ export function SiteHeader() {
           />
           <LogoBird className={styles.bird} />
         </Link>
-        <nav aria-label="Основная навигация" className={styles.navWrap}>
-          <ul className={styles.nav}>
-            <li>
-              <Link href="/afisha">Афиша</Link>
-            </li>
-            <li>
-              <Link href="/about">О театре</Link>
-            </li>
-            <li>
-              <a href="#contacts">Контакты</a>
-            </li>
-          </ul>
-        </nav>
+        <MainNav />
         <div className={styles.actions}>
           <LowVisionToggle />
           <ButtonLink href="/account" variant="outline" className={styles.account}>

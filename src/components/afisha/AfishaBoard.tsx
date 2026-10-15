@@ -98,6 +98,14 @@ function FilterSelect<K extends string>({
 export function AfishaBoard({ items }: { items: PerformanceView[] }) {
   const params = useSearchParams()
   const [filters, setFilters] = useState<AfishaFilters>(() => fromParams(params))
+  // Переход по ссылке на ту же афишу с другим фильтром (подменю шапки) меняет только
+  // параметры адреса — подхватываем их (паттерн «состояние от предыдущего значения»).
+  const query = params.toString()
+  const [seenQuery, setSeenQuery] = useState(query)
+  if (query !== seenQuery) {
+    setSeenQuery(query)
+    setFilters(fromParams(params))
+  }
 
   const update = (patch: Partial<AfishaFilters>) => {
     const next = { ...filters, ...patch }

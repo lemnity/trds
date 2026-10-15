@@ -138,7 +138,11 @@ export default function HomePage() {
         </ul>
       </section>
 
-      <section className={`container ${styles.section}`} aria-labelledby="reviews-title">
+      <section
+        id="reviews"
+        className={`container ${styles.section}`}
+        aria-labelledby="reviews-title"
+      >
         <ReviewsShowcase reviews={reviews} />
       </section>
     </>

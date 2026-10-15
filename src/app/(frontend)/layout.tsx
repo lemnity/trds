@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
-import { LOW_VISION_KEY } from '@/components/site/LowVisionToggle'
+import { LOW_VISION_KEY } from '@/components/site/lowVision'
 import { PageLoader } from '@/components/site/PageLoader'
 import { ScrollBuyButton } from '@/components/site/ScrollBuyButton'
 import { SiteFooter } from '@/components/site/SiteFooter'

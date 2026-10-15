@@ -3,10 +3,8 @@
 import { ToggleButton } from '@heroui/react'
 import { useReducer, useSyncExternalStore } from 'react'
 
+import { LOW_VISION_KEY } from './lowVision'
 import styles from './SiteHeader.module.css'
-
-/** Ключ в localStorage и атрибут на <html>; ставится до отрисовки скриптом в layout. */
-export const LOW_VISION_KEY = 'turdus:low-vision'
 
 const noopSubscribe = () => () => {}
 

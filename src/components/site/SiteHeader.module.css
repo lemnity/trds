@@ -15,6 +15,8 @@
 
 .brand {
   position: relative;
+  /* Логотип не сжимается, когда меню широкое. */
+  flex: none;
   display: inline-flex;
   align-items: center;
   min-height: var(--tap-min);
@@ -111,8 +113,8 @@
   animation: none;
 }
 
-/* На узких экранах шапка и так плотная — птицу не показываем. */
-@media (max-width: 48rem) {
+/* На узких экранах шапка и так плотная — птицу не показываем (как и меню — там «Меню»). */
+@media (max-width: 64rem) {
   .bird {
     display: none;
   }
@@ -121,29 +123,6 @@
 .logo {
   width: auto;
   height: 2.6rem;
-}
-
-.navWrap {
-  margin-inline: auto;
-}
-
-.nav {
-  display: flex;
-  gap: clamp(0.75rem, 3vw, 2.5rem);
-}
-
-.nav a {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--tap-min);
-  font-weight: 500;
-  font-size: var(--step--1);
-  white-space: nowrap;
-  text-decoration: none;
-}
-
-.nav a:hover {
-  color: var(--color-brand);
 }
 
 .actions {
@@ -173,10 +152,6 @@
 @media (max-width: 30rem) {
   .cta {
     display: none;
-  }
-
-  .navWrap {
-    margin-inline: auto 0;
   }
 }
 
