@@ -1,8 +1,8 @@
-import { Chip } from '@heroui/react'
 import Image from 'next/image'
 import Link from 'next/link'
 
 import { HeroSlider } from '@/components/home/HeroSlider'
+import { NewsList } from '@/components/home/NewsCard'
 import { UpcomingRail } from '@/components/home/UpcomingRail'
 import { aboutTheatre, news, partners, reviews } from '@/modules/content'
 import { getShowsData, heroSlides, listUpcoming } from '@/modules/shows'
@@ -13,6 +13,8 @@ import { ButtonLink } from '@/components/ui/ButtonLink'
 import { cardClass } from '@/components/ui/card'
 
 const HERO_NEAREST = 4
+/** На главной — последние новости, остальные в архиве /news. */
+const HOME_NEWS = 4
 
 export default function HomePage() {
   const data = getShowsData()
@@ -84,29 +86,15 @@ export default function HomePage() {
       </section>
 
       <section className={`container ${styles.section}`} aria-labelledby="news-title">
-        <h2 id="news-title" className={styles.sectionTitle}>
-          Новости
-        </h2>
-        <ul className={styles.news}>
-          {news.map((item) => (
-            <li key={item.id}>
-              <article className={cardClass(styles.newsCard)}>
-                <div className={styles.newsMedia}>
-                  <Image src={item.imageUrl} alt="" fill sizes="(min-width: 60rem) 25vw, 100vw" />
-                </div>
-                <div className={styles.newsBody}>
-                  <Chip size="sm" variant="soft" className={styles.newsTag}>
-                    {item.tag}
-                  </Chip>
-                  <h3 className={styles.newsTitle}>
-                    <Link href={item.href}>{item.title}</Link>
-                  </h3>
-                  <p className={styles.newsSummary}>{item.summary}</p>
-                </div>
-              </article>
-            </li>
-          ))}
-        </ul>
+        <div className={styles.sectionHead}>
+          <h2 id="news-title" className={styles.sectionTitle}>
+            Новости
+          </h2>
+          <ButtonLink href="/news" variant="outline">
+            Архив новостей
+          </ButtonLink>
+        </div>
+        <NewsList items={news.slice(0, HOME_NEWS)} />
       </section>
 
       <section className={`container ${styles.section}`} aria-labelledby="corporate-title">

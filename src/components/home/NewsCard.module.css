@@ -1,0 +1,79 @@
+/* Новости: карточка и список (главная и архив /news). */
+.list {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 1.25rem;
+  /* Не больше 4 колонок: при 4 карточках ряд заполнен на любой ширине. */
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, max(16rem, (100% - 3 * 1.25rem) / 4)), 1fr)
+  );
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  transition: transform var(--motion-base) var(--ease-standard);
+  padding: 0;
+  gap: 0;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+.card:focus-within {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--color-night);
+}
+
+.media img {
+  object-fit: cover;
+}
+
+.body {
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+  padding: 1rem 1.15rem 1.25rem;
+}
+
+.tag {
+  justify-self: start;
+  font-weight: 600;
+}
+
+.title {
+  font-weight: 600;
+  font-size: var(--step-1);
+  line-height: 1.25;
+}
+
+.title a {
+  text-decoration: none;
+}
+
+.title a:focus-visible {
+  outline: none;
+}
+
+/* Вся карточка — ссылка. */
+.title a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.summary {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}

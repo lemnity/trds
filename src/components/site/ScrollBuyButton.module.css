@@ -1,0 +1,111 @@
+/* Док внизу экрана: появляется снизу при прокрутке, не мешает контенту до неё. */
+.dock {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  z-index: 20;
+  transform: translate(-50%, 150%);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--motion-base) var(--ease-standard),
+    opacity var(--motion-base) var(--ease-standard);
+}
+
+.dock[data-visible] {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.button {
+  height: 3.25rem;
+  padding-inline: 1.5rem 1.75rem;
+  gap: 0.75rem;
+  box-shadow: 0 12px 32px rgb(21 23 28 / 0.28);
+  white-space: nowrap;
+}
+
+/* Иконка и «вылетающие» билетики поверх неё. */
+.icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+
+.flyer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: -0.75rem 0 0 -0.75rem;
+  /* Билетик заметен и над тёмной кнопкой, и над светлой страницей. */
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgb(21 23 28 / 0.25);
+  color: var(--color-ink);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.button:hover .flyer,
+.button:focus-visible .flyer {
+  animation: fly 1.1s var(--ease-standard) both;
+}
+
+.flyer:nth-child(1) {
+  --fly-x: -2rem;
+  --fly-y: -2.6rem;
+  --fly-r: -28deg;
+}
+
+.flyer:nth-child(2) {
+  --fly-x: 0.2rem;
+  --fly-y: -3.4rem;
+  --fly-r: 8deg;
+  animation-delay: 0.08s !important;
+}
+
+.flyer:nth-child(3) {
+  --fly-x: 2.2rem;
+  --fly-y: -2.4rem;
+  --fly-r: 32deg;
+  animation-delay: 0.16s !important;
+}
+
+@keyframes fly {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0) scale(0.6);
+  }
+
+  20%,
+  75% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(var(--fly-x), var(--fly-y)) rotate(var(--fly-r)) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock {
+    transition: opacity var(--motion-base) linear;
+  }
+
+  .button:hover .flyer,
+  .button:focus-visible .flyer {
+    animation: none;
+  }
+}
+
+@media (max-width: 30rem) {
+  .button {
+    padding-inline: 1.1rem 1.25rem;
+    font-size: var(--step--1);
+  }
+}
