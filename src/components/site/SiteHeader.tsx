@@ -7,6 +7,7 @@ import { formatPerformanceDate, getShowsData, groupByMonth, listUpcoming } from 
 import styles from './SiteHeader.module.css'
 import { ButtonLink } from '../ui/ButtonLink'
 import { TicketIcon } from '../ui/TicketIcon'
+import { HeaderScrollState } from './HeaderScrollState'
 import { HeaderSearch } from './HeaderSearch'
 import { LogoBird } from './LogoBird'
 import { MainNav, type MegaShow } from './MainNav'
@@ -45,6 +46,7 @@ export function SiteHeader() {
 
   return (
     <header className={styles.header}>
+      <HeaderScrollState />
       <div className={`container ${styles.inner}`}>
         <Link href="/" className={styles.brand}>
           <Image

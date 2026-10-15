@@ -4,6 +4,7 @@
   z-index: 10;
   background: rgb(243 242 239 / 0.92);
   backdrop-filter: blur(10px);
+  transition: box-shadow var(--motion-base) var(--ease-standard);
 }
 
 .inner {
@@ -11,6 +12,7 @@
   align-items: center;
   gap: 1rem;
   min-height: 4.75rem;
+  transition: min-height var(--motion-base) var(--ease-standard);
 }
 
 .brand {
@@ -45,6 +47,34 @@
 .logo {
   width: auto;
   height: 2.6rem;
+  transition: height var(--motion-base) var(--ease-standard);
+}
+
+/* Начали прокручивать — шапка ниже, логотип меньше, лёгкая тень отделяет от контента. */
+:global(:root[data-scrolled]) .header {
+  box-shadow:
+    0 1px 0 var(--color-hairline),
+    0 8px 24px rgb(21 23 28 / 0.06);
+}
+
+:global(:root[data-scrolled]) .inner {
+  min-height: 3.75rem;
+}
+
+:global(:root[data-scrolled]) .logo {
+  height: 2.15rem;
+}
+
+:global(:root[data-scrolled]) .bird {
+  --bird-size: 1.8rem;
+  --bird-bottom: 0.35rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inner,
+  .logo {
+    transition: none;
+  }
 }
 
 .actions {
