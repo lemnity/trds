@@ -181,3 +181,99 @@
     display: none;
   }
 }
+
+/*
+ * Мега-меню «Афиша»: панель на всю ширину под шапкой (позиционируется от sticky-шапки,
+ * поэтому у пункта position: static). Колонки ссылок + карточка ближайшего спектакля.
+ */
+.itemMega {
+  position: static;
+}
+
+.mega {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  z-index: 30;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-hairline);
+  box-shadow: 0 24px 48px rgb(21 23 28 / 0.14);
+}
+
+.mega[hidden] {
+  display: none;
+}
+
+.megaInner {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(16rem, 1.15fr);
+  gap: 2.5rem;
+  padding-block: 2rem 2.5rem;
+}
+
+.megaTitle {
+  margin-bottom: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.megaLink {
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem;
+  font-size: 1.0625rem;
+  text-decoration: none;
+}
+
+.megaLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+.megaLink:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Карточка ближайшего спектакля — правая колонка с тёплым фоном. */
+.feature {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  background: var(--color-background);
+}
+
+.featureMedia {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  background: var(--color-night);
+}
+
+.featureMedia img {
+  object-fit: cover;
+}
+
+.featureWhen {
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.featureTitle {
+  font-weight: 700;
+  font-size: var(--step-1);
+  line-height: 1.2;
+}
+
+.featureVenue {
+  margin-bottom: 0.5rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
