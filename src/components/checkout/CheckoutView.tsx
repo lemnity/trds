@@ -12,7 +12,7 @@ import {
 } from '@heroui/react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { useRef, useState, useSyncExternalStore, type FormEvent } from 'react'
+import { useRef, useState, useSyncExternalStore, type FormEvent, type ReactNode } from 'react'
 
 import {
   formatPhoneInput,
@@ -41,12 +41,41 @@ const noopSubscribe = () => () => {}
 
 const SECTION_LABELS = { left: 'левая сторона', center: 'центр', right: 'правая сторона' } as const
 
-/** Способы оплаты из референса заказчика; банк ещё не подключён (T-001), касса не подтверждена. */
-const PAYMENT_LABELS: Record<PaymentMethod, string> = {
-  card: 'Банковская карта',
-  sbp: 'СБП',
-  boxoffice: 'В кассе театра',
-}
+const icon = (path: string) => (
+  <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+    <path
+      d={path}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+)
+
+/**
+ * Способы оплаты (референс заказчика). Банк не выбран (T-001), касса не подтверждена —
+ * поэтому без логотипов платёжных систем и без обещаний в подписях.
+ */
+const PAYMENT_OPTIONS: Record<PaymentMethod, { title: string; caption: string; icon: ReactNode }> =
+  {
+    card: {
+      title: 'Банковская карта',
+      caption: 'Оплата картой на сайте',
+      icon: icon('M3 6.5h18v11H3zM3 10h18M6.5 14.5h4'),
+    },
+    sbp: {
+      title: 'СБП',
+      caption: 'Через приложение вашего банка',
+      icon: icon('M7.5 3h9v18h-9zM11 18h2M10 6.5h4'),
+    },
+    boxoffice: {
+      title: 'В кассе театра',
+      caption: 'Оплата лично в театре',
+      icon: icon('M4 10l8-5 8 5M5.5 10v8M18.5 10v8M10 18v-4h4v4M3.5 18.5h17'),
+    },
+  }
 
 type Order = { lines: OrderLine[]; count: number; total: number; seats: boolean }
 
@@ -200,19 +229,30 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
         <RadioGroup
           value={payment}
           onChange={(value) => setPayment(value as PaymentMethod)}
+          orientation="horizontal"
           className={styles.payment}
         >
           <Label className={styles.paymentLegend}>Оплата</Label>
-          {(Object.keys(PAYMENT_LABELS) as PaymentMethod[]).map((method) => (
-            <Radio key={method} value={method} className={styles.radio}>
-              <Radio.Content>
-                <Radio.Control>
-                  <Radio.Indicator />
-                </Radio.Control>
-                <Label>{PAYMENT_LABELS[method]}</Label>
-              </Radio.Content>
-            </Radio>
-          ))}
+          <div className={styles.tiles}>
+            {(Object.keys(PAYMENT_OPTIONS) as PaymentMethod[]).map((method) => {
+              const option = PAYMENT_OPTIONS[method]
+              return (
+                <Radio key={method} value={method} className={styles.tile}>
+                  {/* Вся плитка — область нажатия Radio (RadioButton react-aria). */}
+                  <Radio.Content className={styles.tileBody}>
+                    <span className={styles.tileIcon}>{option.icon}</span>
+                    <Label className={styles.tileText}>
+                      <span className={styles.tileTitle}>{option.title}</span>
+                      <span className={styles.tileCaption}>{option.caption}</span>
+                    </Label>
+                    <Radio.Control className={styles.tileControl}>
+                      <Radio.Indicator />
+                    </Radio.Control>
+                  </Radio.Content>
+                </Radio>
+              )
+            })}
+          </div>
         </RadioGroup>
 
         <Checkbox

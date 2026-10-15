@@ -36,33 +36,95 @@
   gap: 1.5rem;
 }
 
-/* Оплата: серая панель с подписью на рамке, как fieldset в референсе. */
+/* Оплата: плитки-карточки в ряд (HeroUI Radio, стилизованный как плитка). */
 .payment {
-  position: relative;
   display: grid;
-  gap: 1.1rem;
-  margin-top: 0.5rem;
-  padding: 1.75rem 1.5rem 1.5rem;
-  border: 1px solid var(--color-hairline);
-  border-radius: var(--radius-card);
-  background: #eceef3;
+  gap: 0.6rem;
 }
 
 .paymentLegend {
-  position: absolute;
-  top: 0;
-  left: 1.25rem;
-  padding-inline: 0.5rem;
-  transform: translateY(-50%);
-  border-radius: 0.25rem;
-  background: linear-gradient(var(--color-surface) 50%, #eceef3 50%);
   font-weight: 600;
+  font-size: var(--step--1);
+}
+
+.tiles {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.tile {
+  min-width: 0;
+}
+
+.tileBody {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.85rem;
+  align-items: center;
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: 1rem 2.75rem 1rem 1rem;
+  border: 1.5px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition:
+    border-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+.tileBody:hover {
+  border-color: var(--color-control-border);
+}
+
+/* Выбранная плитка — синяя рамка; фокус с клавиатуры — заметное кольцо. */
+.tileBody[data-selected='true'],
+.tile:has([data-selected='true']) .tileBody {
+  border-color: var(--color-brand);
+  box-shadow: inset 0 0 0 1px var(--color-brand);
+}
+
+.tileBody[data-focus-visible='true'],
+.tile:has([data-focus-visible='true']) .tileBody {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.tileIcon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  background: #eceef3;
+  color: var(--color-brand);
+}
+
+.tileText {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.tileTitle {
+  font-weight: 600;
+  font-size: var(--step-0);
+  color: var(--color-ink);
+}
+
+.tileCaption {
   font-size: var(--step--1);
   color: var(--color-muted);
 }
 
-/* Подписи у Radio/Checkbox HeroUI — span[data-slot=label], не label. */
-.payment .radio [data-slot='label'],
+.tileControl {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+}
+
+/* Подписи у Checkbox HeroUI — span[data-slot=label], не label. */
 .form .check [data-slot='label'] {
   font-size: var(--step-0);
   font-weight: 400;
@@ -73,11 +135,6 @@
   width: 1.4rem;
   height: 1.4rem;
   border-radius: 0.3rem;
-}
-
-.payment [data-slot='radio-control'] {
-  width: 1.4rem;
-  height: 1.4rem;
 }
 
 .check [data-slot='field-error'] {
@@ -182,6 +239,18 @@
 @media (min-width: 40rem) {
   .row {
     grid-template-columns: 1fr 1fr;
+  }
+
+  /* Плитки в ряд; подпись под иконкой, чтобы три плитки помещались по ширине формы. */
+  .tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tileBody {
+    grid-template-columns: 1fr;
+    align-content: start;
+    height: 100%;
+    padding: 1.1rem;
   }
 }
 
