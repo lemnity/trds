@@ -1,0 +1,155 @@
+/* «О театре»: всё на одной 12-колоночной сетке; ряды — фраза+текст, фото, площадки. */
+.about {
+  display: grid;
+  gap: clamp(2rem, 4vw, 3rem);
+}
+
+.intro {
+  display: grid;
+  gap: 1.5rem;
+  padding-top: clamp(1.5rem, 3vw, 2rem);
+  border-top: 2px solid var(--color-ink);
+}
+
+.label {
+  margin-bottom: 1rem;
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.lead {
+  font-weight: 700;
+  font-size: clamp(2rem, 1.3rem + 3vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.text {
+  display: grid;
+  gap: 1.5rem;
+  align-content: end;
+  justify-items: start;
+  font-size: var(--step-0);
+  line-height: 1.65;
+  color: #3c4048;
+}
+
+/* Мозаика: широкое фото и два узких одной высоты. */
+.mosaic {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.photo {
+  position: relative;
+  height: clamp(12rem, 28vw, 24rem);
+  overflow: hidden;
+  background: var(--color-night);
+}
+
+.photo img {
+  object-fit: cover;
+  transition: transform var(--motion-slow) var(--ease-standard);
+}
+
+.photo:hover img {
+  transform: scale(1.03);
+}
+
+.photoWide {
+  grid-column: 1 / -1;
+}
+
+/* «Где мы играем»: подпись слева, площадки-плашки справа, линия сверху. */
+.venues {
+  display: grid;
+  gap: 1rem;
+  align-items: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.venuesTitle {
+  font-weight: 600;
+  font-size: var(--step-1);
+}
+
+.venueList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.venue {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding-inline: 1.1rem;
+  border: 1.5px solid var(--color-control-border);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.venue:hover {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+
+.venue:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (min-width: 60rem) {
+  .intro {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 1.5rem;
+  }
+
+  .statement {
+    grid-column: span 7;
+  }
+
+  .text {
+    grid-column: 9 / span 4;
+  }
+
+  .mosaic {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .photoWide {
+    grid-column: span 6;
+  }
+
+  .photo:not(.photoWide) {
+    grid-column: span 3;
+  }
+
+  .venues {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 1.5rem;
+  }
+
+  .venuesTitle {
+    grid-column: span 3;
+  }
+
+  .venueList {
+    grid-column: 4 / -1;
+    justify-content: flex-end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo img {
+    transition: none;
+  }
+}

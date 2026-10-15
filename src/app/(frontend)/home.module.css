@@ -107,50 +107,6 @@
 }
 
 /* О театре */
-.about {
-  display: grid;
-  gap: 2rem;
-  align-items: center;
-}
-
-.aboutText {
-  display: grid;
-  gap: 1rem;
-  justify-items: start;
-  max-width: var(--reading-max);
-}
-
-.aboutLead {
-  font-size: var(--step-1);
-  font-weight: 600;
-}
-
-.aboutButton {
-  margin-top: 0.5rem;
-}
-
-.aboutPhotos {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-
-.aboutPhoto {
-  position: relative;
-  aspect-ratio: 3 / 4;
-  overflow: hidden;
-  border-radius: var(--radius-card);
-  background: var(--color-night);
-}
-
-.aboutPhoto:nth-child(2) {
-  margin-top: 2.5rem;
-}
-
-.aboutPhoto img {
-  object-fit: cover;
-}
-
 /* Партнёры */
 .partners {
   margin-top: 1.25rem;

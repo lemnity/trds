@@ -1,11 +1,12 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
+import { AboutTeaser } from '@/components/home/AboutTeaser'
 import { HeroSlider } from '@/components/home/HeroSlider'
 import { NewsList } from '@/components/home/NewsCard'
 import { ReviewsShowcase } from '@/components/home/ReviewsShowcase'
 import { UpcomingRail } from '@/components/home/UpcomingRail'
-import { aboutTheatre, news, partners, reviews } from '@/modules/content'
+import { news, partners, reviews } from '@/modules/content'
 import { getShowsData, heroSlides, listUpcoming } from '@/modules/shows'
 
 import styles from './home.module.css'
@@ -60,30 +61,7 @@ export default function HomePage() {
       </section>
 
       <section className={`container ${styles.section}`} aria-labelledby="about-title">
-        <div className={styles.about}>
-          <div className={styles.aboutText}>
-            <h2 id="about-title" className={styles.sectionTitle}>
-              {aboutTheatre.title}
-            </h2>
-            <p className={styles.aboutLead}>{aboutTheatre.lead}</p>
-            <p>{aboutTheatre.paragraphs[0]}</p>
-            <ButtonLink href="/about" className={styles.aboutButton}>
-              Подробнее
-            </ButtonLink>
-          </div>
-          <div className={styles.aboutPhotos}>
-            {aboutTheatre.photos.slice(0, 2).map((src) => (
-              <div key={src} className={styles.aboutPhoto}>
-                <Image
-                  src={src}
-                  alt="Команда модного театра TURDUS"
-                  fill
-                  sizes="(min-width: 60rem) 25vw, 50vw"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        <AboutTeaser />
       </section>
 
       <section className={`container ${styles.section}`} aria-labelledby="news-title">
