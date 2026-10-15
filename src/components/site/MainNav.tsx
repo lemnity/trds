@@ -21,7 +21,7 @@ export type MegaShow = {
   salesOpen: boolean
 }
 
-type Props = { months: NavLink[]; nearest: MegaShow[] }
+type Props = { shows: NavLink[]; months: NavLink[]; nearest: MegaShow[] }
 
 const noopSubscribe = () => () => {}
 
@@ -43,7 +43,7 @@ const ItemLink = ({ href, label, className, onClick }: ItemLinkProps) =>
  * раздел остаётся ссылкой, рядом кнопка-стрелка с aria-expanded. Подменю открывается
  * наведением (с задержкой закрытия), кнопкой, с клавиатуры; закрывается Esc и кликом мимо.
  */
-export function MainNav({ months, nearest }: Props) {
+export function MainNav({ shows, months, nearest }: Props) {
   const ids = useId()
   const navRef = useRef<HTMLElement>(null)
   const closeTimer = useRef<number>(undefined)
@@ -60,6 +60,18 @@ export function MainNav({ months, nearest }: Props) {
   const megaGroups = months.length
     ? [...AFISHA_GROUPS, { title: 'По месяцам', links: months }]
     : AFISHA_GROUPS
+  const chevron = (
+    <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" className={styles.chevron}>
+      <path
+        d="M5 7.5 10 12.5 15 7.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
   const close = () => setOpen(null)
 
   useEffect(() => {
@@ -106,32 +118,77 @@ export function MainNav({ months, nearest }: Props) {
             onMouseLeave={item.children ? hoverClose : undefined}
             onKeyDown={(event) => onKeyDown(event, i)}
           >
-            <ItemLink href={item.href} label={item.label} className={styles.link} />
+            {item.mega ? (
+              // Мега-меню: раздел — кнопка, открывает панель (страница афиши — ссылкой внутри).
+              <button
+                id={`${ids}-btn-${i}`}
+                type="button"
+                className={`${styles.link} ${styles.trigger}`}
+                aria-expanded={open === i}
+                aria-controls={`${ids}-sub-${i}`}
+                onClick={() => setOpen(open === i ? null : i)}
+              >
+                {item.label}
+                {chevron}
+              </button>
+            ) : (
+              <ItemLink href={item.href} label={item.label} className={styles.link} />
+            )}
             {item.children && (
               <>
-                <button
-                  id={`${ids}-btn-${i}`}
-                  type="button"
-                  className={styles.toggle}
-                  aria-expanded={open === i}
-                  aria-controls={`${ids}-sub-${i}`}
-                  aria-label={`Подразделы: ${item.label}`}
-                  onClick={() => setOpen(open === i ? null : i)}
-                >
-                  <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
-                    <path
-                      d="M5 7.5 10 12.5 15 7.5"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
+                {!item.mega && (
+                  <button
+                    id={`${ids}-btn-${i}`}
+                    type="button"
+                    className={styles.toggle}
+                    aria-expanded={open === i}
+                    aria-controls={`${ids}-sub-${i}`}
+                    aria-label={`Подразделы: ${item.label}`}
+                    onClick={() => setOpen(open === i ? null : i)}
+                  >
+                    <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+                      <path
+                        d="M5 7.5 10 12.5 15 7.5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                )}
                 {item.mega ? (
-                  <div id={`${ids}-sub-${i}`} className={styles.mega} hidden={open !== i}>
+                  <div
+                    id={`${ids}-sub-${i}`}
+                    className={styles.mega}
+                    data-open={open === i || undefined}
+                    inert={open !== i || undefined}
+                  >
                     <div className={`container ${styles.megaInner}`}>
+                      <div className={`${styles.megaGroup} ${styles.megaShows}`}>
+                        <p className={styles.megaTitle} id={`${ids}-shows`}>
+                          Наши спектакли
+                        </p>
+                        <ul aria-labelledby={`${ids}-shows`} className={styles.showList}>
+                          {shows.map((link) => (
+                            <li key={link.href}>
+                              <ItemLink
+                                href={link.href}
+                                label={link.label}
+                                className={styles.megaLink}
+                                onClick={close}
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                        <ItemLink
+                          href="/afisha"
+                          label="Вся афиша"
+                          className={styles.megaAll}
+                          onClick={close}
+                        />
+                      </div>
                       {megaGroups.map((group) => (
                         <div key={group.title} className={styles.megaGroup}>
                           <p className={styles.megaTitle} id={`${ids}-g-${group.title}`}>
@@ -203,6 +260,7 @@ export function MainNav({ months, nearest }: Props) {
         className={styles.burger}
         aria-expanded={mobileOpen}
         aria-controls={`${ids}-mobile`}
+        aria-label="Меню"
         onClick={() => setMobileOpen(!mobileOpen)}
       >
         <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
@@ -213,7 +271,7 @@ export function MainNav({ months, nearest }: Props) {
             strokeLinecap="round"
           />
         </svg>
-        Меню
+        <span className={styles.burgerLabel}>Меню</span>
       </button>
       <div id={`${ids}-mobile`} className={styles.panel} hidden={!mobileOpen}>
         <ul className={styles.panelList}>

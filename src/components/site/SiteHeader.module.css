@@ -153,40 +153,108 @@
   .cta {
     display: none;
   }
+
+  /* Телефон: логотип чуть меньше и плотнее промежутки — помещаются меню, поиск, глаз, кабинет. */
+  .inner {
+    gap: 0.5rem;
+  }
+
+  .logo {
+    height: 2.1rem;
+  }
+
+  .actions {
+    gap: 0.25rem;
+  }
 }
 
-/* «Версия для слабовидящих»: глаз + подпись в две строки; на узких экранах — только глаз. */
+/* Кнопки-иконки шапки (поиск, версия для слабовидящих): подпись — подсказкой при наведении. */
+.tipWrap {
+  position: relative;
+  display: inline-flex;
+}
+
 .lowVision {
-  gap: 0.6rem;
-  padding-inline: 0.75rem;
-  text-align: left;
+  width: var(--tap-min);
+  height: var(--tap-min);
 }
 
-.lowVisionLabel {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-muted);
+/* Иконки крупнее стандартных 18px HeroUI. */
+.tipWrap .lowVision.lowVision svg {
+  width: 1.625rem;
+  height: 1.625rem;
 }
 
-@media (max-width: 80rem) {
-  .lowVision {
-    width: var(--tap-min);
-    padding: 0;
-  }
-
-  .lowVisionLabel {
-    display: none;
-  }
+.tip {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  /* По правому краю кнопки: иконки стоят справа, по центру подсказка вылезла бы за экран. */
+  right: 0;
+  z-index: 40;
+  padding: 0.4rem 0.6rem;
+  background: var(--color-ink);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-0.25rem);
+  transition:
+    opacity var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard),
+    visibility 0s linear var(--motion-fast);
 }
 
-.lowVision[data-selected='true'] .lowVisionLabel {
-  color: inherit;
+.tipWrap:hover .tip,
+.tipWrap:focus-within .tip {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
 }
 
 :global(:root[data-low-vision='1']) .header {
   background: #ffffff;
   border-bottom: 2px solid #000000;
+}
+
+/* Панель поиска — на всю ширину под шапкой (позиционируется от sticky-шапки). */
+.tipWrap:has(.searchPanel) {
+  position: static;
+}
+
+.searchPanel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  z-index: 30;
+  padding-block: 1.25rem;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-hairline);
+  box-shadow: 0 24px 48px rgb(21 23 28 / 0.14);
+}
+
+.searchPanel[hidden] {
+  display: none;
+}
+
+.searchForm {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.searchField {
+  flex: 1;
+}
+
+.searchField [data-slot='search-field-group'],
+.searchField :global(.search-field__group) {
+  width: 100%;
+  height: 3rem;
+  font-size: 1.0625rem;
 }

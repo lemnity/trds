@@ -199,17 +199,80 @@
   background: var(--color-surface);
   border-top: 1px solid var(--color-hairline);
   box-shadow: 0 24px 48px rgb(21 23 28 / 0.14);
+  /* Плавное открытие: проявление и сдвиг сверху; закрытое — невидимо и inert. */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-0.75rem);
+  transition:
+    opacity 0.22s var(--ease-standard),
+    transform 0.22s var(--ease-standard),
+    visibility 0s linear 0.22s;
 }
 
-.mega[hidden] {
-  display: none;
+.mega[data-open] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.22s var(--ease-standard),
+    transform 0.22s var(--ease-standard);
 }
 
 .megaInner {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(16rem, 1.15fr);
+  grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)) minmax(16rem, 1.3fr);
   gap: 2.5rem;
   padding-block: 2rem 2.5rem;
+}
+
+/* «Наши спектакли» — две колонки названий и ссылка на всю афишу. */
+.showList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1.5rem;
+}
+
+.megaAll {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  margin-top: 0.75rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+.megaAll:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Раздел-кнопка мега-меню выглядит как пункт меню. */
+.trigger {
+  gap: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.trigger .chevron {
+  color: var(--color-muted);
+  transition: transform var(--motion-fast) var(--ease-standard);
+}
+
+.trigger[aria-expanded='true'] .chevron {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mega,
+  .mega[data-open] {
+    transform: none;
+    transition: none;
+  }
 }
 
 .megaTitle {
@@ -225,6 +288,7 @@
   display: flex;
   align-items: center;
   min-height: 2.5rem;
+  line-height: 1.25;
   font-size: 1.0625rem;
   text-decoration: none;
 }
@@ -276,4 +340,17 @@
   margin-bottom: 0.5rem;
   font-size: var(--step--1);
   color: var(--color-muted);
+}
+
+/* Телефон: у кнопки «Меню» только значок (имя — aria-label). */
+@media (max-width: 30rem) {
+  .burger {
+    width: var(--tap-min);
+    justify-content: center;
+    padding: 0;
+  }
+
+  .burgerLabel {
+    display: none;
+  }
 }

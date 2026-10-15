@@ -7,6 +7,7 @@ import { formatPerformanceDate, getShowsData, groupByMonth, listUpcoming } from 
 import styles from './SiteHeader.module.css'
 import { ButtonLink } from '../ui/ButtonLink'
 import { TicketIcon } from '../ui/TicketIcon'
+import { HeaderSearch } from './HeaderSearch'
 import { LogoBird } from './LogoBird'
 import { MainNav, type MegaShow } from './MainNav'
 import { LowVisionToggle } from './LowVisionToggle'
@@ -24,6 +25,10 @@ export function SiteHeader() {
     href: `/afisha?month=${g.key}`,
     label: g.label,
   }))
+  // «Наши спектакли» в мега-меню — весь репертуар по алфавиту.
+  const shows = [...data.shows]
+    .sort((a, b) => a.title.localeCompare(b.title, 'ru'))
+    .map((s) => ({ href: `/shows/${s.slug}`, label: s.title }))
   const nearest: MegaShow[] = upcoming.slice(0, MEGA_UPCOMING).map((p) => {
     const date = formatPerformanceDate(p.startsAt)
     return {
@@ -50,8 +55,9 @@ export function SiteHeader() {
           />
           <LogoBird className={styles.bird} />
         </Link>
-        <MainNav months={months} nearest={nearest} />
+        <MainNav shows={shows} months={months} nearest={nearest} />
         <div className={styles.actions}>
+          <HeaderSearch />
           <LowVisionToggle />
           <ButtonLink href="/account" variant="outline" className={styles.account}>
             <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">

@@ -9,7 +9,7 @@ import styles from './SiteHeader.module.css'
 const noopSubscribe = () => () => {}
 
 const EyeIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+  <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
     <path
       d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"
       fill="none"
@@ -47,19 +47,21 @@ export function LowVisionToggle() {
   }
 
   return (
-    <ToggleButton
-      isSelected={enabled}
-      onChange={toggle}
-      variant="ghost"
-      className={styles.lowVision}
-      aria-label="Версия для слабовидящих"
-    >
-      <EyeIcon />
-      <span className={styles.lowVisionLabel} aria-hidden="true">
-        Версия для
-        <br />
-        слабовидящих
+    // Подпись — подсказкой при наведении и фокусе; имя кнопки для дикторов — aria-label.
+    <span className={styles.tipWrap}>
+      <ToggleButton
+        isSelected={enabled}
+        onChange={toggle}
+        variant="ghost"
+        isIconOnly
+        className={styles.lowVision}
+        aria-label="Версия для слабовидящих"
+      >
+        <EyeIcon />
+      </ToggleButton>
+      <span className={styles.tip} aria-hidden="true">
+        {enabled ? 'Обычная версия' : 'Версия для слабовидящих'}
       </span>
-    </ToggleButton>
+    </span>
   )
 }
