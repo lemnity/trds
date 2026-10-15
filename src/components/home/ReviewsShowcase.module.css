@@ -29,6 +29,10 @@
   gap: 0.75rem;
 }
 
+.leave {
+  margin-right: 1rem;
+}
+
 .counter {
   margin-right: 0.5rem;
   font-variant-numeric: tabular-nums;
@@ -165,8 +169,18 @@
   background: #ffffff;
 }
 
-/* На телефоне «Читать полностью» — под автором. */
+/* На телефоне «Читать полностью» — под автором; «Оставить отзыв» — отдельной строкой. */
 @media (max-width: 40rem) {
+  .controls {
+    flex-wrap: wrap;
+  }
+
+  .leave {
+    order: 1;
+    width: 100%;
+    margin-right: 0;
+  }
+
   .stage {
     grid-template-columns: minmax(0, 1fr);
   }

@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@heroui/react'
+import { buttonVariants } from '@heroui/styles'
 import { useId, useState } from 'react'
 
 import type { Review } from '@/modules/content'
@@ -8,6 +9,9 @@ import type { Review } from '@/modules/content'
 import styles from './ReviewsShowcase.module.css'
 
 const pad = (n: number) => String(n).padStart(2, '0')
+
+// Формы отзывов на сайте пока нет — отзыв уходит письмом театру (как заявка на корпоратив).
+const REVIEW_MAILTO = `mailto:rechevik@inbox.ru?subject=${encodeURIComponent('Отзыв о театре TURDUS')}`
 
 const Chevron = ({ dir }: { dir: 'left' | 'right' }) => (
   <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
@@ -43,7 +47,10 @@ export function ReviewsShowcase({ reviews }: { reviews: Review[] }) {
         <h2 id="reviews-title" className={styles.title}>
           Отзывы
         </h2>
-        <div className={styles.controls}>
+        <div className={`${styles.controls} on-dark`}>
+          <a href={REVIEW_MAILTO} className={buttonVariants({ className: styles.leave })}>
+            Оставить отзыв
+          </a>
           <p className={styles.counter} aria-live="polite">
             <span className={styles.counterCurrent}>{pad(current + 1)}</span> /{' '}
             {pad(reviews.length)}
