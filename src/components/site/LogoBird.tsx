@@ -1,6 +1,6 @@
 /**
  * Птица из логотипа театра (дрозд — turdus) — силуэт над надписью в шапке.
- * Прыгает по верху слова при загрузке и при наведении/фокусе на логотип (CSS в
+ * Периодически прыгает по верху слова (CSS в
  * SiteHeader.module.css); при prefers-reduced-motion просто сидит. Декоративная.
  */
 export function LogoBird({ className }: { className?: string }) {
