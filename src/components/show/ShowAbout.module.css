@@ -1,7 +1,12 @@
 .about {
   display: grid;
+  grid-template-areas: 'intro' 'side' 'main';
   gap: 2rem;
   align-items: start;
+}
+
+.intro {
+  grid-area: intro;
 }
 
 .title {
@@ -18,6 +23,7 @@
 
 /* Действующие лица — как в театральной программке: персонаж … исполнитель. */
 .main {
+  grid-area: main;
   display: grid;
   gap: clamp(1.75rem, 4vw, 2.5rem);
   min-width: 0;
@@ -147,6 +153,7 @@
 }
 
 .sidebar {
+  grid-area: side;
   display: grid;
   gap: 1rem;
 }
@@ -254,7 +261,9 @@
 @media (min-width: 60rem) {
   .about {
     grid-template-columns: minmax(0, 1.4fr) minmax(20rem, 1fr);
-    gap: 3rem;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: 'intro side' 'main side';
+    gap: 2rem 3rem;
   }
 
   /* Правая колонка не уезжает при чтении длинного описания и состава. */

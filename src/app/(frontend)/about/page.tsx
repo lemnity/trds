@@ -26,9 +26,7 @@ export default function AboutPage() {
             // Список статичен и не переупорядочивается.
             <p key={i}>{p}</p>
           ))}
-          <ButtonLink href="/afisha">
-            Смотреть афишу <span aria-hidden="true">→</span>
-          </ButtonLink>
+          <ButtonLink href="/afisha">Смотреть афишу</ButtonLink>
         </div>
         <div className={styles.photos}>
           {aboutTheatre.photos.map((src) => (

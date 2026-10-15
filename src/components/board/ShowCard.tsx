@@ -25,9 +25,6 @@ export function ShowCard({ item, posterUrl }: { item: PerformanceView; posterUrl
           <span>
             {date.longDate}, {date.time}
           </span>
-          <span aria-hidden="true" className={styles.arrow}>
-            →
-          </span>
         </p>
         <h3 className={styles.title}>
           <Link href={`/shows/${item.show.slug}`}>{item.show.title}</Link>

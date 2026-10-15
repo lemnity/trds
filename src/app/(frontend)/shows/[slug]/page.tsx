@@ -8,7 +8,7 @@ import { ShowCard } from '@/components/board/ShowCard'
 import { ShowBooking } from '@/components/show/ShowBooking'
 import { Gallery } from '@/components/show/Gallery'
 import { ShowAbout } from '@/components/show/ShowAbout'
-import { ShowHeaderCompact } from '@/components/show/ShowHeaderCompact'
+import { ShowBuy, ShowCover, ShowTitle } from '@/components/show/ShowHeaderCompact'
 import { getShowPage, getShowsData, listPublishedShows, listUpcoming } from '@/modules/shows'
 
 import styles from './show.module.css'
@@ -48,10 +48,14 @@ export default async function ShowPage({ params }: { params: Promise<Params> }) 
 
   return (
     <>
-      <ShowHeaderCompact show={show} performances={performances} />
+      <ShowCover show={show} />
 
       <section id="about" className={`container ${styles.about}`} aria-label="О спектакле">
-        <ShowAbout show={show} />
+        <ShowAbout
+          show={show}
+          intro={<ShowTitle show={show} performances={performances} />}
+          buy={<ShowBuy performances={performances} />}
+        />
       </section>
 
       <section id="tickets" className={`container ${styles.section}`} aria-label="Даты и билеты">
@@ -82,7 +86,7 @@ export default async function ShowPage({ params }: { params: Promise<Params> }) 
               Другие спектакли
             </h2>
             <Link href="/afisha" className={styles.all}>
-              Вся афиша <span aria-hidden="true">→</span>
+              Вся афиша
             </Link>
           </div>
           <ul className={styles.cards}>

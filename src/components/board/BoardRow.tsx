@@ -68,7 +68,6 @@ export function BoardRow({ item, highlight = false, showTitle = true }: Props) {
                 {' '}
                 на «{item.show.title}», {date.longDate}
               </span>
-              <span aria-hidden="true">→</span>
             </Link>
           </>
         ) : null}

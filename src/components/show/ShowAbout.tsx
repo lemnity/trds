@@ -111,7 +111,15 @@ const castCards = (show: Show) => {
   }))
 }
 
-export function ShowAbout({ show }: { show: Show }) {
+type AboutProps = {
+  show: Show
+  /** Шапка (название, плашки) — над описанием, рядом с правой колонкой. */
+  intro?: React.ReactNode
+  /** Цена и кнопка покупки — внизу карточки «О спектакле». */
+  buy?: React.ReactNode
+}
+
+export function ShowAbout({ show, intro, buy }: AboutProps) {
   const directors = uniqueNames(show.credits.filter(isDirector))
   const duration = formatDuration(show.durationMinutes)
   const age = formatAge(show.ageLimit)
@@ -128,6 +136,7 @@ export function ShowAbout({ show }: { show: Show }) {
 
   return (
     <div className={styles.about}>
+      {intro && <div className={styles.intro}>{intro}</div>}
       <div className={styles.main}>
         <h2 className="visually-hidden">О спектакле</h2>
         <div className={styles.prose}>
@@ -182,7 +191,7 @@ export function ShowAbout({ show }: { show: Show }) {
       </div>
 
       <aside className={styles.sidebar} aria-label="Коротко о спектакле">
-        {facts.length > 0 && (
+        {(facts.length > 0 || buy) && (
           <div className={styles.factsCard}>
             <p className={styles.factsTitle}>О спектакле</p>
             <dl className={styles.factList}>
@@ -196,6 +205,7 @@ export function ShowAbout({ show }: { show: Show }) {
                 </div>
               ))}
             </dl>
+            {buy}
           </div>
         )}
         {mediaPhoto && (

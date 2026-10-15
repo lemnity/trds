@@ -28,12 +28,10 @@
   padding: clamp(1rem, 3vw, 2rem);
 }
 
-/* Шапка под обложкой: название и два ряда «плашки слева — цена/кнопка справа». */
+/* Название и плашки — в левой колонке над описанием. */
 .head {
   display: grid;
   gap: 1rem;
-  padding-block: clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem);
-  border-bottom: 1px solid var(--color-hairline);
 }
 
 .title {
@@ -42,14 +40,6 @@
   line-height: var(--leading-tight);
   letter-spacing: -0.01em;
   text-wrap: balance;
-}
-
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem 1.5rem;
 }
 
 .chips {
@@ -80,19 +70,17 @@
   color: var(--color-muted);
 }
 
-.buy {
-  min-width: 13rem;
+.buyBox {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-hairline);
 }
 
 @media (min-width: 60rem) {
   .media {
     aspect-ratio: auto;
     height: clamp(18rem, 42vh, 28rem);
-  }
-}
-
-@media (max-width: 30rem) {
-  .buy {
-    width: 100%;
   }
 }

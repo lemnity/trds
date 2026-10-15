@@ -48,7 +48,7 @@ export default function HomePage() {
             Ближайшие спектакли
           </h2>
           <Link href="/afisha" className={styles.more}>
-            Вся афиша <span aria-hidden="true">→</span>
+            Вся афиша
           </Link>
         </div>
         <ul className={styles.cards}>
@@ -74,7 +74,7 @@ export default function HomePage() {
             <p className={styles.aboutLead}>{aboutTheatre.lead}</p>
             <p>{aboutTheatre.paragraphs[0]}</p>
             <ButtonLink href="/about" className={styles.aboutButton}>
-              Подробнее <span aria-hidden="true">→</span>
+              Подробнее
             </ButtonLink>
           </div>
           <div className={styles.aboutPhotos}>
@@ -130,7 +130,7 @@ export default function HomePage() {
               href="mailto:rechevik@inbox.ru?subject=%D0%9A%D0%BE%D1%80%D0%BF%D0%BE%D1%80%D0%B0%D1%82%D0%B8%D0%B2"
               className={buttonVariants({ variant: 'outline', className: styles.onDark })}
             >
-              Оставить заявку <span aria-hidden="true">→</span>
+              Оставить заявку
             </a>
           </div>
           {bannerPoster && (

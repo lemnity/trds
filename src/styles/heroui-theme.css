@@ -17,6 +17,8 @@
 
   --accent: var(--color-brand);
   --accent-foreground: var(--color-brand-contrast);
+  /* Ховер заметно ярче бренда (по просьбе заказчика); белый текст на нём ≥ 4.5:1. */
+  --accent-hover: #2d55d6;
 
   --success: var(--color-success);
   --success-foreground: #ffffff;
@@ -38,6 +40,16 @@
 
   --radius: 0.625rem;
   --field-radius: var(--radius-control);
+}
+
+/* Контурная кнопка: на ховере — синяя рамка, синий текст и лёгкая заливка. */
+@media (hover: hover) {
+  .button--outline:hover,
+  .button--outline[data-hovered='true'] {
+    --button-bg-hover: color-mix(in srgb, var(--accent) 10%, transparent);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
 }
 
 @theme {

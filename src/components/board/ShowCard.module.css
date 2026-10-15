@@ -50,15 +50,6 @@
   color: var(--color-muted);
 }
 
-.arrow {
-  color: var(--color-brand);
-  transition: transform var(--motion-fast) var(--ease-standard);
-}
-
-.card:hover .arrow {
-  transform: translateX(3px);
-}
-
 .title {
   font-weight: 600;
   font-size: var(--step-1);

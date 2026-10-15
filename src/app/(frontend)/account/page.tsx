@@ -30,9 +30,7 @@ export default function AccountPage() {
           театром: <a href="tel:+79826575426">+7 982 657-54-26</a>,{' '}
           <a href="mailto:rechevik@inbox.ru">rechevik@inbox.ru</a>.
         </p>
-        <ButtonLink href="/afisha">
-          Перейти в афишу <span aria-hidden="true">→</span>
-        </ButtonLink>
+        <ButtonLink href="/afisha">Перейти в афишу</ButtonLink>
       </div>
     </div>
   )

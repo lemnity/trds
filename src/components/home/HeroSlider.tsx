@@ -103,9 +103,7 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
                       <TicketIcon /> Купить билет
                     </>
                   ) : (
-                    <>
-                      Подробнее о показе <span aria-hidden="true">→</span>
-                    </>
+                    <>Подробнее о показе</>
                   )}
                 </ButtonLink>
                 {p.salesOpen && p.minPriceKopecks !== null && (
@@ -138,9 +136,11 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
             <button type="button" onClick={() => go(current - 1)} aria-label="Предыдущий слайд">
               <span aria-hidden="true">←</span>
             </button>
-            <button type="button" onClick={() => go(current + 1)} aria-label="Следующий слайд">
-              <span aria-hidden="true">→</span>
-            </button>
+            <button
+              type="button"
+              onClick={() => go(current + 1)}
+              aria-label="Следующий слайд"
+            ></button>
           </div>
         </div>
       )}
