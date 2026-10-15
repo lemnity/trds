@@ -1,22 +1,18 @@
+import Image from 'next/image'
+
+import bird from '@/assets/logo-bird.png'
+
 /**
- * Птица из логотипа театра (дрозд — turdus) — силуэт над надписью в шапке.
- * Периодически прыгает по верху слова (CSS в
- * SiteHeader.module.css); при prefers-reduced-motion просто сидит. Декоративная.
+ * Птица из логотипа театра (дрозд — turdus): вырезана из логотипа заказчика (657657.png,
+ * прозрачный фон). Стоит сбоку от надписи в шапке и периодически прыгает (CSS в
+ * SiteHeader.module.css); при prefers-reduced-motion и в версии для слабовидящих сидит.
  */
 export function LogoBird({ className }: { className?: string }) {
   return (
     <span className={className} aria-hidden="true">
-      <svg viewBox="0 0 120 80" focusable="false">
-        <path d="M2 74 L38 50 C44 40 54 30 66 26 C72 18 80 12 88 13 L118 9 L92 22 C94 30 92 40 84 48 C78 54 70 57 60 58 L8 78 Z" />
-        <path
-          d="M64 56 L62 73 M73 55 L75 73"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
-        <circle cx="89" cy="17" r="1.8" fill="#ffffff" />
-      </svg>
+      <span>
+        <Image src={bird} alt="" sizes="64px" />
+      </span>
     </span>
   )
 }

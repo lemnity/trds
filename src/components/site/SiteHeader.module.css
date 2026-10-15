@@ -10,7 +10,6 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  /* Над надписью логотипа — место для прыжков птицы. */
   min-height: 4.75rem;
 }
 
@@ -22,25 +21,32 @@
 }
 
 /*
- * Птица из логотипа сидит на верху надписи и периодически прыгает туда-сюда: цикл 12 с —
+ * Птица из логотипа — сбоку от надписи; периодически прыгает туда-сюда: цикл 12 с —
  * ~4 с сценка, остальное сидит. Не прыгает при reduced motion и в версии для слабовидящих.
  */
 .bird {
-  position: absolute;
-  left: 48%;
-  bottom: calc(100% - 0.45rem);
-  width: 1.8rem;
-  color: var(--color-ink);
+  /* Полоса справа от логотипа: птица стоит на уровне низа надписи и прыгает в её пределах. */
+  position: relative;
+  flex: none;
+  align-self: stretch;
+  width: 4.25rem;
+  margin-left: 0.5rem;
   pointer-events: none;
+}
+
+.bird span {
+  position: absolute;
+  left: 0;
+  bottom: 0.55rem;
+  width: 2.2rem;
   transform-origin: 50% 100%;
   animation: bird-hop 12s var(--ease-standard) 0.8s infinite both;
 }
 
-.bird svg {
+.bird span img {
   display: block;
   width: 100%;
   height: auto;
-  fill: currentColor;
 }
 
 /* Первые 35% цикла: два прыжка вправо, поклёвка, разворот, два прыжка назад; дальше сидит. */
@@ -96,13 +102,20 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bird {
+  .bird span {
     animation: none;
   }
 }
 
-:global(:root[data-low-vision='1']) .bird {
+:global(:root[data-low-vision='1']) .bird span {
   animation: none;
+}
+
+/* На узких экранах шапка и так плотная — птицу не показываем. */
+@media (max-width: 48rem) {
+  .bird {
+    display: none;
+  }
 }
 
 .logo {
