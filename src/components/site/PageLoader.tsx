@@ -2,25 +2,16 @@
 
 import { useEffect, useState, type CSSProperties } from 'react'
 
+import { LOGO_VIEWBOX, TAGLINE_CONTOURS, WORDMARK_CONTOURS } from './logoOutline'
 import styles from './PageLoader.module.css'
-
-// Кольцо из 72 точек по мотивам «Colorful Dissolving Loader» (colorful/, Amit Sheen).
-// Смещения детерминированы: Math.random() дал бы расхождение SSR и гидрации.
-const DOTS = Array.from({ length: 72 }, (_, i) => {
-  const a = Math.abs(Math.sin(i * 12.9898) * 43758.5453) % 1
-  const b = Math.abs(Math.sin(i * 78.233) * 12543.8731) % 1
-  return {
-    '--rz': `${i * 5}deg`,
-    '--delay': `${((4 / 72) * i - 4).toFixed(3)}s`,
-    '--tx': `${(a * 4).toFixed(2)}em`,
-    '--ty': `${(b * 8 - 2.5).toFixed(2)}em`,
-    '--hue': i * 5,
-  } as CSSProperties
-})
 
 const FADE_MS = 500
 
-/** Заставка до события window.load: видна только при первой загрузке документа. */
+/**
+ * Заставка до события window.load: видна только при первой загрузке документа.
+ * По контурам «TURDUS» бегут штрихи (приём stroke-dasharray из triangle/, «Triangle SVG
+ * loading», Willian Justen); «модный театр» — неподвижно.
+ */
 export function PageLoader() {
   const [state, setState] = useState<'visible' | 'leaving' | 'gone'>('visible')
 
@@ -51,26 +42,17 @@ export function PageLoader() {
     >
       <span className="visually-hidden">Загружаем страницу…</span>
       <div className={styles.stage} aria-hidden="true">
-        <div className={styles.ring}>
-          {DOTS.map((style, i) => (
-            <i key={i} style={style} />
-          ))}
-        </div>
-        <svg className={styles.logo} viewBox="0 0 200 84">
-          <defs>
-            <linearGradient id="page-loader-hue" x1="0" y1="0" x2="1" y2="0">
-              {[0, 60, 120, 180, 240, 300, 360].map((hue, i) => (
-                <stop key={hue} offset={i / 6} stopColor={`hsl(${hue} 75% 75%)`} />
-              ))}
-            </linearGradient>
-          </defs>
-          <text x="100" y="46" textAnchor="middle" className={styles.wordmark}>
-            TURDUS
-          </text>
-          <text x="100" y="74" textAnchor="middle" className={styles.tagline}>
-            модный театр
-          </text>
+        <svg className={styles.logo} viewBox={LOGO_VIEWBOX}>
+          <path className={styles.fill} fillRule="evenodd" d={WORDMARK_CONTOURS.join(' ')} />
+          <g className={styles.trace}>
+            {WORDMARK_CONTOURS.map((d, i) => (
+              // pathLength=100 — одинаковое число штрихов на любом контуре.
+              <path key={i} d={d} pathLength={100} style={{ '--i': i } as CSSProperties} />
+            ))}
+          </g>
+          <path className={styles.tagline} fillRule="evenodd" d={TAGLINE_CONTOURS.join(' ')} />
         </svg>
+        <span className={styles.label}>Загрузка</span>
       </div>
     </div>
   )

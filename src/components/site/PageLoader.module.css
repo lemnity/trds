@@ -1,7 +1,3 @@
-/*
- * Фон чёрный, как в исходном пене: эффект «слипания» точек (blur + contrast)
- * работает только на чистом чёрном — на --color-night квадрат кольца проступил бы.
- */
 .overlay {
   position: fixed;
   inset: 0;
@@ -31,140 +27,68 @@
 }
 
 .stage {
-  --dur: 4s;
-  position: relative;
-  font-size: min(22px, 4.6vw);
-  width: 21em;
-  height: 21em;
-}
-
-.ring {
-  position: absolute;
-  inset: 0;
-  background: #000;
-  filter: blur(0.2em) contrast(2);
-  animation: spin calc(var(--dur) * 4) linear infinite;
-}
-
-.ring > i {
-  position: absolute;
-  left: 10em;
-  top: 10em;
-  width: 1em;
-  height: 1em;
-  border-radius: 50%;
-  background: hsl(var(--hue) 75% 75%);
-  transform: rotate(var(--rz)) translateY(4em) scale(0);
-  animation: dissolve var(--dur) var(--delay) ease-in-out infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes dissolve {
-  0% {
-    transform: rotate(var(--rz)) translateY(4em) scale(0);
-  }
-  2%,
-  20% {
-    transform: rotate(var(--rz)) translateY(4em) scale(1.25);
-  }
-  90%,
-  100% {
-    transform: rotate(var(--rz)) translateY(4em) translate(var(--tx), var(--ty)) scale(0);
-  }
+  display: grid;
+  justify-items: center;
+  gap: 2.25rem;
 }
 
 .logo {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 5.8em;
+  width: min(76vw, 26rem);
   height: auto;
-  transform: translate(-50%, -50%);
   overflow: visible;
-  font-family: var(--font-text);
 }
 
-/* Контур букв прорисовывается радужной обводкой, затем буквы заливаются и цикл повторяется. */
-.wordmark {
-  font-size: 44px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+/* Едва видная заливка — «TURDUS» читается, пока штрихи бегут по контуру. */
+.fill {
   fill: #fff;
-  fill-opacity: 0;
-  stroke: url(#page-loader-hue);
-  stroke-width: 1.4;
+  opacity: 0.14;
+}
+
+/* Приём из triangle/: короткие штрихи stroke-dasharray бегут по контуру. */
+.trace path {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.1;
+  stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 260;
-  stroke-dashoffset: 260;
-  animation: trace var(--dur) ease-in-out infinite;
+  stroke-dasharray: 32 18;
+  animation: dash 2.5s cubic-bezier(0.35, 0.04, 0.63, 0.95) infinite;
+  animation-delay: calc(var(--i) * -0.11s);
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -100;
+  }
 }
 
 .tagline {
-  font-size: 15px;
-  font-weight: 400;
   fill: #fff;
-  opacity: 0;
-  animation: tagline var(--dur) ease-in-out infinite;
 }
 
-@keyframes trace {
-  0% {
-    stroke-dashoffset: 260;
-    fill-opacity: 0;
-  }
-  55% {
-    stroke-dashoffset: 0;
-    fill-opacity: 0;
-  }
-  75%,
-  88% {
-    stroke-dashoffset: 0;
-    fill-opacity: 1;
-  }
-  100% {
-    stroke-dashoffset: -260;
-    fill-opacity: 0;
-  }
+.label {
+  color: #fff;
+  font-size: 0.8125rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  animation: blink 0.9s ease-in-out infinite alternate;
 }
 
-@keyframes tagline {
-  0%,
-  45% {
-    opacity: 0;
-  }
-  70%,
-  88% {
-    opacity: 0.85;
-  }
-  100% {
+@keyframes blink {
+  50% {
     opacity: 0;
   }
 }
 
-/* Без движения: статичный логотип с цветным контуром и неподвижное кольцо. */
+/* Без движения: «TURDUS» с цельной обводкой, подпись не мигает. */
 @media (prefers-reduced-motion: reduce) {
-  .ring {
+  .trace path {
     animation: none;
+    stroke-dasharray: none;
   }
 
-  .ring > i {
+  .label {
     animation: none;
-    transform: rotate(var(--rz)) translateY(4em) scale(1);
-  }
-
-  .wordmark {
-    animation: none;
-    stroke-dashoffset: 0;
-    fill-opacity: 1;
-  }
-
-  .tagline {
-    animation: none;
-    opacity: 0.85;
+    opacity: 0.7;
   }
 }
