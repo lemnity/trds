@@ -220,31 +220,122 @@
 
 .megaInner {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)) minmax(16rem, 1.3fr);
-  gap: 2.5rem;
-  padding-block: 2rem 2.5rem;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) minmax(17rem, 0.9fr);
+  padding-block: 2rem;
 }
 
-/* «Наши спектакли» — две колонки названий и ссылка на всю афишу. */
+/* Зоны разделены тонкими вертикальными линиями и полями. */
+.zone {
+  padding-inline: 0 2.5rem;
+}
+
+.zone + .zone,
+.zone + .feature {
+  border-left: 1px solid var(--color-hairline);
+}
+
+.zone + .zone {
+  padding-left: 2.5rem;
+}
+
+.feature {
+  margin-left: 2.5rem;
+}
+
+.count {
+  margin-left: 0.35rem;
+  color: var(--color-control-border);
+}
+
+/* Спектакли: две колонки строк с разделителями; жанр — мелко серым. */
 .showList {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 1.5rem;
+  column-gap: 2rem;
+  border-top: 1px solid var(--color-hairline);
 }
 
-.megaAll {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--tap-min);
-  margin-top: 0.75rem;
-  font-weight: 700;
+.showList li {
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.showLink {
+  display: grid;
+  gap: 0.1rem;
+  min-height: 3.5rem;
+  align-content: center;
+  padding-block: 0.5rem;
+  text-decoration: none;
+}
+
+.showName {
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.showMeta {
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+}
+
+.showLink:hover .showName {
   text-decoration: underline;
-  text-underline-offset: 0.3em;
+  text-underline-offset: 0.25em;
 }
 
-.megaAll:focus-visible {
+.showLink:focus-visible,
+.pill:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
+}
+
+/* Площадки и месяцы — плашки-фильтры (не путаются с названиями спектаклей). */
+.filterGroup + .filterGroup {
+  margin-top: 1.75rem;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding-inline: 0.9rem;
+  border: 1.5px solid var(--color-control-border);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pill:hover {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+
+/* Нижняя полоса панели: подпись и «Вся афиша». */
+.megaFooter {
+  border-top: 1px solid var(--color-hairline);
+  background: var(--color-background);
+}
+
+.megaFooterInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.85rem;
+}
+
+.megaFooterNote {
+  font-size: 0.9375rem;
+  color: var(--color-muted);
 }
 
 /* Раздел-кнопка мега-меню выглядит как пункт меню. */
@@ -282,25 +373,6 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-muted);
-}
-
-.megaLink {
-  display: flex;
-  align-items: center;
-  min-height: 2.5rem;
-  line-height: 1.25;
-  font-size: 1.0625rem;
-  text-decoration: none;
-}
-
-.megaLink:hover {
-  text-decoration: underline;
-  text-underline-offset: 0.3em;
-}
-
-.megaLink:focus-visible {
-  outline: 3px solid var(--color-focus);
-  outline-offset: 2px;
 }
 
 /* Карточка ближайшего спектакля — правая колонка с тёплым фоном. */

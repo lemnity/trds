@@ -28,7 +28,7 @@ export function SiteHeader() {
   // «Наши спектакли» в мега-меню — весь репертуар по алфавиту.
   const shows = [...data.shows]
     .sort((a, b) => a.title.localeCompare(b.title, 'ru'))
-    .map((s) => ({ href: `/shows/${s.slug}`, label: s.title }))
+    .map((s) => ({ href: `/shows/${s.slug}`, label: s.title, meta: s.genre ?? undefined }))
   const nearest: MegaShow[] = upcoming.slice(0, MEGA_UPCOMING).map((p) => {
     const date = formatPerformanceDate(p.startsAt)
     return {

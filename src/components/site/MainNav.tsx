@@ -21,7 +21,10 @@ export type MegaShow = {
   salesOpen: boolean
 }
 
-type Props = { shows: NavLink[]; months: NavLink[]; nearest: MegaShow[] }
+/** Спектакль в мега-меню: название и жанр подписью. */
+export type ShowLink = NavLink & { meta?: string }
+
+type Props = { shows: ShowLink[]; months: NavLink[]; nearest: MegaShow[] }
 
 const noopSubscribe = () => () => {}
 
@@ -166,48 +169,50 @@ export function MainNav({ shows, months, nearest }: Props) {
                     inert={open !== i || undefined}
                   >
                     <div className={`container ${styles.megaInner}`}>
-                      <div className={`${styles.megaGroup} ${styles.megaShows}`}>
+                      {/* Зона 1: репертуар — строки с жанром, как каталог. */}
+                      <section className={styles.zone} aria-labelledby={`${ids}-shows`}>
                         <p className={styles.megaTitle} id={`${ids}-shows`}>
-                          Наши спектакли
+                          Наши спектакли <span className={styles.count}>{shows.length}</span>
                         </p>
-                        <ul aria-labelledby={`${ids}-shows`} className={styles.showList}>
-                          {shows.map((link) => (
-                            <li key={link.href}>
-                              <ItemLink
-                                href={link.href}
-                                label={link.label}
-                                className={styles.megaLink}
-                                onClick={close}
-                              />
+                        <ul className={styles.showList}>
+                          {shows.map((show) => (
+                            <li key={show.href}>
+                              <Link href={show.href} className={styles.showLink} onClick={close}>
+                                <span className={styles.showName}>{show.label}</span>
+                                {show.meta && <span className={styles.showMeta}>{show.meta}</span>}
+                              </Link>
                             </li>
                           ))}
                         </ul>
-                        <ItemLink
-                          href="/afisha"
-                          label="Вся афиша"
-                          className={styles.megaAll}
-                          onClick={close}
-                        />
-                      </div>
-                      {megaGroups.map((group) => (
-                        <div key={group.title} className={styles.megaGroup}>
-                          <p className={styles.megaTitle} id={`${ids}-g-${group.title}`}>
-                            {group.title}
-                          </p>
-                          <ul aria-labelledby={`${ids}-g-${group.title}`}>
-                            {group.links.map((link) => (
-                              <li key={link.href + link.label}>
-                                <ItemLink
-                                  href={link.href}
-                                  label={link.label}
-                                  className={styles.megaLink}
-                                  onClick={close}
-                                />
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+                      </section>
+
+                      {/* Зона 2: подобрать по площадке и месяцу — плашки-фильтры. */}
+                      <section className={styles.zone} aria-label="Подобрать спектакль">
+                        {megaGroups.map((group) => (
+                          <div key={group.title} className={styles.filterGroup}>
+                            <p className={styles.megaTitle} id={`${ids}-g-${group.title}`}>
+                              {group.title}
+                            </p>
+                            <ul
+                              aria-labelledby={`${ids}-g-${group.title}`}
+                              className={styles.pills}
+                            >
+                              {group.links.map((link) => (
+                                <li key={link.href + link.label}>
+                                  <ItemLink
+                                    href={link.href}
+                                    label={link.label}
+                                    className={styles.pill}
+                                    onClick={close}
+                                  />
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </section>
+
+                      {/* Зона 3: ближайший спектакль. */}
                       {featured && (
                         <article className={styles.feature} aria-labelledby={`${ids}-feature`}>
                           <p className={styles.megaTitle}>Ближайший спектакль</p>
@@ -232,6 +237,16 @@ export function MainNav({ shows, months, nearest }: Props) {
                           </ButtonLink>
                         </article>
                       )}
+                    </div>
+                    <div className={styles.megaFooter}>
+                      <div className={`container ${styles.megaFooterInner}`}>
+                        <span className={styles.megaFooterNote}>
+                          Даты, площадки и билеты на все показы
+                        </span>
+                        <ButtonLink href="/afisha" variant="outline" onClick={close}>
+                          Вся афиша
+                        </ButtonLink>
+                      </div>
                     </div>
                   </div>
                 ) : (
