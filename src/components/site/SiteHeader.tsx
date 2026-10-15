@@ -76,7 +76,7 @@ export function SiteHeader() {
           </ButtonLink>
           <ButtonLink href="/afisha" className={styles.cta}>
             <TicketIcon />
-            Купить билет
+            <span className={styles.ctaLabel}>Купить билет</span>
           </ButtonLink>
         </div>
       </div>

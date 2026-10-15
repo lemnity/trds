@@ -83,15 +83,38 @@
   gap: 0.5rem;
 }
 
-/* На узких экранах кнопка кабинета — только иконка (подпись остаётся для экранного диктора). */
-@media (max-width: 48rem) {
-  .actions a.account {
+/*
+ * Планшет и телефон: логотип слева, справа — ряд одинаковых квадратных кнопок 44px
+ * (поиск, глаз, кабинет, билет), «Меню» — последней, у края. Подписи кабинета и билета
+ * остаются для экранного диктора.
+ */
+@media (max-width: 64rem) {
+  .actions {
+    order: 1;
+    margin-left: auto;
+    gap: 0.25rem;
+  }
+
+  .actions a.account,
+  .actions a.cta {
     width: var(--tap-min);
     padding: 0;
     justify-content: center;
   }
 
-  .accountLabel {
+  .actions a.account {
+    border-color: transparent;
+  }
+
+  /* Все значки ряда одного размера — как у поиска и глаза (двойной класс перебивает HeroUI). */
+  .actions a.account.account svg,
+  .actions a.cta.cta svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .accountLabel,
+  .ctaLabel {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -101,22 +124,25 @@
   }
 }
 
+/* Телефон: логотип чуть меньше, промежутки плотнее. */
 @media (max-width: 30rem) {
-  .cta {
-    display: none;
-  }
-
-  /* Телефон: логотип чуть меньше и плотнее промежутки — помещаются меню, поиск, глаз, кабинет. */
   .inner {
-    gap: 0.5rem;
+    gap: 0.25rem;
   }
 
   .logo {
     height: 2.1rem;
   }
 
-  .actions {
-    gap: 0.25rem;
+  :global(:root[data-scrolled]) .logo {
+    height: 1.9rem;
+  }
+}
+
+/* Совсем узко (до 376px): кабинет — в панели «Меню», иначе ряд кнопок не помещается. */
+@media (max-width: 23.5rem) {
+  .actions a.account {
+    display: none;
   }
 }
 

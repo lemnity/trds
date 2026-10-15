@@ -1,0 +1,1692 @@
+/* Превью вариантов главного слайдера. Высота блока одна для всех — 600px (на телефоне ниже). */
+.lab {
+  --h: clamp(30rem, 66vh, 37.5rem);
+  display: grid;
+  gap: 1.25rem;
+  padding-block: 1.5rem 3rem;
+}
+
+.switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.switch button {
+  min-height: var(--tap-min);
+  padding-inline: 1rem;
+  border: 1.5px solid var(--color-control-border);
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.switch button[aria-selected='true'] {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: #fff;
+}
+
+.ctaDark,
+.ctaLight {
+  justify-self: start;
+}
+
+.lab .ctaLight {
+  --button-bg: #fff;
+  --button-bg-hover: #e4e4e7;
+  --button-fg: var(--color-ink);
+}
+
+.lab .ctaDark {
+  --button-bg: var(--color-ink);
+  --button-fg: #fff;
+}
+
+.eyebrow,
+.eyebrowLight {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.eyebrowLight {
+  color: #b9bfcf;
+}
+
+.mutedLight {
+  color: #dde1ea;
+}
+
+/* Стрелки и счётчик */
+.arrows {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.counter {
+  margin-right: 0.5rem;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.counter b {
+  font-size: 1.15rem;
+  color: var(--color-ink);
+}
+
+.arrows button {
+  display: grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: 1.5px solid var(--color-control-border);
+  background: none;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.arrowsDark .counter {
+  color: #b9bfcf;
+}
+
+.arrowsDark .counter b {
+  color: #fff;
+}
+
+.arrowsDark button {
+  border-color: rgb(255 255 255 / 0.5);
+  color: #fff;
+}
+
+.arrows button:hover {
+  border-color: currentColor;
+}
+
+.lab img {
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+/* ===== У — Плёнка ===== */
+.film {
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  height: var(--h);
+  padding-bottom: 1.5rem;
+  background: #0b0c10;
+  color: #fff;
+}
+
+.holes {
+  height: 2rem;
+  background: radial-gradient(circle, #f3f2ef 0 0.32rem, transparent 0.36rem) 0 50% / 1.6rem 1rem
+    repeat-x;
+}
+
+.filmRow {
+  display: grid;
+  grid-template-columns: 2.2fr 1fr 1fr 1fr;
+  gap: 0.6rem;
+  padding-inline: 0.6rem;
+  min-height: 0;
+}
+
+.frame {
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: #000;
+  cursor: pointer;
+}
+
+.frame:not([data-on]) img {
+  filter: grayscale(1) brightness(0.7);
+  transition: filter var(--motion-base);
+}
+
+.frame:not([data-on]):hover img {
+  filter: grayscale(0.2) brightness(0.9);
+}
+
+.frameCap {
+  position: absolute;
+  inset: auto 0.9rem 0.8rem;
+  display: grid;
+  gap: 0.15rem;
+  color: #fff;
+  text-align: left;
+  text-shadow: 0 2px 10px rgb(0 0 0 / 0.7);
+}
+
+.frameCap small {
+  font-size: 0.8rem;
+  color: #dde1ea;
+}
+
+.filmInfo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding: 1.25rem 2.5rem 0;
+}
+
+.filmTitle {
+  margin-top: 0.4rem;
+  font-weight: 700;
+  font-size: clamp(2rem, 1.2rem + 2.6vw, 3.5rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.filmAct {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+}
+
+/* ===== Р — Мозаика ===== */
+.mosaic {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0.75rem;
+  height: var(--h);
+}
+
+.tile {
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: var(--color-night);
+  color: #fff;
+  cursor: pointer;
+}
+
+.tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgb(15 20 38 / 0.88), transparent 60%);
+}
+
+.tile img {
+  transition: transform var(--motion-slow) var(--ease-standard);
+}
+
+.tile:hover img {
+  transform: scale(1.04);
+}
+
+.tileBig {
+  grid-row: span 2;
+  cursor: default;
+}
+
+.tileCap,
+.tileCapBig {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  gap: 0.3rem;
+  justify-items: start;
+  text-align: left;
+}
+
+.tileCap {
+  inset: auto 1.25rem 1.1rem;
+}
+
+.tileCap small {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #dde1ea;
+}
+
+.tileCap b {
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.tileCapBig {
+  inset: auto 2.25rem 2.25rem;
+  gap: 0.6rem;
+}
+
+.tileCapBig p {
+  color: #dde1ea;
+}
+
+.tileCapBig h2 {
+  font-weight: 700;
+  font-size: clamp(2.25rem, 1.3rem + 2.6vw, 3.75rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+/* ===== З — Кулисы ===== */
+.curtains {
+  display: flex;
+  gap: 0.5rem;
+  height: var(--h);
+}
+
+.panel {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--color-night);
+  color: #fff;
+  transition: flex 0.5s var(--ease-standard);
+}
+
+.panel[data-on] {
+  flex: 5;
+}
+
+.panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgb(15 20 38 / 0.62);
+}
+
+.panel[data-on]::after {
+  background: linear-gradient(
+    0deg,
+    rgb(15 20 38 / 0.9),
+    rgb(15 20 38 / 0.25) 60%,
+    rgb(15 20 38 / 0.1)
+  );
+}
+
+.panelCap {
+  position: absolute;
+  z-index: 1;
+  inset: auto 2.5rem 2.25rem;
+  display: grid;
+  gap: 0.6rem;
+  justify-items: start;
+  animation: fade-in 0.45s var(--ease-standard) both;
+}
+
+.panelCap p {
+  color: #dde1ea;
+}
+
+.panelCap h2 {
+  font-weight: 700;
+  font-size: clamp(2.25rem, 1.3rem + 2.6vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.panelMini {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 0;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: inherit;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  cursor: pointer;
+}
+
+.panelMini small {
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #b9bfcf;
+}
+
+.panelMini b {
+  font-size: 1.15rem;
+  white-space: nowrap;
+}
+
+/* ===== Е — Триптих ===== */
+.trip {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 1.25rem;
+  height: var(--h);
+}
+
+.tripHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--color-ink);
+}
+
+.tripRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
+  min-height: 0;
+}
+
+.tripTile {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 1rem;
+  margin: 0;
+  min-height: 0;
+}
+
+.tripImg {
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-night);
+  cursor: pointer;
+}
+
+.tripTile:not([data-on]) .tripImg img {
+  filter: grayscale(1);
+  opacity: 0.85;
+  transition: filter var(--motion-base);
+}
+
+.tripTile:not([data-on]) .tripImg:hover img {
+  filter: none;
+}
+
+.tripTile figcaption {
+  display: grid;
+  gap: 0.3rem;
+  justify-items: start;
+}
+
+.tripTile small {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.tripTile b {
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.tripTile[data-on] b {
+  font-size: clamp(2rem, 1.2rem + 2vw, 2.75rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.tripTile span {
+  font-size: 0.95rem;
+  color: var(--color-muted);
+}
+
+.tripTile[data-on] span {
+  margin-bottom: 0.4rem;
+}
+
+/* ===== Г — Табло ===== */
+.board {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  height: var(--h);
+  background: var(--color-ink);
+  color: #fff;
+}
+
+.boardPhoto {
+  position: relative;
+  overflow: hidden;
+}
+
+.boardPhoto::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgb(15 20 38 / 0.9), rgb(15 20 38 / 0.2) 55%, transparent);
+}
+
+.boardCap {
+  position: absolute;
+  z-index: 1;
+  inset: auto 3rem 2.75rem;
+  display: grid;
+  gap: 0.6rem;
+  justify-items: start;
+}
+
+.boardCap p {
+  color: #dde1ea;
+}
+
+.boardCap h2 {
+  font-weight: 700;
+  font-size: clamp(2.25rem, 1.3rem + 2.6vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.boardList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2.25rem 2rem;
+  border-left: 1px solid rgb(255 255 255 / 0.15);
+  overflow-y: auto;
+}
+
+.boardList ol {
+  display: grid;
+}
+
+.boardList ol button {
+  display: grid;
+  grid-template-columns: 4.25rem 1fr;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.8rem 0.75rem;
+  border: 0;
+  border-top: 1px solid rgb(255 255 255 / 0.12);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.boardList ol button:hover {
+  background: rgb(255 255 255 / 0.06);
+}
+
+.boardList ol button[data-on] {
+  background: #fff;
+  color: var(--color-ink);
+}
+
+.boardDay {
+  display: grid;
+  font-weight: 700;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.boardDay small {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.boardText {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.boardText small {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.boardAll {
+  margin-top: auto;
+  font-weight: 700;
+}
+
+/* ===== А — Афиша =====
+ * Сетка левой колонки (сверху вниз), высоты постоянные:
+ * дата 1 строка · название 2 строки (3 на телефоне) · описание 2 строки · кнопка · пусто · стрелки.
+ */
+.split {
+  --title-size: clamp(2.25rem, 1.3rem + 2.8vw, 4.25rem);
+  --title-lines: 2;
+  display: grid;
+  grid-template-columns: 44fr 56fr;
+  height: var(--h);
+  background: var(--color-ink);
+  color: #fff;
+}
+
+.splitText {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-width: 0;
+  padding: clamp(2rem, 4.5vw, 4.5rem);
+  padding-bottom: 2rem;
+}
+
+.splitBody {
+  display: grid;
+  grid-template-rows:
+    1.5rem
+    calc(var(--title-lines) * 1.08 * var(--title-size))
+    calc(2 * 1.5 * 1.0625rem)
+    var(--tap-min);
+  row-gap: 1.25rem;
+  align-items: start;
+  justify-items: start;
+}
+
+.splitWhen {
+  display: flex;
+  gap: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b9bfcf;
+  white-space: nowrap;
+}
+
+.splitWhen span + span::before {
+  content: '·';
+  margin-right: 0.6rem;
+}
+
+.splitTitle {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--title-lines);
+  overflow: hidden;
+  align-self: end;
+  font-weight: 700;
+  font-size: var(--title-size);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+/* Название прижато к описанию; длинные — мельче, чтобы уложиться в те же две строки. */
+.splitTitle[data-len='mid'] {
+  font-size: calc(var(--title-size) * 0.82);
+}
+
+.splitTitle[data-len='long'] {
+  font-size: calc(var(--title-size) * 0.66);
+}
+
+.splitMeta {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: #dde1ea;
+}
+
+.splitAct {
+  display: flex;
+  align-items: center;
+}
+
+/* Низ колонки: линия, стрелки и счётчик слева, полоски-индикаторы справа. */
+.splitCtl {
+  grid-row: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgb(255 255 255 / 0.18);
+}
+
+.splitDots {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.splitDots i {
+  width: 1.4rem;
+  height: 3px;
+  background: rgb(255 255 255 / 0.28);
+  transition: background var(--motion-base);
+}
+
+.splitDots i[data-on] {
+  background: #fff;
+}
+
+.splitPhoto {
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ===== Плавная смена слайдов (все варианты) ===== */
+.imgPrev {
+  z-index: 0;
+}
+
+/* Новое фото проявляется поверх прежнего и мягко «отъезжает» из приближения. */
+.imgIn {
+  z-index: 1;
+  animation: img-in 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes img-in {
+  from {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+
+/* Текст: каждая строка выезжает снизу с небольшой задержкой — «лесенкой». */
+.enter > * {
+  animation: text-in 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.enter > :nth-child(2) {
+  animation-delay: 0.07s;
+}
+
+.enter > :nth-child(3) {
+  animation-delay: 0.14s;
+}
+
+.enter > :nth-child(4) {
+  animation-delay: 0.21s;
+}
+
+.enter > :nth-child(5) {
+  animation-delay: 0.28s;
+}
+
+@keyframes text-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.9rem);
+  }
+}
+
+/* Подписи над фото — выше слоёв картинок. */
+.frameCap,
+.tileCap,
+.tileCapBig,
+.boardCap,
+.panelCap,
+.panelMini {
+  z-index: 2;
+}
+
+.tile::after,
+.boardPhoto::after,
+.panel::after {
+  z-index: 1;
+}
+
+/* Кулисы раскрываются мягче. */
+.panel {
+  transition: flex 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* Телефон: всё в одну колонку, высота по содержимому. */
+@media (max-width: 48rem) {
+  .film,
+  .mosaic,
+  .curtains,
+  .trip,
+  .board,
+  .split {
+    height: auto;
+  }
+
+  .filmRow {
+    grid-template-columns: 2fr 1fr;
+    height: 18rem;
+  }
+
+  .frame:nth-child(n + 3) {
+    display: none;
+  }
+
+  .filmInfo {
+    padding-inline: 1.25rem;
+  }
+
+  .mosaic {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 24rem 10rem 10rem;
+  }
+
+  .tileBig {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .tileCapBig {
+    inset: auto 1.25rem 1.25rem;
+  }
+
+  .curtains {
+    flex-direction: column;
+  }
+
+  .panel {
+    flex: none;
+    height: 4rem;
+  }
+
+  .panel[data-on] {
+    height: 26rem;
+  }
+
+  .panelMini {
+    writing-mode: horizontal-tb;
+    transform: none;
+    padding: 0 1.25rem;
+  }
+
+  .panelCap {
+    inset: auto 1.25rem 1.25rem;
+  }
+
+  .tripRow {
+    grid-template-columns: 1fr;
+  }
+
+  .tripTile {
+    grid-template-rows: 18rem auto;
+  }
+
+  .tripTile:not([data-on]) {
+    display: none;
+  }
+
+  .board,
+  .split {
+    grid-template-columns: 1fr;
+  }
+
+  .boardPhoto,
+  .splitPhoto {
+    height: 22rem;
+  }
+
+  .boardCap {
+    inset: auto 1.25rem 1.25rem;
+  }
+
+  .boardList {
+    border-left: 0;
+    padding: 1.5rem 1.25rem;
+  }
+
+  .splitPhoto {
+    order: -1;
+  }
+
+  .split {
+    --title-size: 2.25rem;
+    --title-lines: 3;
+  }
+
+  .splitText {
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .tile img,
+  .panelCap,
+  .splitPhoto img,
+  .imgIn,
+  .enter > * {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* ===== Ж — Билет ===== */
+.ticket {
+  display: grid;
+  grid-template-columns: 1fr 22rem;
+  height: var(--h);
+  filter: drop-shadow(0 18px 40px rgb(21 23 28 / 0.18));
+}
+
+.ticketPhoto {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-night);
+  -webkit-mask:
+    radial-gradient(circle 14px at 100% 0, #0000 98%, #000) top right / 100% 51% no-repeat,
+    radial-gradient(circle 14px at 100% 100%, #0000 98%, #000) bottom right / 100% 51% no-repeat;
+  mask:
+    radial-gradient(circle 14px at 100% 0, #0000 98%, #000) top right / 100% 51% no-repeat,
+    radial-gradient(circle 14px at 100% 100%, #0000 98%, #000) bottom right / 100% 51% no-repeat;
+}
+
+.ticketPhoto::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(0deg, rgb(15 20 38 / 0.85), transparent 55%);
+}
+
+.ticketCap {
+  position: absolute;
+  z-index: 2;
+  inset: auto 3rem 2.75rem;
+  display: grid;
+  gap: 0.6rem;
+  color: #fff;
+}
+
+.ticketCap h2 {
+  font-weight: 700;
+  font-size: clamp(2.25rem, 1.3rem + 2.6vw, 4.25rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.ticketCap p:last-child {
+  color: #dde1ea;
+  font-size: 1.15rem;
+}
+
+.stub {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem 2rem 1.75rem;
+  border-left: 2px dashed var(--color-control-border);
+  background: #fff;
+  -webkit-mask:
+    radial-gradient(circle 14px at 0 0, #0000 98%, #000) top left / 100% 51% no-repeat,
+    radial-gradient(circle 14px at 0 100%, #0000 98%, #000) bottom left / 100% 51% no-repeat;
+  mask:
+    radial-gradient(circle 14px at 0 0, #0000 98%, #000) top left / 100% 51% no-repeat,
+    radial-gradient(circle 14px at 0 100%, #0000 98%, #000) bottom left / 100% 51% no-repeat;
+}
+
+.stub dl {
+  display: grid;
+  margin: 0;
+}
+
+.stub dl > div {
+  display: grid;
+  gap: 0.15rem;
+  padding-block: 0.9rem;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.stub dt {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.stub dd {
+  display: grid;
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.stub dd b {
+  font-size: 1.25rem;
+  color: var(--color-ink);
+}
+
+.stub dd .stubBig {
+  font-size: 4rem;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.stub > .ctaDark {
+  align-self: stretch;
+  margin-top: auto;
+}
+
+/* ===== И — Бегущая строка ===== */
+.tick {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  height: var(--h);
+  background: var(--color-ink);
+  color: #fff;
+}
+
+.tickPhoto {
+  position: relative;
+  overflow: hidden;
+}
+
+.tickPhoto::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    180deg,
+    rgb(15 20 38 / 0.55),
+    transparent 30%,
+    transparent 45%,
+    rgb(15 20 38 / 0.9)
+  );
+}
+
+.tickTop {
+  position: absolute;
+  z-index: 2;
+  inset: 1.5rem 2.75rem auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+}
+
+.tickCap {
+  position: absolute;
+  z-index: 2;
+  inset: auto 2.75rem 1.75rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.tickCap h2 {
+  font-weight: 700;
+  font-size: clamp(2.5rem, 1.3rem + 4vw, 5.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+
+.tickLine {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(255 255 255 / 0.35);
+}
+
+.tickLine p {
+  color: #dde1ea;
+  font-size: 1.1rem;
+}
+
+.tickBand {
+  overflow: hidden;
+  padding-block: 0.6rem;
+  border-top: 1px solid rgb(255 255 255 / 0.15);
+}
+
+.tickTrack {
+  display: flex;
+  width: max-content;
+  animation: ticker 40s linear infinite;
+}
+
+.tickBand:hover .tickTrack,
+.tickBand:focus-within .tickTrack {
+  animation-play-state: paused;
+}
+
+.tickCopy {
+  display: flex;
+}
+
+.tickItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: var(--tap-min);
+  padding: 0 0.75rem;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tickItem:hover b {
+  text-decoration: underline;
+}
+
+.tickItem em {
+  font-style: normal;
+  color: #b9bfcf;
+}
+
+.tickItem i {
+  margin-left: 0.75rem;
+  font-style: normal;
+  color: var(--color-control-border);
+}
+
+@keyframes ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ===== Б — Кинотитр ===== */
+.titles {
+  position: relative;
+  height: var(--h);
+  overflow: hidden;
+  background: var(--color-night);
+  color: #fff;
+}
+
+.titles::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    0deg,
+    rgb(15 20 38 / 0.95) 0%,
+    rgb(15 20 38 / 0.65) 38%,
+    rgb(15 20 38 / 0.1) 72%,
+    transparent
+  );
+}
+
+.titlesCap {
+  position: absolute;
+  z-index: 2;
+  inset: auto 3rem 6rem;
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+}
+
+.titlesCap p {
+  color: #dde1ea;
+}
+
+.titlesCap h2 {
+  font-weight: 700;
+  font-size: clamp(3rem, 1.5rem + 5vw, 7rem);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+
+.titlesCtl {
+  position: absolute;
+  z-index: 2;
+  inset: auto 3rem 1.75rem auto;
+}
+
+@media (max-width: 48rem) {
+  .ticket,
+  .tick,
+  .titles {
+    height: auto;
+  }
+
+  .ticket {
+    grid-template-columns: 1fr;
+  }
+
+  .ticketPhoto {
+    height: 22rem;
+    mask: none;
+    -webkit-mask: none;
+  }
+
+  .ticketCap {
+    inset: auto 1.25rem 1.25rem;
+  }
+
+  .stub {
+    border-left: 0;
+    border-top: 2px dashed var(--color-control-border);
+    mask: none;
+    -webkit-mask: none;
+  }
+
+  .tickPhoto {
+    height: 28rem;
+  }
+
+  .tickTop,
+  .tickCap {
+    inset-inline: 1.25rem;
+  }
+
+  .titles {
+    height: 32rem;
+  }
+
+  .titlesCap {
+    inset: auto 1.25rem 5.5rem;
+  }
+
+  .titlesCtl {
+    inset: auto auto 1.25rem 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tickTrack {
+    animation: none;
+  }
+
+  .tickBand {
+    overflow-x: auto;
+  }
+
+  .tickCopy {
+    display: none;
+  }
+}
+
+/* ===== Э — Занавес ===== */
+.stage {
+  position: relative;
+  height: var(--h);
+  overflow: hidden;
+  background: #0b0c10;
+  color: #fff;
+}
+
+.stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(ellipse at 50% 40%, transparent 30%, rgb(11 12 16 / 0.85) 100%);
+}
+
+.drape {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 3;
+  width: 50%;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0.25) 0 2px,
+      transparent 2px 2.5rem,
+      rgb(255 255 255 / 0.05) 2.5rem 2.6rem,
+      transparent 2.6rem 4rem
+    ),
+    linear-gradient(180deg, #5a0f17, #3a080e);
+  pointer-events: none;
+}
+
+.drapeL {
+  left: 0;
+  animation: drape-l 1.3s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.drapeR {
+  right: 0;
+  animation: drape-r 1.3s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+@keyframes drape-l {
+  0%,
+  25% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-102%);
+  }
+}
+
+@keyframes drape-r {
+  0%,
+  25% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(102%);
+  }
+}
+
+.stageCap {
+  position: absolute;
+  z-index: 2;
+  inset: auto 0 3rem;
+  display: grid;
+  gap: 0.6rem;
+  justify-items: center;
+  text-align: center;
+}
+
+.stageCap > * {
+  animation-delay: 0.7s !important;
+}
+
+.stageCap p {
+  color: #dde1ea;
+}
+
+.lab .stageCap .ctaLight {
+  justify-self: center;
+}
+
+.stageCap h2 {
+  font-weight: 700;
+  font-size: clamp(2.5rem, 1.3rem + 4vw, 5.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+
+.stageCtl {
+  position: absolute;
+  z-index: 4;
+  top: 1.5rem;
+  right: 1.75rem;
+}
+
+/* ===== Ю — Карусель ===== */
+.flow {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 1rem;
+  height: var(--h);
+}
+
+.flowTrack {
+  position: relative;
+  perspective: 1400px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.flowCard {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 46%;
+  margin-left: -23%;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: var(--color-night);
+  cursor: pointer;
+  transform: translateX(calc(var(--d) * 62%)) rotateY(calc(var(--d) * -28deg))
+    scale(calc(1 - var(--ad) * 0.14));
+  z-index: calc(10 - var(--ad));
+  filter: brightness(calc(1 - var(--ad) * 0.3));
+  box-shadow: 0 24px 50px rgb(21 23 28 / 0.25);
+  transition:
+    transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1),
+    filter 0.7s;
+}
+
+.flowCap {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+  text-align: center;
+}
+
+.flowCap p {
+  color: var(--color-muted);
+}
+
+.flowCap h2 {
+  font-weight: 700;
+  font-size: clamp(2rem, 1.2rem + 2.2vw, 3.25rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.flowCtl {
+  position: absolute;
+  margin-top: -3.5rem;
+  justify-self: end;
+}
+
+.flow {
+  position: relative;
+}
+
+/* ===== Я — Окно в буквах ===== */
+.letters {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: var(--h);
+  padding: 1.75rem 2.5rem 2rem;
+  box-sizing: border-box;
+  background: #0b0c10;
+  color: #fff;
+}
+
+.lettersTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: #dde1ea;
+}
+
+.lettersTitle {
+  align-self: center;
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(4rem, 1rem + 9vw, 11rem);
+  line-height: 0.88;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  color: transparent;
+  background-size: cover;
+  background-position: center 30%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  overflow: hidden;
+  animation: letters-in 1s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* Длинные названия — мельче, чтобы поместиться в блок. */
+.lettersTitle[data-len='long'] {
+  font-size: clamp(2.75rem, 0.8rem + 5.2vw, 6.5rem);
+}
+
+.lettersTitle[data-len='mid'] {
+  font-size: clamp(3.5rem, 1rem + 7vw, 9rem);
+}
+
+@keyframes letters-in {
+  from {
+    opacity: 0;
+    background-position: center 60%;
+    letter-spacing: 0;
+  }
+}
+
+.lettersFoot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgb(255 255 255 / 0.25);
+}
+
+.lettersFoot p {
+  color: #dde1ea;
+  font-size: 1.1rem;
+}
+
+/* ===== Ы — Вкладки дат ===== */
+.tabs {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: var(--h);
+  background: #fff;
+}
+
+.tabRow {
+  display: flex;
+  overflow-x: auto;
+  border-bottom: 2px solid var(--color-ink);
+  scrollbar-width: none;
+}
+
+.tab {
+  flex: 1 0 7.5rem;
+  display: grid;
+  justify-items: start;
+  gap: 0.15rem;
+  padding: 1rem 1.25rem;
+  border: 0;
+  border-right: 1px solid var(--color-hairline);
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.3s,
+    color 0.3s;
+}
+
+.tab b {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.tab small {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.tab:hover {
+  background: var(--color-background);
+}
+
+.tab[aria-selected='true'] {
+  background: var(--color-ink);
+  color: #fff;
+}
+
+.tab[aria-selected='true'] small {
+  color: #b9bfcf;
+}
+
+.tabBody {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  min-height: 0;
+}
+
+.tabPhoto {
+  position: relative;
+  overflow: hidden;
+}
+
+.tabText {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 0.75rem;
+  padding: 2.5rem;
+}
+
+.tabText h2 {
+  font-weight: 700;
+  font-size: clamp(2.25rem, 1.3rem + 2.4vw, 3.75rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+}
+
+.tabText p {
+  color: var(--color-muted);
+}
+
+/* ===== Щ — Наплыв ===== */
+.kb {
+  position: relative;
+  height: var(--h);
+  overflow: hidden;
+  background: #0b0c10;
+  color: #fff;
+}
+
+.kbImg {
+  position: absolute;
+  inset: 0;
+  animation: kb-zoom 14s linear both;
+}
+
+@keyframes kb-zoom {
+  from {
+    transform: scale(1.02) translate(0, 0);
+  }
+
+  to {
+    transform: scale(1.14) translate(-2%, -1.5%);
+  }
+}
+
+.kb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(0deg, rgb(11 12 16 / 0.85), transparent 35%),
+    linear-gradient(90deg, rgb(11 12 16 / 0.85), rgb(11 12 16 / 0.2) 60%, transparent);
+}
+
+.kbCap {
+  position: absolute;
+  z-index: 2;
+  left: 3rem;
+  bottom: 6rem;
+  max-width: 40rem;
+  display: grid;
+  gap: 0.7rem;
+  justify-items: start;
+}
+
+.kbCap h2 {
+  font-weight: 700;
+  font-size: clamp(2.5rem, 1.3rem + 3.6vw, 5rem);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+
+.kbCap p:not(:first-child) {
+  color: #dde1ea;
+}
+
+.kbBar {
+  position: absolute;
+  z-index: 2;
+  inset: auto 3rem 1.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.kbBar button {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.6rem 0 0;
+  border: 0;
+  border-top: 3px solid rgb(255 255 255 / 0.3);
+  background: none;
+  color: #b9bfcf;
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.kbBar button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kbBar button[data-on] {
+  border-top-color: #fff;
+  color: #fff;
+}
+
+@media (max-width: 48rem) {
+  .stage,
+  .flow,
+  .letters,
+  .tabs,
+  .kb {
+    height: 34rem;
+  }
+
+  .flowCard {
+    width: 70%;
+    margin-left: -35%;
+  }
+
+  .flowCtl {
+    position: static;
+    margin: 0;
+    justify-self: center;
+  }
+
+  .flow {
+    height: auto;
+    grid-template-rows: 22rem auto auto;
+  }
+
+  .letters {
+    padding: 1.25rem;
+  }
+
+  .tabs {
+    height: auto;
+  }
+
+  .tabBody {
+    grid-template-columns: 1fr;
+  }
+
+  .tabPhoto {
+    height: 18rem;
+  }
+
+  .tabText {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .kbCap {
+    left: 1.25rem;
+    right: 1.25rem;
+  }
+
+  .kbBar {
+    inset-inline: 1.25rem;
+  }
+
+  .kbBar button span {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drape,
+  .kbImg,
+  .lettersTitle,
+  .flowCard {
+    animation: none;
+    transition: none;
+  }
+
+  .drape {
+    display: none;
+  }
+}

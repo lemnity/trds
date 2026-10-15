@@ -1,12 +1,8 @@
 .about {
   display: grid;
-  grid-template-areas: 'intro' 'side' 'main';
+  grid-template-areas: 'side' 'main';
   gap: 2rem;
   align-items: start;
-}
-
-.intro {
-  grid-area: intro;
 }
 
 .title {
@@ -18,7 +14,6 @@
   display: grid;
   gap: 1rem;
   max-width: var(--reading-max);
-  margin-top: 1rem;
 }
 
 /* Действующие лица — как в театральной программке: персонаж … исполнитель. */
@@ -260,8 +255,8 @@
 @media (min-width: 60rem) {
   .about {
     grid-template-columns: minmax(0, 1.4fr) minmax(20rem, 1fr);
-    grid-template-rows: auto 1fr;
-    grid-template-areas: 'intro side' 'main side';
+    /* Описание и карточка «О спектакле» начинаются на одном уровне. */
+    grid-template-areas: 'main side';
     gap: 2rem 3rem;
   }
 

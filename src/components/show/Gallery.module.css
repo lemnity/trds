@@ -36,6 +36,33 @@
   transform: scale(1.03);
 }
 
+/* Телефон: вместо длинной колонки — лента с прокруткой вбок, фото по одному с краем следующего. */
+@media (max-width: 40rem) {
+  .masonry {
+    display: flex;
+    gap: 0.75rem;
+    columns: auto;
+    margin-inline: calc(-1 * var(--page-gutter));
+    padding-inline: var(--page-gutter);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--page-gutter);
+    scrollbar-width: none;
+  }
+
+  .masonry::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tile,
+  .tile:nth-child(n) {
+    flex: 0 0 82%;
+    aspect-ratio: 4 / 5;
+    margin-bottom: 0;
+    scroll-snap-align: start;
+  }
+}
+
 @media (min-width: 60rem) {
   .masonry {
     columns: 3;

@@ -316,6 +316,11 @@ export function MainNav({ shows, months, nearest }: Props) {
               )}
             </li>
           ))}
+          <li>
+            <Link href="/account" className={styles.panelLink} onClick={() => setMobileOpen(false)}>
+              Личный кабинет
+            </Link>
+          </li>
         </ul>
       </div>
     </nav>

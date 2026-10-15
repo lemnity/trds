@@ -4,8 +4,8 @@
 
 .media {
   position: relative;
-  margin-top: 0.75rem;
-  aspect-ratio: 16 / 9;
+  margin-top: 0.5rem;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   border-radius: var(--radius-hero);
   background: var(--color-night);
@@ -81,6 +81,7 @@
 @media (min-width: 60rem) {
   .media {
     aspect-ratio: auto;
-    height: clamp(18rem, 42vh, 28rem);
+    /* Обложка первым блоком: ниже экрана, чтобы крошки и название попадали в первый экран. */
+    height: clamp(20rem, 48vh, 32rem);
   }
 }

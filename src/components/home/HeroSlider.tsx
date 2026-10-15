@@ -8,9 +8,9 @@ import { formatRub } from '@/lib/money'
 import { formatAge, formatPerformanceDate, type PerformanceView } from '@/modules/shows'
 
 import { PremiereBadge } from '../ui/PremiereBadge'
-import styles from './HeroSlider.module.css'
 import { ButtonLink } from '../ui/ButtonLink'
 import { TicketIcon } from '../ui/TicketIcon'
+import styles from './HeroSlider.module.css'
 
 export type HeroSlide = { performance: PerformanceView; imageUrl: string }
 
@@ -29,10 +29,47 @@ const Chevron = ({ dir }: { dir: 'left' | 'right' }) => (
   </svg>
 )
 const pad = (n: number) => String(n).padStart(2, '0')
+/** Длинные названия набираются мельче — чтобы уложиться в те же строки. */
+const titleLen = (title: string) =>
+  title.length > 26 ? 'long' : title.length > 14 ? 'mid' : undefined
+
+/** Кроссфейд: прежнее фото остаётся под новым, пока то проявляется. */
+function CrossImage({ src, priority }: { src: string; priority: boolean }) {
+  const [cur, setCur] = useState(src)
+  const [prev, setPrev] = useState<string | null>(null)
+  if (src !== cur) {
+    setPrev(cur)
+    setCur(src)
+  }
+  return (
+    <>
+      {prev && (
+        <Image
+          key={`p-${prev}`}
+          src={prev}
+          alt=""
+          fill
+          sizes="(min-width: 48rem) 56vw, 100vw"
+          className={styles.imgPrev}
+        />
+      )}
+      <Image
+        key={cur}
+        src={cur}
+        alt=""
+        fill
+        priority={priority}
+        sizes="(min-width: 48rem) 56vw, 100vw"
+        className={styles.imgIn}
+      />
+    </>
+  )
+}
 
 /**
- * Главный экран — слайды ближайших показов и премьер. Без автопрокрутки
- * (WCAG 2.2.2): листание кнопками, точками, свайпом и стрелками клавиатуры.
+ * Главный экран — «Афиша»: слева текст на тёмном поле, справа фото. Строки левой колонки
+ * стоят в жёсткой сетке, поэтому при смене слайда ничего не сдвигается. Без автопрокрутки
+ * (WCAG 2.2.2): листание кнопками, свайпом и стрелками клавиатуры.
  */
 export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   // Статическая сборка: начавшиеся показы убираем уже в браузере.
@@ -53,6 +90,8 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   if (visible.length === 0) return null
   const current = Math.min(index, visible.length - 1)
   const go = (next: number) => setIndex((next + visible.length) % visible.length)
+  const { performance: p, imageUrl } = visible[current]!
+  const date = formatPerformanceDate(p.startsAt)
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'ArrowRight') go(current + 1)
@@ -75,102 +114,88 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
         setTouchX(null)
       }}
     >
-      {visible.map(({ performance: p, imageUrl }, i) => {
-        const date = formatPerformanceDate(p.startsAt)
-        const active = i === current
-        return (
-          <article
-            key={p.id}
-            className={styles.slide}
-            data-active={active}
-            aria-roledescription="слайд"
-            aria-label={`${i + 1} из ${visible.length}: ${p.show.title}`}
-            aria-hidden={!active}
-            inert={!active}
-          >
-            <div className={styles.media}>
-              <Image
-                src={imageUrl}
-                alt=""
-                fill
-                priority={i === 0}
-                sizes="(min-width: 60rem) 70vw, 100vw"
-              />
-            </div>
-            <div className={styles.content}>
-              <div className={styles.badges}>
-                {/* Дата первой — её место не зависит от бейджа. */}
-                <span className={styles.when}>
-                  {date.longDate}, {date.weekday} · {date.time}
-                </span>
-                {p.show.premiere && <PremiereBadge />}
-              </div>
-              <h2 className={styles.title}>{p.show.title}</h2>
-              <p className={styles.meta}>
-                {[p.show.genre, formatAge(p.show.ageLimit), p.venue.title]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </p>
-              <div className={`${styles.actions} on-dark`}>
-                <ButtonLink href={`/shows/${p.show.slug}?date=${p.id}#tickets`}>
-                  {p.salesOpen ? (
-                    <>
-                      <TicketIcon /> Купить билет
-                    </>
-                  ) : (
-                    <>Подробнее о показе</>
-                  )}
-                </ButtonLink>
-                {p.salesOpen && p.minPriceKopecks !== null && (
-                  <span className={styles.price}>от {formatRub(p.minPriceKopecks)}</span>
-                )}
-              </div>
-            </div>
-          </article>
-        )
-      })}
-
-      {visible.length > 1 && (
-        <div className={styles.controls}>
-          <p className={styles.counter} aria-live="polite">
-            <span className={styles.counterCurrent}>{pad(current + 1)}</span> /{' '}
-            {pad(visible.length)}
+      <div className={styles.text}>
+        <article
+          key={p.id}
+          className={styles.body}
+          aria-roledescription="слайд"
+          aria-label={`${current + 1} из ${visible.length}: ${p.show.title}`}
+        >
+          <p className={styles.when}>
+            <span>{date.longDate}</span>
+            <span>{date.weekday}</span>
+            <span>{date.time}</span>
+            {p.show.premiere && <PremiereBadge />}
           </p>
-          <div className={styles.dots} role="group" aria-label="Выбор слайда">
-            {visible.map((s, i) => (
+          <h2 className={styles.title} data-len={titleLen(p.show.title)}>
+            {p.show.title}
+          </h2>
+          <p className={styles.meta}>
+            {[p.show.genre, formatAge(p.show.ageLimit)].filter(Boolean).join(' · ')}
+            <br />
+            {p.venue.title}
+          </p>
+          <div className={`${styles.actions} on-dark`}>
+            <ButtonLink href={`/shows/${p.show.slug}?date=${p.id}#tickets`}>
+              {p.salesOpen ? (
+                <>
+                  <TicketIcon /> Купить билет
+                </>
+              ) : (
+                <>Подробнее о показе</>
+              )}
+            </ButtonLink>
+            {p.salesOpen && p.minPriceKopecks !== null && (
+              <span className={styles.price}>от {formatRub(p.minPriceKopecks)}</span>
+            )}
+          </div>
+        </article>
+
+        {visible.length > 1 && (
+          <div className={styles.controls}>
+            <p className={styles.counter} aria-live="polite">
+              <span className={styles.counterCurrent}>{pad(current + 1)}</span> /{' '}
+              {pad(visible.length)}
+            </p>
+            <div className={styles.arrows}>
               <Button
-                key={s.performance.id}
-                variant="ghost"
+                variant="outline"
                 isIconOnly
-                className={styles.dot}
-                aria-label={`Слайд ${i + 1}: ${s.performance.show.title}`}
-                aria-current={i === current}
-                onPress={() => go(i)}
-              />
-            ))}
+                className={styles.arrow}
+                onPress={() => go(current - 1)}
+                aria-label="Предыдущий слайд"
+              >
+                <Chevron dir="left" />
+              </Button>
+              <Button
+                variant="outline"
+                isIconOnly
+                className={styles.arrow}
+                onPress={() => go(current + 1)}
+                aria-label="Следующий слайд"
+              >
+                <Chevron dir="right" />
+              </Button>
+            </div>
+            <div className={styles.dots} role="group" aria-label="Выбор слайда">
+              {visible.map((s, i) => (
+                <button
+                  key={s.performance.id}
+                  type="button"
+                  className={styles.dot}
+                  aria-label={`Слайд ${i + 1}: ${s.performance.show.title}`}
+                  aria-current={i === current}
+                  onClick={() => go(i)}
+                />
+              ))}
+            </div>
           </div>
-          <div className={styles.arrows}>
-            <Button
-              variant="outline"
-              isIconOnly
-              className={styles.arrow}
-              onPress={() => go(current - 1)}
-              aria-label="Предыдущий слайд"
-            >
-              <Chevron dir="left" />
-            </Button>
-            <Button
-              variant="outline"
-              isIconOnly
-              className={styles.arrow}
-              onPress={() => go(current + 1)}
-              aria-label="Следующий слайд"
-            >
-              <Chevron dir="right" />
-            </Button>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      <div className={styles.media}>
+        <CrossImage src={imageUrl} priority={current === 0} />
+      </div>
     </section>
   )
 }

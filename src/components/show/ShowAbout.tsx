@@ -114,13 +114,11 @@ const castCards = (show: Show) => {
 
 type AboutProps = {
   show: Show
-  /** Шапка (название, плашки) — над описанием, рядом с правой колонкой. */
-  intro?: React.ReactNode
   /** Цена и кнопка покупки — внизу карточки «О спектакле». */
   buy?: React.ReactNode
 }
 
-export function ShowAbout({ show, intro, buy }: AboutProps) {
+export function ShowAbout({ show, buy }: AboutProps) {
   const directors = uniqueNames(show.credits.filter(isDirector))
   const duration = formatDuration(show.durationMinutes)
   const age = formatAge(show.ageLimit)
@@ -137,7 +135,6 @@ export function ShowAbout({ show, intro, buy }: AboutProps) {
 
   return (
     <div className={styles.about}>
-      {intro && <div className={styles.intro}>{intro}</div>}
       <div className={styles.main}>
         <h2 className="visually-hidden">О спектакле</h2>
         <div className={styles.prose}>

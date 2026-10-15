@@ -271,34 +271,52 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
         })}
       </ul>
 
-      <div className={cardClass(styles.session)}>
-        <div>
-          <p className={styles.sessionTitle}>
-            {date.longDate}, {date.weekday} в {date.time}
-          </p>
-          <p className={styles.sessionVenue}>
-            <VenueTag kind={selected.venue.kind} /> {selected.venue.title} ·{' '}
-            {selected.venue.address}
-          </p>
+      {/* Выбранный показ: зоны «Дата · Время · Площадка · Билеты», как факты в шапке. */}
+      <dl className={cardClass(styles.session)} aria-label="Выбранный показ">
+        <div className={styles.zone}>
+          <dt className={styles.zoneLabel}>Дата</dt>
+          <dd>
+            <span className={styles.zoneValue}>{date.longDate}</span>
+            <span className={styles.zoneNote}>
+              {new Intl.DateTimeFormat('ru-RU', {
+                weekday: 'long',
+                timeZone: 'Asia/Yekaterinburg',
+              }).format(new Date(selected.startsAt))}
+            </span>
+          </dd>
         </div>
-        {/* Время показывается всегда — готово к нескольким сеансам в день. */}
-        {selectedDay && (
-          <div className={styles.sessionTimes} role="group" aria-label="Время начала">
-            {selectedDay.items.map((p) => (
-              <div key={p.id} className={styles.sessionTime}>
-                <ToggleButton
-                  className={styles.timeButton}
-                  isSelected={p.id === selected.id}
-                  onChange={(on) => on && select(p)}
-                >
-                  {formatPerformanceDate(p.startsAt).time}
-                </ToggleButton>
-                <AvailabilityIndicator availability={p.availability} />
-              </div>
+        <div className={styles.zone}>
+          <dt className={styles.zoneLabel}>Время начала</dt>
+          {/* Кнопки — на случай нескольких сеансов в день. */}
+          <dd className={styles.sessionTimes} role="group" aria-label="Время начала">
+            {(selectedDay?.items ?? [selected]).map((p) => (
+              <ToggleButton
+                key={p.id}
+                className={styles.timeButton}
+                isSelected={p.id === selected.id}
+                onChange={(on) => on && select(p)}
+              >
+                {formatPerformanceDate(p.startsAt).time}
+              </ToggleButton>
             ))}
-          </div>
-        )}
-      </div>
+          </dd>
+        </div>
+        <div className={styles.zone}>
+          <dt className={styles.zoneLabel}>Площадка</dt>
+          <dd>
+            <span className={styles.zoneValue}>{selected.venue.title}</span>
+            <span className={styles.zoneNote}>
+              <VenueTag kind={selected.venue.kind} /> {selected.venue.address}
+            </span>
+          </dd>
+        </div>
+        <div className={styles.zone}>
+          <dt className={styles.zoneLabel}>Билеты</dt>
+          <dd>
+            <AvailabilityIndicator availability={selected.availability} />
+          </dd>
+        </div>
+      </dl>
 
       <div className={`${styles.sectionHead} ${styles.second}`}>
         <div>

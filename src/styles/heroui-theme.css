@@ -137,6 +137,8 @@
 .toggle-button:not(.toggle-button--icon-only) {
   --toggle-button-bg-selected: var(--color-ink);
   --toggle-button-fg-selected: var(--color-surface);
+  /* Ховер выбранного — графит, как у основных кнопок (иначе HeroUI даёт светлый фон под белым текстом). */
+  --toggle-button-bg-selected-hover: #3a3d47;
 }
 
 .toggle-button[data-selected='true'] {

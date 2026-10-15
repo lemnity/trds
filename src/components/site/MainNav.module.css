@@ -150,8 +150,10 @@
 }
 
 @media (max-width: 64rem) {
+  /* Кнопка «Меню» — после кнопок действий, у правого края. */
   .nav {
-    margin-inline: auto 0;
+    order: 2;
+    margin-inline: 0;
   }
 
   .list {
@@ -414,12 +416,18 @@
   color: var(--color-muted);
 }
 
-/* Телефон: у кнопки «Меню» только значок (имя — aria-label). */
-@media (max-width: 30rem) {
+/* Узко: «Меню» — только иконка без рамки, как соседние кнопки (подпись — aria-label). */
+@media (max-width: 48rem) {
   .burger {
     width: var(--tap-min);
     justify-content: center;
     padding: 0;
+    border-color: transparent;
+  }
+
+  .burger svg {
+    width: 1.5rem;
+    height: 1.5rem;
   }
 
   .burgerLabel {
