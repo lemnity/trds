@@ -223,8 +223,8 @@
 }
 
 /* Панель поиска — на всю ширину под шапкой (позиционируется от sticky-шапки). */
-.tipWrap:has(.searchPanel) {
-  position: static;
+.searchRoot {
+  display: inline-flex;
 }
 
 .searchPanel {

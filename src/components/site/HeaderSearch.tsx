@@ -50,23 +50,26 @@ export function HeaderSearch() {
   }
 
   return (
-    <div ref={rootRef} className={styles.tipWrap}>
-      <Button
-        variant="ghost"
-        isIconOnly
-        className={styles.lowVision}
-        aria-label="Поиск по афише"
-        aria-expanded={open}
-        aria-controls={`${ids}-search`}
-        onPress={() => setOpen(!open)}
-      >
-        <SearchIcon />
-      </Button>
-      {!open && (
-        <span className={styles.tip} aria-hidden="true">
-          Поиск
-        </span>
-      )}
+    // Кнопка с подсказкой — в своей обёртке (подсказка у кнопки); панель — от шапки.
+    <div ref={rootRef} className={styles.searchRoot}>
+      <span className={styles.tipWrap}>
+        <Button
+          variant="ghost"
+          isIconOnly
+          className={styles.lowVision}
+          aria-label="Поиск по афише"
+          aria-expanded={open}
+          aria-controls={`${ids}-search`}
+          onPress={() => setOpen(!open)}
+        >
+          <SearchIcon />
+        </Button>
+        {!open && (
+          <span className={styles.tip} aria-hidden="true">
+            Поиск
+          </span>
+        )}
+      </span>
       <div id={`${ids}-search`} className={styles.searchPanel} hidden={!open}>
         <form role="search" className={`container ${styles.searchForm}`} onSubmit={submit}>
           <SearchField
