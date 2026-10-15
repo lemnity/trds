@@ -13,9 +13,22 @@
 }
 
 .logo {
+  display: block;
   width: auto;
   height: 3rem;
   margin-bottom: 1.25rem;
+}
+
+/* Птица из логотипа над надписью: стоит на её верхней кромке и прыгает туда-сюда. */
+.bird {
+  --bird-size: 2.8rem;
+  --bird-bottom: -0.15rem;
+  position: relative;
+  display: block;
+  width: 6.5rem;
+  height: 2.2rem;
+  margin-left: 2.5rem;
+  pointer-events: none;
 }
 
 .slogan {

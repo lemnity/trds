@@ -22,95 +22,17 @@
   min-height: var(--tap-min);
 }
 
-/*
- * Птица из логотипа — сбоку от надписи; периодически прыгает туда-сюда: цикл 12 с —
- * ~4 с сценка, остальное сидит. Не прыгает при reduced motion и в версии для слабовидящих.
- */
+/* Птица из логотипа — сбоку от надписи; анимация в LogoBird.module.css. */
 .bird {
   /* Полоса справа от логотипа: птица стоит на уровне низа надписи и прыгает в её пределах. */
+  --bird-size: 2.2rem;
+  --bird-bottom: 0.55rem;
   position: relative;
   flex: none;
   align-self: stretch;
   width: 4.25rem;
   margin-left: 0.5rem;
   pointer-events: none;
-}
-
-.bird span {
-  position: absolute;
-  left: 0;
-  bottom: 0.55rem;
-  width: 2.2rem;
-  transform-origin: 50% 100%;
-  animation: bird-hop 12s var(--ease-standard) 0.8s infinite both;
-}
-
-.bird span img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-/* Первые 35% цикла: два прыжка вправо, поклёвка, разворот, два прыжка назад; дальше сидит. */
-@keyframes bird-hop {
-  0% {
-    transform: translate(0, 0) scaleX(1);
-  }
-  2.8% {
-    transform: translate(0.45rem, -0.35rem) scaleX(1);
-  }
-  4.9% {
-    transform: translate(0.9rem, 0) scaleX(1);
-  }
-  7.7% {
-    transform: translate(1.35rem, -0.35rem) scaleX(1);
-  }
-  9.8% {
-    transform: translate(1.8rem, 0) scaleX(1);
-  }
-  11.9% {
-    transform: translate(1.8rem, 0) scaleX(1) rotate(14deg);
-  }
-  14% {
-    transform: translate(1.8rem, 0) scaleX(1) rotate(0);
-  }
-  16.8% {
-    transform: translate(1.8rem, 0) scaleX(-1);
-  }
-  19.6% {
-    transform: translate(1.35rem, -0.35rem) scaleX(-1);
-  }
-  21.7% {
-    transform: translate(0.9rem, 0) scaleX(-1);
-  }
-  24.5% {
-    transform: translate(0.45rem, -0.35rem) scaleX(-1);
-  }
-  26.6% {
-    transform: translate(0, 0) scaleX(-1);
-  }
-  29.4% {
-    transform: translate(0, 0) scaleX(-1) rotate(-10deg);
-  }
-  31.5% {
-    transform: translate(0, 0) scaleX(-1) rotate(0);
-  }
-  35% {
-    transform: translate(0, 0) scaleX(1);
-  }
-  100% {
-    transform: translate(0, 0) scaleX(1);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bird span {
-    animation: none;
-  }
-}
-
-:global(:root[data-low-vision='1']) .bird span {
-  animation: none;
 }
 
 /* На узких экранах шапка и так плотная — птицу не показываем (как и меню — там «Меню»). */

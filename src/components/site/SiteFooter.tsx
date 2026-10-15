@@ -4,6 +4,7 @@ import Link from 'next/link'
 import logo from '@/assets/logo.webp'
 import { legalDocuments } from '@/modules/content'
 
+import { LogoBird } from './LogoBird'
 import styles from './SiteFooter.module.css'
 
 const NAV = [
@@ -47,6 +48,7 @@ export function SiteFooter() {
     <footer id="contacts" tabIndex={-1} className={styles.footer}>
       <div className={`container ${styles.top}`}>
         <div className={styles.brand}>
+          <LogoBird className={styles.bird} />
           <Image src={logo} alt="TURDUS — модный театр" className={styles.logo} />
           <p className={styles.slogan}>Повод выйти в свет!</p>
           <p className={styles.muted}>Иммерсивные спектакли в Екатеринбурге</p>
