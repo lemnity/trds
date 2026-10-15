@@ -36,9 +36,9 @@
 }
 
 .media img {
-  /* Фото на весь блок, по центру — без сдвига вбок. */
+  /* Фото на весь блок, по центру и выше середины — в кадре лица, а не пол. */
   object-fit: cover;
-  object-position: center center;
+  object-position: center 25%;
 }
 
 .media::after {
@@ -50,10 +50,10 @@
   background:
     linear-gradient(
       90deg,
-      rgb(15 20 38 / 0.72) 0%,
-      rgb(15 20 38 / 0.55) 35%,
-      rgb(15 20 38 / 0.2) 65%,
-      rgb(15 20 38 / 0) 100%
+      rgb(15 20 38 / 0.88) 0%,
+      rgb(15 20 38 / 0.72) 35%,
+      rgb(15 20 38 / 0.3) 65%,
+      rgb(15 20 38 / 0.05) 100%
     ),
     linear-gradient(0deg, rgb(15 20 38 / 0.55) 0%, transparent 40%);
 }
