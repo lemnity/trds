@@ -159,6 +159,16 @@
   --button-fg: var(--color-ink);
 }
 
+/* Фокус в полях ввода — чёрное кольцо в стиле сайта (синее остаётся у кнопок и ссылок). */
+.input,
+.select__trigger,
+.search-field__group,
+.number-field__group {
+  --color-focus: var(--color-ink);
+  --focus: var(--color-ink);
+  --field-border-focus: var(--color-ink);
+}
+
 @theme {
   --font-sans: var(--font-onest), system-ui, sans-serif;
 }
