@@ -97,7 +97,7 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
                   .join(' · ')}
               </p>
               <div className={styles.actions}>
-                <ButtonLink href={`/shows/${p.show.slug}?date=${p.id}#tickets`} size="lg">
+                <ButtonLink href={`/shows/${p.show.slug}?date=${p.id}#tickets`}>
                   {p.salesOpen ? (
                     <>
                       <TicketIcon /> Купить билет
@@ -136,11 +136,9 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
             <button type="button" onClick={() => go(current - 1)} aria-label="Предыдущий слайд">
               <span aria-hidden="true">←</span>
             </button>
-            <button
-              type="button"
-              onClick={() => go(current + 1)}
-              aria-label="Следующий слайд"
-            ></button>
+            <button type="button" onClick={() => go(current + 1)} aria-label="Следующий слайд">
+              <span aria-hidden="true">→</span>
+            </button>
           </div>
         </div>
       )}

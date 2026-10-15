@@ -194,11 +194,9 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
         )}
       </p>
       {order.ok ? (
-        <ButtonLink href={checkoutHref} size="lg">
-          Оформить заказ
-        </ButtonLink>
+        <ButtonLink href={checkoutHref}>Оформить заказ</ButtonLink>
       ) : (
-        <Button size="lg" isDisabled className={styles.orderBarButton}>
+        <Button isDisabled className={styles.orderBarButton}>
           Оформить заказ
         </Button>
       )}

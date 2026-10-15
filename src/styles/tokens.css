@@ -40,8 +40,8 @@
   --leading-text: 1.55;
 
   /* Layout */
-  --page-gutter: clamp(1rem, 4vw, 3rem);
-  --content-max: 82rem;
+  --page-gutter: clamp(1rem, 2.5vw, 2rem);
+  --content-max: 88rem;
   --reading-max: 42rem;
   --section-space: clamp(3rem, 6vw, 5.5rem);
   --radius-control: 10px;

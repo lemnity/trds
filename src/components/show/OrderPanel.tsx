@@ -146,7 +146,7 @@ export function OrderPanel(props: Props) {
         </p>
       )}
 
-      <Button type="submit" fullWidth size="lg" className={styles.submit}>
+      <Button type="submit" fullWidth className={styles.submit}>
         Оформить заказ
       </Button>
       <p className={styles.afterSubmit}>Электронные билеты придут на почту после оплаты</p>

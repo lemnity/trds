@@ -26,7 +26,7 @@ export function ShowCover({ show }: { show: Show }) {
     <div className="container">
       <div className={styles.media} data-kind={photo ? 'photo' : 'poster'}>
         {photo ? (
-          <Image src={photo} alt="" fill priority sizes="(min-width: 82rem) 82rem, 100vw" />
+          <Image src={photo} alt="" fill priority sizes="100vw" />
         ) : (
           <>
             <Image src={show.posterUrl} alt="" fill sizes="30vw" className={styles.backdrop} />
@@ -109,7 +109,7 @@ export function ShowBuy({ performances }: { performances: SalePerformance[] }) {
           {price.placeholder && <span className={styles.note}> · предварительно</span>}
         </p>
       )}
-      <a href="#tickets" className={buttonVariants({ size: 'lg', fullWidth: true })}>
+      <a href="#tickets" className={buttonVariants({ fullWidth: true })}>
         <TicketIcon /> Купить билет
       </a>
     </div>

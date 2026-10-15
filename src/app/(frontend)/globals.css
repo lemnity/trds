@@ -18,6 +18,13 @@
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /*
+     * Автомасштаб: до 1440px базовый размер — пользовательский (обычно 16px); шире —
+     * растёт вместе с окном (≈18.7px на 1920, максимум 22px), и вся вёрстка на rem
+     * масштабируется пропорционально. Минимум 1rem — настройки шрифта пользователя
+     * сохраняются (WCAG 1.4.4).
+     */
+    font-size: clamp(100%, 0.5rem + 0.5556vw, 137.5%);
     /* Фокус и якоря не уходят под sticky-шапку (WCAG 2.4.11). */
     scroll-padding-top: 6rem;
   }
@@ -106,13 +113,6 @@
     top: 0.5rem;
   }
 
-  .container {
-    width: 100%;
-    max-width: calc(var(--content-max) + 2 * var(--page-gutter));
-    margin-inline: auto;
-    padding-inline: var(--page-gutter);
-  }
-
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -123,4 +123,15 @@
       scroll-behavior: auto !important;
     }
   }
+}
+
+/*
+ * Вне слоя: у Tailwind есть свой утилитарный .container (max-width по брейкпоинтам,
+ * 80rem на десктопе) — из @layer base он перебивал нашу ширину контента.
+ */
+.container {
+  width: 100%;
+  max-width: calc(var(--content-max) + 2 * var(--page-gutter));
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
 }

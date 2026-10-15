@@ -1,63 +1,60 @@
-.gallery {
-  display: grid;
-  gap: 0.75rem;
+/* Масонри: колонки заполняются сверху вниз, фото не разрываются между колонками. */
+.masonry {
+  columns: 2;
+  column-gap: 0.75rem;
 }
 
-.track {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 100%;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  border-radius: var(--radius-card);
-  scrollbar-width: none;
-}
-
-.track::-webkit-scrollbar {
-  display: none;
-}
-
-.slide {
+.tile {
   position: relative;
-  aspect-ratio: 16 / 9;
-  scroll-snap-align: start;
+  aspect-ratio: 3 / 2;
+  break-inside: avoid;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  border-radius: var(--radius-card);
   background: var(--color-night);
 }
 
-.slide img {
+/* Ритм высот: период 5 не кратен числу колонок (2 и 3) — ряды не выравниваются. */
+.tile:nth-child(5n + 1) {
+  aspect-ratio: 4 / 5;
+}
+
+.tile:nth-child(5n + 3) {
+  aspect-ratio: 1;
+}
+
+.tile:nth-child(5n + 4) {
+  aspect-ratio: 4 / 3;
+}
+
+.tile img {
   object-fit: cover;
+  transition: transform var(--motion-slow) var(--ease-standard);
 }
 
-.controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+.tile:hover img {
+  transform: scale(1.03);
 }
 
-.controls button {
-  display: grid;
-  place-items: center;
-  width: var(--tap-min);
-  height: var(--tap-min);
-  border: 1.5px solid var(--color-control-border);
-  border-radius: 50%;
-  background: var(--color-surface);
-  font-size: var(--step-1);
-  cursor: pointer;
+@media (min-width: 60rem) {
+  .masonry {
+    columns: 3;
+    column-gap: 1rem;
+  }
+
+  .tile {
+    margin-bottom: 1rem;
+  }
 }
 
-.controls button:hover:not([aria-disabled='true']) {
-  border-color: var(--color-brand);
-  color: var(--color-brand);
+@media (min-width: 80rem) {
+  .masonry {
+    columns: 4;
+  }
 }
 
-.controls button[aria-disabled='true'] {
-  color: var(--color-control-border);
-  cursor: not-allowed;
-}
-
-.counter {
-  font-variant-numeric: tabular-nums;
-  color: var(--color-muted);
+@media (prefers-reduced-motion: reduce) {
+  .tile img {
+    transition: none;
+  }
 }

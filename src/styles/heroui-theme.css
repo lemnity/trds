@@ -52,6 +52,29 @@
   }
 }
 
+/*
+ * Один размер для всех текстовых кнопок (HeroUI меняет высоту по брейкпоинтам и
+ * размерам sm/md/lg — кнопки «скакали»): 44px (цель касания), одинаковые поля,
+ * шрифт и иконка. Без сжатия при нажатии.
+ */
+.button:not(.button--icon-only) {
+  height: var(--tap-min);
+  padding-inline: 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.button svg:not([data-slot='spinner'] svg) {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-block: 0;
+}
+
+.button:active,
+.button[data-pressed='true'] {
+  transform: none;
+}
+
 @theme {
   --font-sans: var(--font-onest), system-ui, sans-serif;
 }

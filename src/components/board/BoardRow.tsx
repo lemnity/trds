@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { formatRub } from '@/lib/money'
 import { formatAge, formatPerformanceDate, type PerformanceView } from '@/modules/shows'
 
+import { ButtonLink } from '../ui/ButtonLink'
 import { Availability } from '../ui/Availability'
 import { PremiereBadge } from '../ui/PremiereBadge'
 import { VenueTag } from '../ui/VenueTag'
@@ -62,13 +63,13 @@ export function BoardRow({ item, highlight = false, showTitle = true }: Props) {
               от {formatRub(item.minPriceKopecks)}
               {item.pricePlaceholder && <span className={styles.placeholder}>предварительно</span>}
             </span>
-            <Link href={`/shows/${item.show.slug}?date=${item.id}#tickets`} className={styles.cta}>
+            <ButtonLink href={`/shows/${item.show.slug}?date=${item.id}#tickets`}>
               Билеты
               <span className="visually-hidden">
                 {' '}
                 на «{item.show.title}», {date.longDate}
               </span>
-            </Link>
+            </ButtonLink>
           </>
         ) : null}
         <div className={styles.availability}>
