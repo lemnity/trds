@@ -1,0 +1,224 @@
+/* Тёмная полоса отзывов: шапка, тело (12-колоночная сетка), полоски прогресса. */
+.band {
+  display: grid;
+  gap: clamp(2rem, 4vw, 3rem);
+  padding: clamp(2rem, 5vw, 4.5rem) clamp(1.25rem, 5vw, 4.5rem);
+  background: var(--color-ink);
+  color: #ffffff;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title {
+  font-weight: 600;
+  font-size: var(--step-4);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.counter {
+  margin-right: 0.5rem;
+  font-variant-numeric: tabular-nums;
+  color: #b9bfcf;
+}
+
+.counterCurrent {
+  font-size: var(--step-1);
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.controls .arrow {
+  border-color: rgb(255 255 255 / 0.45);
+  background: transparent;
+  color: #ffffff;
+}
+
+.controls .arrow:hover,
+.controls .arrow[data-hovered='true'] {
+  border-color: #ffffff;
+  background: rgb(255 255 255 / 0.12);
+  color: #ffffff;
+}
+
+.body {
+  display: grid;
+  gap: 2.5rem;
+  padding-top: clamp(1.5rem, 3vw, 2.5rem);
+  border-top: 2px solid rgb(255 255 255 / 0.85);
+}
+
+/* Все отзывы в одной ячейке: высота по самому длинному, переключение без скачков. */
+.stack {
+  display: grid;
+}
+
+.review {
+  grid-area: 1 / 1;
+  display: grid;
+  align-content: start;
+  gap: 1.5rem;
+  margin: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--motion-base) var(--ease-standard),
+    visibility 0s linear var(--motion-base);
+}
+
+.review[data-active] {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity var(--motion-base) var(--ease-standard);
+}
+
+.mark {
+  height: 2.5rem;
+  font-weight: 700;
+  font-size: 6rem;
+  line-height: 0.6;
+}
+
+.lead {
+  font-weight: 600;
+  font-size: var(--step-3);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.quote {
+  max-width: 46rem;
+  margin: 0;
+  font-size: var(--step-0);
+  line-height: 1.65;
+  color: #dde1ea;
+}
+
+.whoLabel {
+  margin-bottom: 0.75rem;
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b9bfcf;
+}
+
+.person {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: 1.1rem 0;
+  border: 0;
+  border-top: 1px solid rgb(255 255 255 / 0.2);
+  background: none;
+  color: #b9bfcf;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.people li:last-child .person {
+  border-bottom: 1px solid rgb(255 255 255 / 0.2);
+}
+
+.person[aria-pressed='true'] {
+  border-top-color: #ffffff;
+  color: #ffffff;
+}
+
+.person:hover .personName {
+  text-decoration: underline;
+}
+
+.person:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.marker {
+  flex: none;
+  width: 0.65rem;
+  height: 0.65rem;
+  margin-top: 0.45rem;
+  border: 1.5px solid rgb(255 255 255 / 0.5);
+}
+
+.person[aria-pressed='true'] .marker {
+  border-color: #ffffff;
+  background: #ffffff;
+}
+
+.personText {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.personName {
+  font-weight: 700;
+  font-size: var(--step-1);
+  color: #ffffff;
+}
+
+.personRole {
+  font-size: var(--step--1);
+}
+
+.progress {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.progress span {
+  flex: 1;
+  height: 3px;
+  background: rgb(255 255 255 / 0.3);
+  transition: background-color var(--motion-base) var(--ease-standard);
+}
+
+.progress span[data-active] {
+  background: #ffffff;
+}
+
+/* На телефоне выбор автора — сразу под стрелками, до длинного текста. */
+@media (max-width: 59.99rem) {
+  .who {
+    order: -1;
+  }
+}
+
+@media (min-width: 60rem) {
+  .body {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 1.5rem;
+  }
+
+  .stack {
+    grid-column: span 8;
+  }
+
+  .who {
+    grid-column: 10 / span 3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .review,
+  .review[data-active] {
+    transition: none;
+  }
+}

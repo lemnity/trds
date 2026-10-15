@@ -47,4 +47,11 @@ describe('reviews', () => {
       expect(r.role.trim()).not.toBe('')
     }
   })
+
+  it('takes every pull-quote verbatim from its review', () => {
+    for (const r of reviews) {
+      expect(r.lead.length).toBeGreaterThan(10)
+      expect(r.quote).toContain(r.lead)
+    }
+  })
 })
