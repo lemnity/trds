@@ -14,12 +14,13 @@ const SHOW_AFTER_PX = 480
 const HIDDEN_ON = [/^\/afisha/, /^\/shows\//, /^\/checkout\//]
 
 /**
- * Плавающая кнопка «Купить билеты без комиссии» внизу экрана при прокрутке.
+ * Плавающая кнопка «Купить билеты без комиссии» внизу экрана при прокрутке; у подвала прячется.
  * При наведении из иконки разлетаются билетики (без анимации при reduced motion).
  */
 export function ScrollBuyButton() {
   const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false)
+  const [atBottom, setAtBottom] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > SHOW_AFTER_PX)
@@ -28,8 +29,19 @@ export function ScrollBuyButton() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // У низа страницы (подвал на экране) кнопка уходит — не закрывает контакты и документы.
+  useEffect(() => {
+    const footer = document.getElementById('contacts')
+    if (!footer) return
+    const observer = new IntersectionObserver(([entry]) =>
+      setAtBottom(entry?.isIntersecting ?? false),
+    )
+    observer.observe(footer)
+    return () => observer.disconnect()
+  }, [pathname])
+
   if (HIDDEN_ON.some((re) => re.test(pathname))) return null
-  const visible = scrolled
+  const visible = scrolled && !atBottom
 
   return (
     <div className={styles.dock} data-visible={visible || undefined} inert={!visible || undefined}>
