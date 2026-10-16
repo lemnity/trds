@@ -1,0 +1,1199 @@
+.lab {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4rem;
+  padding-block: 2rem 5rem;
+}
+
+.variant {
+  min-width: 0;
+  scroll-margin-top: 6rem;
+}
+
+.variantLabel {
+  margin-bottom: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-brand);
+}
+
+.h2 {
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  font-size: var(--step-3);
+  letter-spacing: -0.02em;
+}
+
+.cover {
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.blur {
+  object-fit: cover;
+  filter: blur(22px) brightness(0.5);
+  transform: scale(1.2);
+}
+
+.contain {
+  object-fit: contain;
+}
+
+.kicker,
+.kickerLight {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.kickerLight {
+  color: #c9cedb;
+}
+
+.muted {
+  color: var(--color-muted);
+}
+
+/* ===== А — Программка ===== */
+.prog {
+  border-top: 2px solid var(--color-ink);
+}
+
+.progRow {
+  display: grid;
+  grid-template-columns: 2.5rem 7.5rem minmax(0, 1fr) minmax(14rem, auto);
+  align-items: center;
+  gap: 1.5rem;
+  padding-block: 1.25rem;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.progNum {
+  align-self: start;
+  padding-top: 0.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-muted);
+}
+
+.progThumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--color-night);
+}
+
+.progMain {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.progRole {
+  font-weight: 700;
+  font-size: clamp(1.75rem, 1rem + 2.4vw, 3rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+.progShow {
+  font-size: var(--step-1);
+}
+
+.progShow a {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+.progShow span {
+  color: var(--color-muted);
+}
+
+.progNext {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.25rem;
+  font-size: var(--step--1);
+  line-height: 1.45;
+  text-align: right;
+}
+
+.progNext b {
+  font-size: var(--step-1);
+}
+
+/* ===== Б — Кулисы ===== */
+.strip {
+  display: flex;
+  gap: 1rem;
+  margin-inline: calc(-1 * var(--page-gutter));
+  padding-inline: var(--page-gutter);
+  padding-bottom: 0.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--page-gutter);
+}
+
+.stripCard {
+  flex: 0 0 clamp(15rem, 26vw, 21rem);
+  display: grid;
+  gap: 0.75rem;
+  scroll-snap-align: start;
+}
+
+.stripMedia {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background: var(--color-night);
+  color: #ffffff;
+}
+
+.stripMedia img {
+  transition: transform var(--motion-slow) var(--ease-standard);
+}
+
+.stripCard:hover .stripMedia .cover {
+  transform: scale(1.04);
+}
+
+.stripCap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  align-content: end;
+  gap: 0.4rem;
+  padding: 1.25rem;
+  background: linear-gradient(to top, rgb(15 20 38 / 0.95) 18%, transparent 62%);
+}
+
+.stripRole {
+  font-weight: 700;
+  font-size: clamp(1.5rem, 1rem + 1.4vw, 2.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.stretch {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.stripNext {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-ink);
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+
+.stripLink {
+  text-decoration: none;
+}
+
+.stripLink:hover {
+  text-decoration: underline;
+}
+
+/* ===== В — Афиша роли ===== */
+.bill {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2.5rem 1rem;
+}
+
+.billCard {
+  position: relative;
+  display: grid;
+  align-content: start;
+}
+
+.billMedia {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--color-night);
+}
+
+/* Дата — квадратный штамп в углу кадра. */
+.billStamp {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 4.25rem;
+  height: 4.25rem;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.billStamp b {
+  display: block;
+  font-size: 1.75rem;
+  letter-spacing: -0.03em;
+}
+
+/* Роль наезжает на низ кадра: белая плашка с чёрным текстом. */
+.billRole {
+  position: relative;
+  z-index: 1;
+  justify-self: start;
+  max-width: calc(100% - 1rem);
+  margin-top: -1.6rem;
+  padding: 0.35rem 0.7rem 0.4rem;
+  background: var(--color-ink);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: clamp(1.25rem, 0.9rem + 1.2vw, 1.75rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.billShow {
+  margin-top: 0.85rem;
+  font-weight: 600;
+  font-size: var(--step-1);
+}
+
+.billLink {
+  text-decoration: none;
+}
+
+.billLink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.billCard:hover .billLink {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.billMeta {
+  margin-top: 0.25rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+@media (min-width: 48rem) {
+  .bill {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 3rem 1.5rem;
+  }
+}
+
+@media (min-width: 72rem) {
+  .bill {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Телефон: программка — миниатюра слева, дата и кнопка под текстом. */
+@media (max-width: 48rem) {
+  .progRow {
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    gap: 0.75rem 1rem;
+  }
+
+  .progNum,
+  .progShow span {
+    display: none;
+  }
+
+  .progThumb {
+    grid-row: span 2;
+    align-self: start;
+  }
+
+  .progNext {
+    justify-content: space-between;
+    text-align: left;
+  }
+
+  .stripCard {
+    flex-basis: 72%;
+  }
+}
+
+/* ===== Г — Табло ===== */
+.board {
+  padding: clamp(1rem, 2.5vw, 2rem);
+  background: var(--color-ink);
+  color: #ffffff;
+}
+
+.boardRow {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1.3fr) minmax(0, 1.2fr) minmax(0, 1fr) 7.5rem;
+  align-items: center;
+  gap: 1.25rem;
+  padding-block: 1rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.14);
+}
+
+.boardHead {
+  padding-block: 0 0.75rem;
+  border-bottom-color: rgb(255 255 255 / 0.4);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9aa1b2;
+}
+
+.boardDate {
+  display: grid;
+  font-weight: 700;
+  font-size: 1.25rem;
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+.boardDate small {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #9aa1b2;
+}
+
+.boardShow {
+  font-weight: 700;
+  font-size: var(--step-1);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+a.boardShow:hover {
+  text-decoration: underline;
+}
+
+.boardRole {
+  font-size: var(--step-1);
+  color: #f4d35e;
+}
+
+.boardVenue {
+  font-size: var(--step--1);
+  color: #c9cedb;
+}
+
+.boardCta {
+  justify-self: end;
+  padding: 0.6rem 1rem;
+  background: #ffffff;
+  color: var(--color-ink);
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.boardCta:hover {
+  background: #e4e4e7;
+}
+
+.boardStatus {
+  justify-self: end;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9aa1b2;
+}
+
+.boardPast {
+  opacity: 0.55;
+}
+
+.boardPast .boardRole {
+  color: #ffffff;
+}
+
+/* ===== Д — Портрет ===== */
+.port {
+  position: relative;
+  min-height: 34rem;
+  padding-left: calc(42% + 2.5rem);
+}
+
+.portList {
+  border-top: 2px solid var(--color-ink);
+}
+
+.portItem {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 1rem;
+  padding-block: 1.25rem;
+  border-bottom: 1px solid var(--color-hairline);
+  cursor: default;
+}
+
+/* Кадр каждой роли — в левой колонке; виден кадр наведённой роли, без наведения — первой. */
+.portImg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 42%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-night);
+  opacity: 0;
+  transition: opacity var(--motion-slow) var(--ease-standard);
+}
+
+.portItem:hover .portImg,
+.portItem:focus-within .portImg,
+.port:not(:has(.portItem:hover, .portItem:focus-within)) .portItem:first-child .portImg {
+  opacity: 1;
+}
+
+.portNum {
+  font-weight: 700;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.portRole {
+  font-weight: 700;
+  font-size: clamp(1.75rem, 1rem + 2vw, 2.75rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  transition: color var(--motion-base);
+}
+
+.portItem:hover .portRole {
+  color: var(--color-brand);
+}
+
+.portShow {
+  margin-top: 0.3rem;
+  font-size: var(--step-1);
+}
+
+.portShow a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+.portWhen {
+  font-size: var(--step--1);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.portArchive {
+  margin-top: 1.5rem;
+  font-size: var(--step--1);
+  line-height: 1.6;
+  color: var(--color-muted);
+}
+
+/* ===== Е — Плакаты ===== */
+.posters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
+}
+
+.poster {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 1rem;
+  aspect-ratio: 3 / 4;
+  padding: 1.25rem;
+  overflow: hidden;
+}
+
+.toneInk {
+  background: var(--color-ink);
+  color: #ffffff;
+}
+
+.toneBrand {
+  background: var(--color-brand);
+  color: #ffffff;
+}
+
+.toneRed {
+  background: #b3261e;
+  color: #ffffff;
+}
+
+.tonePast {
+  border: 2px solid var(--color-ink);
+  color: var(--color-ink);
+}
+
+.posterTop {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.posterRole {
+  align-self: center;
+  font-weight: 800;
+  font-size: clamp(1.5rem, 0.9rem + 1.5vw, 2.35rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  /* Перенос по слогам, а не посреди буквы: длинные «Драматург», «Пьеретта». */
+  hyphens: auto;
+}
+
+.posterShow {
+  font-size: var(--step-1);
+  font-weight: 600;
+}
+
+.posterLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.posterLink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.poster:has(.posterLink):hover {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
+/* ===== Ж — Хронология ===== */
+.tl {
+  position: relative;
+}
+
+.tl::before {
+  content: '';
+  position: absolute;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  left: calc(6rem + 0.6rem);
+  width: 2px;
+  background: var(--color-ink);
+}
+
+.tlGroup {
+  padding: 1.5rem 0 0.75rem calc(6rem + 2.25rem);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.tlItem {
+  display: grid;
+  grid-template-columns: 6rem 1.25rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  padding-block: 0.75rem;
+}
+
+.tlWhen {
+  text-align: right;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.tlWhen b {
+  font-size: 1.75rem;
+  color: var(--color-ink);
+}
+
+.tlDot {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 50%;
+  background: var(--color-ink);
+}
+
+.tlPast .tlDot {
+  background: var(--color-background);
+}
+
+.tlBody {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.tlPast .tlBody {
+  grid-template-columns: minmax(0, 1fr);
+  background: none;
+  box-shadow: none;
+  border: 1px dashed var(--color-control-border);
+}
+
+.tlThumb {
+  position: relative;
+  width: 4.5rem;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--color-night);
+}
+
+.tlRole {
+  font-weight: 700;
+  font-size: var(--step-2);
+  line-height: 1.1;
+}
+
+.tlShow {
+  margin-top: 0.2rem;
+  font-size: var(--step--1);
+}
+
+.tlShow a {
+  font-weight: 600;
+}
+
+.tlShow span {
+  color: var(--color-muted);
+}
+
+/* Телефон: табло — две строки на показ; портрет — без большого кадра; хронология плотнее. */
+@media (max-width: 48rem) {
+  .boardHead {
+    display: none;
+  }
+
+  .boardRow {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: 0.25rem 1rem;
+  }
+
+  .boardDate {
+    grid-row: span 3;
+    align-self: start;
+    font-size: 1rem;
+  }
+
+  .boardCta,
+  .boardStatus {
+    grid-column: 2;
+    justify-self: start;
+    margin-top: 0.5rem;
+  }
+
+  .port {
+    min-height: 0;
+    padding-left: 0;
+  }
+
+  .portImg {
+    display: none;
+  }
+
+  .portItem {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.35rem;
+  }
+
+  .portNum {
+    display: none;
+  }
+
+  .tl::before {
+    left: 0.55rem;
+  }
+
+  .tlGroup {
+    padding-left: 2.25rem;
+  }
+
+  .tlItem {
+    grid-template-columns: 1.25rem minmax(0, 1fr);
+    gap: 0.25rem 1rem;
+  }
+
+  .tlWhen {
+    grid-column: 2;
+    text-align: left;
+  }
+
+  .tlDot {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .tlBody {
+    grid-column: 2;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .tlCta {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ===== З — Гримёрка ===== */
+.mirrors {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 2.5rem 1.5rem;
+}
+
+.mirror {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 0.35rem;
+}
+
+/* Рама с «лампочками»: точки по периметру — радиальный градиент на рамке. */
+.mirrorFrame {
+  width: 100%;
+  padding: 0.9rem;
+  background:
+    radial-gradient(circle, #fff6d5 0 0.22rem, #f2c14e 0.24rem 0.34rem, transparent 0.36rem) 0 0 /
+      1.6rem 1.6rem,
+    #2a2420;
+  box-shadow: 0 0 2rem rgb(242 193 78 / 0.25);
+}
+
+.mirrorGlass {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--color-night);
+  box-shadow: inset 0 0 0 0.35rem #2a2420;
+}
+
+.mirrorTag {
+  margin-top: 0.9rem;
+  padding: 0.3rem 0.8rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-ink);
+  font-weight: 700;
+  font-size: var(--step-1);
+  transform: rotate(-2deg);
+}
+
+.mirrorShow {
+  margin-top: 0.4rem;
+  font-weight: 600;
+}
+
+.mirrorShow a {
+  text-decoration: none;
+}
+
+.mirrorShow a:hover {
+  text-decoration: underline;
+}
+
+.mirrorPast .mirrorFrame {
+  background: #3a3a3a;
+  box-shadow: none;
+}
+
+.mirrorPast .mirrorGlass img {
+  filter: grayscale(1);
+  opacity: 0.8;
+}
+
+/* ===== И — Билетики ===== */
+.tickets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  gap: 1rem;
+}
+
+.ticket {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 6.5rem;
+  min-height: 9rem;
+  filter: drop-shadow(0 6px 16px rgb(21 23 28 / 0.08));
+}
+
+.ticketMain,
+.ticketStub {
+  background: var(--color-surface);
+}
+
+.ticketMain {
+  display: grid;
+  align-content: center;
+  gap: 0.3rem;
+  padding: 1.25rem 1.5rem;
+  /* Полукруглые вырезы у линии отрыва. */
+  mask:
+    radial-gradient(circle at 100% 0, transparent 0.6rem, #000 0.62rem) top / 100% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 0.6rem, #000 0.62rem) bottom / 100% 51%
+      no-repeat;
+}
+
+.ticketRole {
+  font-weight: 800;
+  font-size: var(--step-2);
+  line-height: 1.1;
+}
+
+.ticketShow a {
+  font-weight: 600;
+}
+
+.ticketStub {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.1rem;
+  padding: 1rem 0.5rem;
+  border-left: 2px dashed var(--color-control-border);
+  text-align: center;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  mask:
+    radial-gradient(circle at 0 0, transparent 0.6rem, #000 0.62rem) top / 100% 51% no-repeat,
+    radial-gradient(circle at 0 100%, transparent 0.6rem, #000 0.62rem) bottom / 100% 51% no-repeat;
+}
+
+.ticketStub b {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.ticketLink {
+  margin-top: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  background: var(--color-ink);
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+  text-transform: none;
+}
+
+.ticketSoon {
+  color: var(--color-muted);
+}
+
+.ticketUsed .ticketMain,
+.ticketUsed .ticketStub {
+  background: #e9e7e2;
+  color: var(--color-muted);
+}
+
+.ticketStamp {
+  padding: 0.25rem 0.4rem;
+  border: 2px solid #b3261e;
+  color: #b3261e;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  transform: rotate(-12deg);
+}
+
+/* ===== К — Занавес ===== */
+.curtain {
+  display: flex;
+  gap: 0.4rem;
+  height: 30rem;
+}
+
+.fold {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--color-night);
+  color: #ffffff;
+  outline: none;
+  transition: flex-grow 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.fold img {
+  filter: brightness(0.55) saturate(0.8);
+  transition: filter 0.6s;
+}
+
+/* Раскрыта наведённая (или в фокусе); без наведения — первая. */
+.fold:hover,
+.fold:focus-within,
+.curtain:not(:has(.fold:hover, .fold:focus-within)) .fold[data-first] {
+  flex-grow: 5;
+}
+
+.fold:hover img,
+.fold:focus-within img,
+.curtain:not(:has(.fold:hover, .fold:focus-within)) .fold[data-first] img {
+  filter: none;
+}
+
+.foldTitle {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 50%;
+  z-index: 1;
+  font-weight: 700;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+  transform: translateX(-50%) rotate(180deg);
+  transition: opacity 0.3s;
+}
+
+.foldBody {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  align-content: end;
+  gap: 0.4rem;
+  padding: 1.5rem;
+  background: linear-gradient(to top, rgb(15 20 38 / 0.9) 15%, transparent 55%);
+  opacity: 0;
+  transition: opacity 0.4s 0.15s;
+}
+
+.fold:hover .foldBody,
+.fold:focus-within .foldBody,
+.curtain:not(:has(.fold:hover, .fold:focus-within)) .fold[data-first] .foldBody {
+  opacity: 1;
+}
+
+.fold:hover .foldTitle,
+.fold:focus-within .foldTitle,
+.curtain:not(:has(.fold:hover, .fold:focus-within)) .fold[data-first] .foldTitle {
+  opacity: 0;
+}
+
+.foldRole {
+  font-weight: 800;
+  font-size: clamp(1.75rem, 1rem + 2vw, 2.75rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.foldWhen {
+  font-size: var(--step--1);
+  color: #dde1ea;
+}
+
+/* ===== Л — Титры ===== */
+.credits {
+  max-width: 52rem;
+  margin-inline: auto;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background: var(--color-ink);
+  color: #ffffff;
+}
+
+.creditRow {
+  display: grid;
+  grid-template-columns: auto minmax(2rem, 1fr) auto 4.5rem;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding-block: 0.6rem;
+}
+
+.creditRole {
+  font-weight: 700;
+  font-size: var(--step-2);
+  letter-spacing: -0.01em;
+}
+
+.creditDots {
+  border-bottom: 2px dotted rgb(255 255 255 / 0.4);
+  transform: translateY(-0.3em);
+}
+
+.creditShow {
+  font-size: var(--step-1);
+  color: #dde1ea;
+  text-decoration: none;
+  text-align: right;
+}
+
+a.creditShow:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.creditWhen {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: right;
+  text-transform: uppercase;
+  color: #f4d35e;
+}
+
+.creditsGroup {
+  margin-top: 1.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(255 255 255 / 0.2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-align: center;
+  text-transform: uppercase;
+  color: #9aa1b2;
+}
+
+.creditPast {
+  opacity: 0.55;
+}
+
+.creditPast .creditRole {
+  font-size: var(--step-1);
+}
+
+/* ===== М — Мозаика ===== */
+.mosaic {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 14rem;
+  gap: 0.75rem;
+}
+
+.tile {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-night);
+  color: #ffffff;
+}
+
+.tileBig {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.tile img {
+  transition: transform var(--motion-slow) var(--ease-standard);
+}
+
+.tile:hover img {
+  transform: scale(1.04);
+}
+
+.tileCap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  align-content: end;
+  gap: 0.25rem;
+  padding: 1rem;
+  background: linear-gradient(to top, rgb(15 20 38 / 0.9) 10%, transparent 60%);
+}
+
+.tileRole {
+  font-weight: 800;
+  font-size: var(--step-1);
+  line-height: 1.1;
+}
+
+.tileBig .tileRole {
+  font-size: clamp(1.75rem, 1rem + 2vw, 3rem);
+  letter-spacing: -0.03em;
+}
+
+.tileShow {
+  font-size: var(--step--1);
+  color: #dde1ea;
+}
+
+.tilePast img {
+  filter: grayscale(1);
+  opacity: 0.7;
+}
+
+@media (max-width: 48rem) {
+  .curtain {
+    flex-direction: column;
+    height: 36rem;
+  }
+
+  .foldTitle {
+    left: 1rem;
+    bottom: 50%;
+    writing-mode: horizontal-tb;
+    transform: translateY(50%);
+  }
+
+  .creditRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.1rem 0.75rem;
+  }
+
+  .creditDots {
+    display: none;
+  }
+
+  .creditShow {
+    grid-column: 1;
+    text-align: left;
+  }
+
+  .creditWhen {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .mosaic {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 11rem;
+  }
+
+  .ticket {
+    grid-template-columns: minmax(0, 1fr) 5.5rem;
+  }
+
+  .tickets {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ticketStamp {
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fold,
+  .fold img,
+  .foldBody,
+  .tile img,
+  .portImg,
+  .stripMedia img {
+    transition: none;
+  }
+}

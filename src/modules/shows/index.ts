@@ -11,6 +11,7 @@ export type {
   TicketType,
   Venue,
   VenueKind,
+  ArchivedShow,
 } from './types'
 export {
   THEATRE_TIME_ZONE,
@@ -35,5 +36,6 @@ export {
   availabilityText,
   formatDuration,
   formatAge,
+  plural,
 } from './labels'
 export { getShowsData } from './source'

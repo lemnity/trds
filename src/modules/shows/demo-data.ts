@@ -475,6 +475,95 @@ export const demoShowsData: ShowsData = {
     },
   ],
 
+  /**
+   * Архив — прошедшие постановки со страницы teatrturdus.ru/past (16.10.2026). Составы —
+   * дословно со страниц постановок; где имён на сайте нет, постановку не берём.
+   */
+  archive: [
+    {
+      slug: 'onegin',
+      title: 'Другой Онегин',
+      genre: 'Иммерсивный спектакль',
+      posterUrl: 'https://static.tildacdn.com/tild6539-6562-4066-a533-666233623161/photo.png',
+      credits: [
+        { role: 'Режиссёры', entries: [{ people: ['Артём Аксёнов', 'Анастасия Нохова'] }] },
+        { role: 'Драматург', entries: [{ people: ['Татьяна Усова'] }] },
+        {
+          role: 'В ролях',
+          entries: [
+            { character: 'Пушкин', people: ['Никита Бондаренко'] },
+            { character: 'Онегин', people: ['Денис Денисов'] },
+            { character: 'Татьяна', people: ['Татьяна Усова'] },
+            { character: 'Мамушка', people: ['Марина Шуранова'] },
+            { character: 'Крепостная крестьянка', people: ['Ольга Калашникова'] },
+          ],
+        },
+      ],
+    },
+    {
+      slug: 'dogville',
+      title: 'Догвилль',
+      genre: 'Кино-спектакль',
+      posterUrl: 'https://static.tildacdn.com/tild3764-6230-4866-b461-643330303361/1200800__.jpg',
+      credits: [
+        { role: 'Режиссер', entries: [{ people: ['Александр Вахов'] }] },
+        { role: 'В ролях', entries: [{ character: 'Главная роль', people: ['Анастасия Нохова'] }] },
+      ],
+    },
+    {
+      slug: 'historyhome',
+      title: 'История одного дома',
+      genre: null,
+      posterUrl: 'https://static.tildacdn.com/tild6233-3434-4239-b665-633064333030/19201080_5.jpg',
+      credits: [
+        { role: 'Режиссер', entries: [{ people: ['Артём Аксёнов'] }] },
+        { role: 'В ролях', entries: [{ people: ['Ксения Сосновских'] }] },
+        { role: 'Сценаристы', entries: [{ people: ['Вера Плехова', 'Олег Таратухин'] }] },
+      ],
+    },
+    {
+      slug: 'onehistory',
+      title: 'История одного рассказа',
+      genre: 'Иммерсивный спектакль',
+      posterUrl:
+        'https://static.tildacdn.com/tild3531-6266-4762-b836-666435346133/History_1_rasskaz.jpg',
+      credits: [{ role: 'Режиссер', entries: [{ people: ['Артём Аксёнов'] }] }],
+    },
+    {
+      slug: 'guestssochi',
+      title: 'Гости (Сочи)',
+      genre: 'Спектакль-перформанс',
+      posterUrl: 'https://static.tildacdn.com/tild6266-3031-4461-a262-386632346563/IMG_9326.JPG',
+      credits: [{ role: 'Хозяин вечера', entries: [{ people: ['Артём Аксёнов'] }] }],
+    },
+    {
+      slug: 'kkvartirnik',
+      title: 'Театральный квартирник',
+      genre: 'Творческий вечер',
+      posterUrl:
+        'https://static.tildacdn.com/tild3264-6266-4537-b865-613434613530/19201080_01_8.jpg',
+      credits: [{ role: 'Хозяин вечера', entries: [{ people: ['Артём Аксёнов'] }] }],
+    },
+    {
+      slug: 'ogonek',
+      title: 'Секс в большом баре',
+      genre: null,
+      posterUrl:
+        'https://static.tildacdn.com/tild6465-3461-4939-a439-623130613939/19201080____1.jpg',
+      credits: [
+        { role: 'Авторы сценария', entries: [{ people: ['Татьяна Усова', 'Стефания-Марьяна'] }] },
+      ],
+    },
+    {
+      slug: 'letsswitch',
+      title: 'Ирония судьбы, или Давайте поменяемся',
+      genre: null,
+      posterUrl:
+        'https://static.tildacdn.com/tild3366-3331-4234-b165-626264373666/1920_1080_18_.JPG',
+      credits: [{ role: 'Автор сценария', entries: [{ people: ['Саша Цариков'] }] }],
+    },
+  ],
+
   performances: [
     {
       id: 'taro-1008',

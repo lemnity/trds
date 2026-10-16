@@ -1,6 +1,8 @@
 import { VENUE_KIND_LABELS, type VenueKind } from '@/modules/shows'
 
-export type NavLink = { href: string; label: string }
+import type { NavIconName } from './NavIcon'
+
+export type NavLink = { href: string; label: string; icon?: NavIconName }
 export type NavGroup = { title: string; links: NavLink[] }
 /**
  * `mega`: на широком экране раздел — кнопка, открывающая мега-меню (колонки + ближайший
@@ -34,9 +36,14 @@ export const MAIN_NAV: NavItem[] = [
     href: '/about',
     label: 'О театре',
     children: [
-      { href: '/about', label: 'О театре' },
-      { href: '/news', label: 'Новости' },
-      { href: '/#reviews', label: 'Отзывы' },
+      { href: '/about', label: 'О театре', icon: 'theatre' },
+      { href: '/venues', label: 'Площадки', icon: 'venues' },
+      { href: '/repertoire', label: 'Репертуар', icon: 'repertoire' },
+      { href: '/troupe', label: 'Труппа', icon: 'troupe' },
+      { href: '/leadership', label: 'Руководство', icon: 'leadership' },
+      { href: '/#partners', label: 'Партнёры', icon: 'partners' },
+      { href: '/news', label: 'Новости', icon: 'news' },
+      { href: '/#reviews', label: 'Отзывы', icon: 'reviews' },
     ],
   },
   { href: '#contacts', label: 'Контакты' },

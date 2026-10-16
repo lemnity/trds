@@ -14,6 +14,10 @@ const MAIN = [
   { href: '/', title: 'Главная' },
   { href: '/afisha', title: 'Афиша' },
   { href: '/about', title: 'О театре' },
+  { href: '/venues', title: 'Площадки' },
+  { href: '/repertoire', title: 'Репертуар' },
+  { href: '/troupe', title: 'Труппа' },
+  { href: '/leadership', title: 'Руководство' },
   { href: '/news', title: 'Архив новостей' },
   { href: '/account', title: 'Личный кабинет' },
 ]

@@ -101,7 +101,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className={`container ${styles.section}`} aria-labelledby="partners-title">
+      <section
+        id="partners"
+        className={`container ${styles.section}`}
+        aria-labelledby="partners-title"
+      >
         <h2 id="partners-title" className={styles.sectionTitle}>
           Партнёры и площадки
         </h2>

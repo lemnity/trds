@@ -1,0 +1,214 @@
+/* Руководство — журнальные развороты в шахматном порядке. */
+.page {
+  padding-bottom: var(--section-space);
+}
+
+.intro {
+  display: grid;
+  gap: 1rem;
+  padding-block: clamp(2rem, 6vw, 4.5rem) clamp(2rem, 5vw, 3.5rem);
+}
+
+.kicker,
+.position,
+.showsTitle {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.title {
+  font-weight: 700;
+  font-size: clamp(3rem, 1.5rem + 7vw, 8rem);
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+}
+
+.lead {
+  max-width: 34rem;
+  font-size: var(--step-1);
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+
+/* Разворот: портрет 5/12, текст 7/12; чётные — зеркально. */
+.spread {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: center;
+  gap: clamp(2rem, 5vw, 5rem);
+  padding-block: clamp(2.5rem, 6vw, 5rem);
+  border-top: 1px solid var(--color-ink);
+}
+
+.spread[data-flip] {
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+}
+
+.spread[data-flip] .portrait {
+  order: 2;
+}
+
+.portrait {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--color-night);
+}
+
+.portrait img {
+  object-fit: cover;
+  object-position: 50% 18%;
+}
+
+/* Без фото — чёрная панель с огромными контурными инициалами. */
+.monogram {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 30% 20%, rgb(255 255 255 / 0.08), transparent 55%), var(--color-ink);
+  color: transparent;
+  font-weight: 800;
+  font-size: clamp(6rem, 3rem + 10vw, 13rem);
+  letter-spacing: -0.06em;
+  -webkit-text-stroke: 2px rgb(255 255 255 / 0.85);
+}
+
+/* Номер — белая плашка в углу портрета. */
+.index {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  padding: 0.6rem 0.9rem;
+  background: var(--color-surface);
+  font-weight: 800;
+  font-size: 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.spread[data-flip] .index {
+  right: 0;
+  left: auto;
+}
+
+.text {
+  display: grid;
+  align-content: center;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.name {
+  font-weight: 700;
+  font-size: clamp(2.5rem, 1.2rem + 4.5vw, 5.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+/* Прямая речь: крупно, с большой кавычкой слева. */
+.quote {
+  position: relative;
+  margin: 0.5rem 0 0;
+  padding-left: clamp(2.5rem, 4vw, 3.5rem);
+}
+
+.quote::before {
+  content: '«';
+  position: absolute;
+  top: -0.35em;
+  left: 0;
+  font-weight: 800;
+  font-size: clamp(4rem, 3rem + 3vw, 6rem);
+  line-height: 1;
+  color: var(--color-ink);
+}
+
+.quote blockquote {
+  margin: 0;
+  font-size: clamp(1.125rem, 0.95rem + 0.6vw, 1.5rem);
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.quote figcaption {
+  margin-top: 0.75rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+/* Цифры — в ряд, число крупно над подписью. */
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2.5rem;
+  padding-block: 1.25rem;
+  border-block: 1px solid var(--color-hairline);
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.facts li {
+  display: grid;
+  max-width: 14rem;
+}
+
+.facts b {
+  font-size: var(--step-3);
+  line-height: 1;
+  color: var(--color-ink);
+}
+
+.shows {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.shows ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.shows a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--color-control-border);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  transition:
+    background var(--motion-base),
+    color var(--motion-base),
+    border-color var(--motion-base);
+}
+
+.shows a:hover {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: #ffffff;
+}
+
+/* Планшет и телефон: портрет над текстом, без зеркала. */
+@media (max-width: 60rem) {
+  .spread,
+  .spread[data-flip] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .spread[data-flip] .portrait {
+    order: 0;
+  }
+
+  .portrait {
+    width: min(100%, 26rem);
+  }
+}

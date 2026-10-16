@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 
 import { LOW_VISION_KEY } from '@/components/site/lowVision'
 import { PageLoader } from '@/components/site/PageLoader'
+import { RevealOnScroll } from '@/components/site/RevealOnScroll'
 import { ScrollBuyButton } from '@/components/site/ScrollBuyButton'
 import { SiteFooter } from '@/components/site/SiteFooter'
 import { SiteHeader } from '@/components/site/SiteHeader'
@@ -41,6 +42,7 @@ export default function FrontendLayout({ children }: { children: ReactNode }) {
           <main id="main">{children}</main>
           <SiteFooter />
           <ScrollBuyButton />
+          <RevealOnScroll />
         </Providers>
       </body>
     </html>

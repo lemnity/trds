@@ -28,7 +28,8 @@ export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   promenade: 'Спектакль-променад',
 }
 
-const plural = (n: number, one: string, few: string, many: string) =>
+/** Форма слова по числу: plural(3, "билет", "билета", "билетов") → «билета». */
+export const plural = (n: number, one: string, few: string, many: string) =>
   n % 10 === 1 && n % 100 !== 11
     ? one
     : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)

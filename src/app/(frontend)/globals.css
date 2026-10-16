@@ -165,3 +165,18 @@
 :root[data-low-vision='1'] img {
   filter: grayscale(1) contrast(1.1);
 }
+
+/*
+ * Появление при прокрутке (RevealOnScroll): до показа элементы с data-reveal прозрачны и
+ * опущены; показ — анимацией из скрипта. Прячем только когда скрипт готов — без JS всё видно.
+ */
+:root[data-reveal-ready] [data-reveal] {
+  opacity: 0;
+  transform: translateY(1.5rem);
+}
+
+/* Версия для слабовидящих — без движения (!important сильнее анимации). */
+:root[data-low-vision='1'] [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+}

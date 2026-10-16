@@ -1,114 +1,401 @@
+/* Страница человека: шапка как у спектакля — крупное имя, направления, цифры под линией. */
 .crumbs {
   padding-top: 1.5rem;
 }
 
 .head {
   display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding-block: 1.75rem 2.25rem;
-  border-bottom: 1px solid var(--color-hairline);
+  align-items: flex-end;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  padding-block: clamp(1.5rem, 3vw, 2.5rem);
 }
 
+.avatar,
+.avatar > * {
+  border-radius: 3px;
+}
+
+/* Портрет — вертикальный 3:4, как в «Труппе»; низ портрета на линии с подписью под именем. */
 .avatar {
   flex: none;
   height: auto;
-  width: clamp(5rem, 14vw, 7.5rem);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  font-size: var(--step-3);
-  font-weight: 600;
+  width: clamp(7rem, 15vw, 12rem);
+  aspect-ratio: 3 / 4;
+  font-size: clamp(1.75rem, 1rem + 2.5vw, 3rem);
+  font-weight: 700;
 }
 
-/* Avatar.Fallback HeroUI — на весь круг. */
+/* Без фото — светлая плашка с крупными инициалами (Avatar.Fallback HeroUI на всю площадь). */
 .avatar > * {
   width: 100%;
   height: 100%;
-  background: var(--color-brand);
-  color: var(--color-brand-contrast);
+  background: var(--color-hairline);
+  color: var(--color-muted);
   font-size: inherit;
 }
 
-.title {
-  font-weight: 600;
-  font-size: var(--step-3);
-  line-height: var(--leading-tight);
+.headText {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
-.subtitle {
-  margin-top: 0.35rem;
+.fields {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--color-muted);
 }
 
-.layout {
-  display: grid;
-  gap: 2rem;
-  padding-top: 2rem;
-  align-items: start;
+.title {
+  font-weight: 700;
+  font-size: clamp(2.25rem, 1rem + 4.5vw, 5.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
 }
 
-.sectionTitle {
-  margin-bottom: 1rem;
-  font-weight: 600;
-  font-size: var(--step-2);
+.subtitle {
+  color: var(--color-muted);
+  font-size: var(--step-1);
 }
 
-.works {
+/* Цифры — в ряд под линией, как факты на странице спектакля. */
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 2.5rem;
+  padding-block: clamp(1.25rem, 2.5vw, 1.75rem);
+  border-block: 1px solid var(--color-ink);
+  font-size: var(--step-1);
+}
+
+.stats b {
+  font-size: var(--step-3);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.15em;
+}
+
+.about {
   display: grid;
   gap: 0.75rem;
+  max-width: 48rem;
+  margin-top: var(--section-space, 3.5rem);
 }
 
-.work {
-  position: relative;
-  padding: 1.1rem 1.25rem;
-  display: block;
-  gap: 0;
-}
-
-.work:focus-within {
-  outline: 3px solid var(--color-focus);
-  outline-offset: 2px;
-}
-
-.workTitle {
-  font-weight: 600;
+.bio {
+  display: grid;
+  gap: 0.75rem;
   font-size: var(--step-1);
-  text-decoration: none;
+  line-height: 1.55;
 }
 
-.workTitle:focus-visible {
-  outline: none;
+.bioTitle {
+  font-weight: 700;
 }
 
-.workTitle::after {
-  content: '';
-  position: absolute;
-  inset: 0;
+.bioWorksTitle {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-.workTitle:hover {
-  color: var(--color-brand);
+.bioWorks {
+  display: grid;
+  gap: 0.35rem;
+  padding-left: 1.1rem;
+  list-style: square;
+  font-size: 1rem;
 }
 
-.workRole {
-  margin-top: 0.2rem;
-}
-
-.workNext {
-  margin-top: 0.35rem;
+.bioSource {
   font-size: var(--step--1);
   color: var(--color-muted);
 }
 
-.bio {
-  padding: 1.25rem 1.5rem;
+.placeholder {
+  font-size: var(--step-1);
+  line-height: 1.5;
   color: var(--color-muted);
-  display: block;
-  gap: 0;
 }
 
-@media (min-width: 60rem) {
-  .layout {
-    grid-template-columns: minmax(0, 1.6fr) minmax(18rem, 1fr);
+.section {
+  margin-top: var(--section-space, 3.5rem);
+}
+
+.sectionTitle {
+  margin-bottom: 1.25rem;
+  font-weight: 700;
+  font-size: var(--step-3);
+  letter-spacing: -0.02em;
+}
+
+.about .sectionTitle {
+  margin-bottom: 0;
+}
+
+/*
+ * Роли — хронология: слева дата (день крупно, месяц, день недели и время), точка на линии,
+ * справа карточка — миниатюра, роль, спектакль, жанр и площадка, «Билеты». Ниже — архив:
+ * пустые точки, ч/б миниатюры, без кнопок.
+ */
+.tl {
+  position: relative;
+}
+
+.tl::before {
+  content: '';
+  position: absolute;
+  top: 0.5rem;
+  bottom: 1rem;
+  left: calc(var(--tl-when) + var(--tl-gap) + 0.55rem);
+  width: 2px;
+  background: var(--color-ink);
+}
+
+.tl {
+  --tl-when: 7rem;
+  --tl-gap: 1rem;
+}
+
+.tlGroup {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 1.25rem 0 0.75rem calc(var(--tl-when) + var(--tl-gap) * 2 + 1.25rem);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tlGroup:first-child {
+  padding-top: 0;
+}
+
+.count {
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tlItem {
+  display: grid;
+  grid-template-columns: var(--tl-when) 1.25rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--tl-gap);
+  padding-block: 0.6rem;
+}
+
+.tlWhen {
+  display: grid;
+  justify-items: end;
+  text-align: right;
+  font-size: 0.875rem;
+  line-height: 1.25;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.tlWhen b {
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.tlWhen span {
+  font-size: 0.75rem;
+  text-transform: none;
+}
+
+.tlDot {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 50%;
+  background: var(--color-ink);
+}
+
+.tlCard {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.85rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.tlThumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--color-night);
+}
+
+.tlThumb img {
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.tlText {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+/* Роль — главное в строке. */
+.roleNames {
+  font-weight: 700;
+  font-size: var(--step-2);
+  line-height: 1.15;
+}
+
+/* «Роль» перед именем персонажа — мелкой подписью. */
+.roleLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  vertical-align: 0.2em;
+}
+
+.roleCredit {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.tlShow {
+  font-size: var(--step-1);
+  font-weight: 600;
+}
+
+.tlShow a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+/* «Билеты» — не вплотную к правому краю карточки. */
+.tlCta {
+  margin-right: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+.tlMeta {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+/* Архив: пустая точка, без тени, миниатюра ч/б. */
+.tlPast .tlDot {
+  background: var(--color-background);
+}
+
+.tlPast .tlCard {
+  grid-template-columns: 5rem minmax(0, 1fr);
+  background: none;
+  box-shadow: none;
+  border: 1px dashed var(--color-control-border);
+}
+
+.tlPast .tlThumb img {
+  filter: grayscale(1);
+  opacity: 0.8;
+}
+
+.tlPast .roleNames {
+  font-size: var(--step-1);
+}
+
+/* Телефон: линия слева, дата над карточкой, кнопка на всю ширину под текстом. */
+@media (max-width: 40rem) {
+  .tl {
+    --tl-when: 0rem;
+    --tl-gap: 0.75rem;
+  }
+
+  .tl::before {
+    left: 0.55rem;
+  }
+
+  .tlGroup {
+    padding-left: 2rem;
+  }
+
+  .tlItem {
+    grid-template-columns: 1.25rem minmax(0, 1fr);
+    gap: 0.35rem 0.75rem;
+  }
+
+  .tlWhen {
+    grid-column: 2;
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    text-align: left;
+  }
+
+  .tlWhen b {
+    font-size: 1.5rem;
+  }
+
+  .tlDot {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .tlCard {
+    grid-column: 2;
+    grid-template-columns: 4rem minmax(0, 1fr);
+    gap: 0.75rem 1rem;
+  }
+
+  .tlCta {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .roleNames {
+    font-size: var(--step-1);
+  }
+}
+
+/* Телефон: аватар над именем; цифры — три колонки, число над подписью. */
+@media (max-width: 40rem) {
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+
+  .avatar {
+    width: 7.5rem;
+    font-size: 1.75rem;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    font-size: 0.9375rem;
+    line-height: 1.3;
+  }
+
+  .stats b {
+    display: block;
+    margin: 0 0 0.25rem;
   }
 }

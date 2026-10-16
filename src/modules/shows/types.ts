@@ -70,10 +70,20 @@ export type Performance = {
   }
 }
 
+/** Прошедшая постановка (архив сайта театра): без показов и продаж, только состав. */
+export type ArchivedShow = {
+  slug: string
+  title: string
+  genre: string | null
+  posterUrl: string
+  credits: Credit[]
+}
+
 export type ShowsData = {
   venues: Venue[]
   shows: Show[]
   performances: Performance[]
+  archive?: ArchivedShow[]
 }
 
 export type AvailabilityLevel = 'many' | 'few' | 'none'

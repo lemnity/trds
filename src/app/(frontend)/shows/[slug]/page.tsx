@@ -6,7 +6,7 @@ import { Suspense } from 'react'
 import { HideWhenStarted } from '@/components/board/HideWhenStarted'
 import { ShowCard } from '@/components/board/ShowCard'
 import { ShowBooking } from '@/components/show/ShowBooking'
-import { Gallery } from '@/components/show/Gallery'
+import { Gallery, showGalleryItems } from '@/components/show/Gallery'
 import { ShowAbout } from '@/components/show/ShowAbout'
 import { ShowBuy, ShowCover } from '@/components/show/ShowHeaderCompact'
 import { ShowHero } from '@/components/show/ShowHero'
@@ -73,7 +73,10 @@ export default async function ShowPage({ params }: { params: Promise<Params> }) 
             Фото
           </h2>
           <div className={styles.gallery}>
-            <Gallery photos={show.gallery} title={show.title} />
+            <Gallery
+              label={`Фото спектакля «${show.title}»`}
+              items={showGalleryItems(show.gallery, show.title)}
+            />
           </div>
         </section>
       )}

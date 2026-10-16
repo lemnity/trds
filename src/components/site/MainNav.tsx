@@ -7,6 +7,7 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore, type Keyboard
 import { ButtonLink } from '../ui/ButtonLink'
 import { TicketIcon } from '../ui/TicketIcon'
 import { AFISHA_GROUPS, MAIN_NAV, type NavLink } from './navigation'
+import { NavIcon } from './NavIcon'
 import styles from './MainNav.module.css'
 
 /** Показ для карточки «Ближайший спектакль» в мега-меню (подготовлен на сервере). */
@@ -30,16 +31,23 @@ const noopSubscribe = () => () => {}
 
 type ItemLinkProps = NavLink & { className?: string; onClick?: () => void }
 
-const ItemLink = ({ href, label, className, onClick }: ItemLinkProps) =>
-  href.startsWith('#') ? (
-    <a href={href} className={className} onClick={onClick}>
+const ItemLink = ({ href, label, icon, className, onClick }: ItemLinkProps) => {
+  const content = (
+    <>
+      {icon && <NavIcon name={icon} />}
       {label}
+    </>
+  )
+  return href.startsWith('#') ? (
+    <a href={href} className={className} onClick={onClick}>
+      {content}
     </a>
   ) : (
     <Link href={href} className={className} onClick={onClick}>
-      {label}
+      {content}
     </Link>
   )
+}
 
 /**
  * Главное меню с выпадающими подменю — паттерн «навигация с раскрытием» (не ARIA menu):
@@ -253,12 +261,7 @@ export function MainNav({ shows, months, nearest }: Props) {
                   <ul id={`${ids}-sub-${i}`} className={styles.sub} hidden={open !== i}>
                     {item.children.map((child) => (
                       <li key={child.href + child.label}>
-                        <ItemLink
-                          href={child.href}
-                          label={child.label}
-                          className={styles.subLink}
-                          onClick={close}
-                        />
+                        <ItemLink {...child} className={styles.subLink} onClick={close} />
                       </li>
                     ))}
                   </ul>
