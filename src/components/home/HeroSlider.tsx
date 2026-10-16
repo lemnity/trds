@@ -4,7 +4,6 @@ import { Button } from '@heroui/react'
 import Image from 'next/image'
 import { useState, useSyncExternalStore, type KeyboardEvent } from 'react'
 
-import { formatRub } from '@/lib/money'
 import { formatAge, formatPerformanceDate, type PerformanceView } from '@/modules/shows'
 
 import { PremiereBadge } from '../ui/PremiereBadge'
@@ -102,6 +101,7 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   const go = (next: number) => setIndex((next + visible.length) % visible.length)
   const { performance: p, imageUrl } = visible[current]!
   const date = formatPerformanceDate(p.startsAt)
+  const soldOut = p.availability?.level === 'none'
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'ArrowRight') go(current + 1)
@@ -132,9 +132,9 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
           aria-label={`${current + 1} из ${visible.length}: ${p.show.title}`}
         >
           <p className={styles.when}>
-            <span>{date.longDate}</span>
-            <span>{date.weekday}</span>
-            <span>{date.time}</span>
+            <span className={styles.part}>{date.longDate}</span>
+            <span className={styles.part}>{date.weekday}</span>
+            <span className={styles.part}>{date.time}</span>
             {p.show.premiere && <PremiereBadge />}
           </p>
           <h2 className={styles.title} data-len={titleLen(p.show.title)}>
@@ -146,18 +146,22 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
             {p.venue.title}
           </p>
           <div className={`${styles.actions} on-dark`}>
-            <ButtonLink href={`/shows/${p.show.slug}?date=${p.id}#tickets`}>
-              {p.salesOpen ? (
-                <>
-                  <TicketIcon /> Купить билет
-                </>
-              ) : (
-                <>Подробнее о показе</>
-              )}
-            </ButtonLink>
-            {p.salesOpen && p.minPriceKopecks !== null && (
-              <span className={styles.price}>от {formatRub(p.minPriceKopecks)}</span>
+            {/* Продано всё — неактивная «Билетов нет»; иначе «Купить билеты» ведёт к выбору
+                билетов (если продажа на сайте ещё не открыта, там ссылка на сайт театра). */}
+            {soldOut ? (
+              <Button isDisabled>Билетов нет</Button>
+            ) : (
+              <ButtonLink href={`/shows/${p.show.slug}?date=${p.id}#tickets`}>
+                <TicketIcon /> Купить билеты
+              </ButtonLink>
             )}
+            <ButtonLink
+              href={`/shows/${p.show.slug}?date=${p.id}`}
+              variant="outline"
+              className={styles.more}
+            >
+              Подробнее
+            </ButtonLink>
           </div>
         </article>
 

@@ -31,6 +31,7 @@
     calc(var(--title-lines) * 1.08 * var(--title-size))
     calc(2 * 1.5 * var(--meta-size))
     var(--tap-min);
+  grid-template-columns: minmax(0, 1fr);
   row-gap: 1.25rem;
   align-items: start;
   justify-items: start;
@@ -62,10 +63,12 @@
 
 .when {
   display: flex;
-  flex-wrap: nowrap;
+  /* Узко (дата + «Премьера») — перенос на вторую строку в пределах той же высоты ряда. */
+  flex-wrap: wrap;
   align-items: center;
   align-self: center;
-  gap: 0.6rem;
+  gap: 0.25rem 0.6rem;
+  line-height: 1.2;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -73,7 +76,7 @@
   white-space: nowrap;
 }
 
-.when > span + span::before {
+.part + .part::before {
   content: '·';
   margin-right: 0.6rem;
 }
@@ -117,14 +120,23 @@
 
 .actions {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 1.25rem;
+  gap: 0.75rem;
 }
 
-.price {
-  font-size: var(--step-1);
-  font-weight: 600;
-  white-space: nowrap;
+/* «Подробнее» — контурная белая на тёмном; общий ховер контурной кнопки дал бы чёрный текст. */
+.more {
+  --button-fg: #ffffff;
+  border-color: rgb(255 255 255 / 0.5);
+  color: #ffffff;
+}
+
+.more.more:hover,
+.more.more[data-hovered='true'] {
+  --button-bg-hover: rgb(255 255 255 / 0.12);
+  border-color: #ffffff;
+  color: #ffffff;
 }
 
 /* Низ колонки: линия, счётчик и стрелки слева, полоски справа. */
@@ -156,13 +168,19 @@
 }
 
 .arrow {
+  /* Свои цвета: общий ховер контурной кнопки (heroui-theme.css) — чёрный значок, на тёмном пропадает. */
+  --button-fg: #ffffff;
+  --button-bg-pressed: rgb(255 255 255 / 0.18);
   border-color: rgb(255 255 255 / 0.5);
   color: #ffffff;
 }
 
-.arrow:hover {
+.arrow.arrow:hover,
+.arrow.arrow[data-hovered='true'],
+.arrow.arrow[data-pressed='true'] {
+  --button-bg-hover: rgb(255 255 255 / 0.12);
   border-color: #ffffff;
-  background: rgb(255 255 255 / 0.08);
+  color: #ffffff;
 }
 
 .dots {
@@ -239,6 +257,13 @@
   }
 }
 
+/* Узкая колонка текста (до 960px): «Подробнее» не помещается — остаётся «Купить билеты». */
+@media (max-width: 60rem) {
+  .more {
+    display: none;
+  }
+}
+
 /* Телефон: фото сверху, текст под ним, высота по содержимому. */
 @media (max-width: 48rem) {
   .slider {
@@ -259,6 +284,18 @@
 
   .controls {
     margin-top: 1.5rem;
+  }
+
+  /* Кнопка «Купить билеты» — на всю ширину. */
+  .actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .actions > * {
+    width: 100%;
   }
 
   .dots {
