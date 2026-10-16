@@ -33,7 +33,34 @@ const pad = (n: number) => String(n).padStart(2, '0')
 const titleLen = (title: string) =>
   title.length > 26 ? 'long' : title.length > 14 ? 'mid' : undefined
 
-/** Кроссфейд: прежнее фото остаётся под новым, пока то проявляется. */
+/**
+ * Обложка целиком (на ней надписи — обрезать нельзя), поля вокруг заполняет её же
+ * размытая копия. Кроссфейд: прежняя обложка остаётся под новой, пока та проявляется.
+ */
+function Cover({
+  src,
+  priority,
+  className,
+}: {
+  src: string
+  priority?: boolean
+  className?: string
+}) {
+  return (
+    <div className={`${styles.layer} ${className ?? ''}`}>
+      <Image src={src} alt="" fill sizes="20vw" className={styles.backdrop} />
+      <Image
+        src={src}
+        alt=""
+        fill
+        priority={priority}
+        sizes="(min-width: 48rem) 56vw, 100vw"
+        className={styles.cover}
+      />
+    </div>
+  )
+}
+
 function CrossImage({ src, priority }: { src: string; priority: boolean }) {
   const [cur, setCur] = useState(src)
   const [prev, setPrev] = useState<string | null>(null)
@@ -43,25 +70,8 @@ function CrossImage({ src, priority }: { src: string; priority: boolean }) {
   }
   return (
     <>
-      {prev && (
-        <Image
-          key={`p-${prev}`}
-          src={prev}
-          alt=""
-          fill
-          sizes="(min-width: 48rem) 56vw, 100vw"
-          className={styles.imgPrev}
-        />
-      )}
-      <Image
-        key={cur}
-        src={cur}
-        alt=""
-        fill
-        priority={priority}
-        sizes="(min-width: 48rem) 56vw, 100vw"
-        className={styles.imgIn}
-      />
+      {prev && <Cover key={`p-${prev}`} src={prev} className={styles.imgPrev} />}
+      <Cover key={cur} src={cur} priority={priority} className={styles.imgIn} />
     </>
   )
 }

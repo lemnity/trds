@@ -3,7 +3,7 @@ import type { ShowsData } from './types'
 /**
  * Демо-набор до подключения CMS (T-021). Источник — публичный сайт театра teatrturdus.ru
  * по состоянию на 14.10.2026: названия, даты, площадки, возраст, длительность, тексты и
- * составы перенесены дословно. Цена известна только для «Трёх поэтов» (1000 ₽, 20 зрителей);
+ * составы перенесены дословно; обложки (posterUrl) — превью карточек с главной сайта на 16.10.2026. Цена известна только для «Трёх поэтов» (1000 ₽, 20 зрителей);
  * у остальных показов продажи на сайте не открыты, пока театр не передаст цены и квоты.
  * Изображения — с CDN текущего сайта театра; в production медиа загружаются в CMS.
  */
@@ -138,7 +138,7 @@ export const demoShowsData: ShowsData = {
         'https://static.tildacdn.com/tild3566-3064-4539-b232-306466616432/DSCF0331.jpg',
       ],
       posterUrl:
-        'https://static.tildacdn.com/tild3063-6461-4439-a236-363330343534/_2026-03-11_01574453.png',
+        'https://static.tildacdn.com/tild6364-6263-4232-b337-363031623136/_2026-05-22_21564295.png',
       status: 'published',
     },
     {
@@ -182,7 +182,8 @@ export const demoShowsData: ShowsData = {
         'https://static.tildacdn.com/tild6333-6633-4535-b737-313432353665/2023_0205-36.jpg',
         'https://static.tildacdn.com/tild6563-3330-4734-b261-353466646130/2023_0205-41.jpg',
       ],
-      posterUrl: 'https://static.tildacdn.com/tild3635-3135-4234-a237-373065343764/420270_2_2.jpg',
+      posterUrl:
+        'https://static.tildacdn.com/tild6166-3339-4664-a161-383233653663/_2026-06-16_15025051.png',
       status: 'published',
     },
     {
@@ -229,8 +230,7 @@ export const demoShowsData: ShowsData = {
         'https://static.tildacdn.com/tild6630-6537-4339-a262-613737386562/DSCF0458_1.jpg',
         'https://static.tildacdn.com/tild3931-6438-4637-b637-383835396664/DSCF0498_1.jpg',
       ],
-      posterUrl:
-        'https://static.tildacdn.com/tild6131-6238-4730-a637-363661333937/19201080__31.jpg',
+      posterUrl: 'https://static.tildacdn.com/tild3665-3932-4631-b034-383534633434/-_____3.JPG',
       status: 'published',
     },
     {
@@ -303,8 +303,7 @@ export const demoShowsData: ShowsData = {
         },
       ],
       gallery: [],
-      posterUrl:
-        'https://static.tildacdn.com/tild3961-3634-4164-a434-643435313665/_2026-08-04_15131423.png',
+      posterUrl: 'https://static.tildacdn.com/tild3434-3333-4438-b632-613965356662/noroot.png',
       status: 'published',
     },
     {
@@ -341,7 +340,7 @@ export const demoShowsData: ShowsData = {
         },
       ],
       gallery: [],
-      posterUrl: 'https://static.tildacdn.com/tild6131-6230-4138-b262-343166333939/__1242800.jpg',
+      posterUrl: 'https://static.tildacdn.com/tild3739-3262-4635-b966-376466623765/__686686.jpg',
       status: 'published',
     },
     {
@@ -375,7 +374,7 @@ export const demoShowsData: ShowsData = {
         'https://static.tildacdn.com/tild3936-3161-4630-a338-373938306533/DSCF1957.jpg',
       ],
       posterUrl:
-        'https://static.tildacdn.com/tild3736-6163-4331-b561-383632393531/_2026-01-04_16544228.png',
+        'https://static.tildacdn.com/tild6136-3735-4535-a166-306462633161/_2026-06-29_20035340.png',
       status: 'published',
     },
     {
@@ -407,7 +406,7 @@ export const demoShowsData: ShowsData = {
         'https://static.tildacdn.com/tild6361-3530-4730-a234-326430393937/_2025-12-07_14072078.png',
       ],
       posterUrl:
-        'https://static.tildacdn.com/tild3563-3335-4266-b234-636635383133/_2026-06-25_19192207.png',
+        'https://static.tildacdn.com/tild3637-6664-4735-b931-653665393233/_2026-10-14_05075963.png',
       status: 'published',
     },
     {
@@ -471,7 +470,7 @@ export const demoShowsData: ShowsData = {
       ],
       credits: [],
       gallery: [],
-      posterUrl: 'https://static.tildacdn.com/tild3764-6533-4436-b665-363030333164/_____1__2.jpg',
+      posterUrl: 'https://static.tildacdn.com/tild6361-6161-4661-a338-313465323136/noroot.png',
       status: 'published',
     },
   ],

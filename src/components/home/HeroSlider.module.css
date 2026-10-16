@@ -202,9 +202,24 @@
   overflow: hidden;
 }
 
-.media img {
+.media {
+  background: var(--color-night);
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+}
+
+/* Поля вокруг обложки — её размытая и затемнённая копия. */
+.backdrop {
   object-fit: cover;
-  object-position: center 30%;
+  filter: blur(28px) brightness(0.55);
+  transform: scale(1.15);
+}
+
+.cover {
+  object-fit: contain;
 }
 
 .imgPrev {
@@ -232,9 +247,10 @@
     height: auto;
   }
 
+  /* Телефон: окно точно под обложку 16:9 — без полей. */
   .media {
     order: -1;
-    height: 22rem;
+    aspect-ratio: 16 / 9;
   }
 
   .text {
