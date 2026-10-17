@@ -22,3 +22,24 @@
   gap: 0.75rem;
   margin-block: 1.5rem var(--section-space);
 }
+
+.sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.section {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  scroll-margin-top: 6rem;
+  color: var(--color-muted);
+}
+
+.section:target {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}

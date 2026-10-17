@@ -17,6 +17,7 @@ import {
 } from '@/modules/auth'
 
 import { InlineNotice } from '../ui/InlineNotice'
+import { startDemoSession } from './session'
 import styles from './Auth.module.css'
 
 type Mode = 'login' | 'register'
@@ -117,6 +118,12 @@ export function AuthForm({ mode }: { mode: Mode }) {
     if (step === 'code') codeRef.current?.focus()
   }, [step])
 
+  // ДЕМО до T-050: «вход» только в этом браузере, чтобы посмотреть меню кабинета.
+  const signIn = () => {
+    startDemoSession({ name: name.trim() || email.split('@')[0] || 'Зритель', email })
+    setStep('checked')
+  }
+
   const submitDetails = (event: FormEvent) => {
     event.preventDefault()
     const result =
@@ -142,7 +149,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       return
     }
     setCodeError('')
-    setStep('checked')
+    signIn()
   }
 
   const submitPassword = (event: FormEvent) => {
@@ -155,7 +162,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     }
     setErrors({})
     setPasswordError('')
-    setStep('checked')
+    signIn()
   }
 
   const switchMethod = (next: 'code' | 'password') => {
@@ -379,8 +386,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
         {method === 'password' && mode === 'login'
           ? 'Пароль не проверялся'
           : 'Код не отправлялся и не проверялся'}
-        : вход в личный кабинет заработает вместе с продажей билетов на этом сайте. Сейчас билеты
-        приходят на почту, указанную при покупке.
+        . Включён демо-вход в этом браузере — откройте меню «Личный кабинет», чтобы посмотреть
+        разделы; «Выйти из аккаунта» его снимет. Настоящий вход заработает вместе с продажей билетов
+        на сайте.
       </InlineNotice>
       <button
         type="button"
@@ -392,6 +400,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
       >
         Начать сначала
       </button>
+      <Link href="/" className={styles.linkButton}>
+        На главную
+      </Link>
     </div>
   )
 }

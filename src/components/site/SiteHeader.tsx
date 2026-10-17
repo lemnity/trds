@@ -12,10 +12,10 @@ import { HeaderSearch } from './HeaderSearch'
 import { LogoBird } from './LogoBird'
 import { MainNav, type MegaShow } from './MainNav'
 import { LowVisionToggle } from './LowVisionToggle'
-import { ACCOUNT_HREF } from './navigation'
+import { AccountMenu } from './AccountMenu'
 
 // «Корпоративы» и поиск появятся вместе со своими страницами (T-034): ссылки в никуда не показываем.
-// «Личный кабинет» ведёт на /account: до T-050/T-051 там честное объяснение, без формы входа.
+// «Личный кабинет» — кнопка с подменю (AccountMenu): гостю вход/регистрация, вошедшему — кабинет.
 /** Сколько ближайших показов отдать меню: начавшиеся отсеиваются в браузере. */
 const MEGA_UPCOMING = 8
 
@@ -62,19 +62,7 @@ export function SiteHeader() {
         <div className={styles.actions}>
           <HeaderSearch />
           <LowVisionToggle />
-          <ButtonLink href={ACCOUNT_HREF} variant="outline" className={styles.account}>
-            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
-              <circle cx="10" cy="7" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
-              <path
-                d="M3.8 17c.9-3.1 3.3-4.7 6.2-4.7s5.3 1.6 6.2 4.7"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
-            <span className={styles.accountLabel}>Личный кабинет</span>
-          </ButtonLink>
+          <AccountMenu />
           <ButtonLink href="/afisha" className={styles.cta}>
             <TicketIcon />
             <span className={styles.ctaLabel}>Купить билет</span>

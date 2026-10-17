@@ -95,19 +95,23 @@
     gap: 0.25rem;
   }
 
-  .actions a.account,
+  .actions .account,
   .actions a.cta {
     width: var(--tap-min);
     padding: 0;
     justify-content: center;
   }
 
-  .actions a.account {
+  .actions .account {
     border-color: transparent;
   }
 
+  .accountChevron {
+    display: none;
+  }
+
   /* Все значки ряда одного размера — как у поиска и глаза (двойной класс перебивает HeroUI). */
-  .actions a.account.account svg,
+  .actions .account.account svg,
   .actions a.cta.cta svg {
     width: 1.5rem;
     height: 1.5rem;
@@ -141,7 +145,7 @@
 
 /* Совсем узко (до 376px): кабинет — в панели «Меню», иначе ряд кнопок не помещается. */
 @media (max-width: 23.5rem) {
-  .actions a.account {
+  .accountRoot {
     display: none;
   }
 }
@@ -235,4 +239,101 @@
   width: 100%;
   height: 3rem;
   font-size: 1.0625rem;
+}
+
+/* Личный кабинет: кнопка с подменю. */
+.accountRoot {
+  position: relative;
+}
+
+.accountButton {
+  gap: 0.45rem;
+}
+
+.accountChevron {
+  transition: transform var(--motion-base) var(--ease-standard);
+}
+
+.accountButton[aria-expanded='true'] .accountChevron {
+  transform: rotate(180deg);
+}
+
+.accountMenu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 40;
+  min-width: 15rem;
+  background: var(--color-surface);
+  box-shadow:
+    0 0 0 1px var(--color-hairline),
+    0 16px 40px rgb(21 23 28 / 0.14);
+}
+
+.accountMenu[hidden] {
+  display: none;
+}
+
+.accountWho {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--color-hairline);
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.accountWho b {
+  font-size: 1rem;
+  color: var(--color-ink);
+}
+
+.accountDemo {
+  justify-self: start;
+  margin-top: 0.35rem;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--color-control-border);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.accountMenu li + li .accountLink {
+  border-top: 1px solid var(--color-hairline);
+}
+
+.accountLink {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 1.25rem;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 1rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.accountLink:hover {
+  background: var(--color-background);
+}
+
+.accountLink:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
+}
+
+.accountLogout {
+  color: var(--color-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .accountChevron {
+    transition: none;
+  }
 }

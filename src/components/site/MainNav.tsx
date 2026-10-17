@@ -6,7 +6,9 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore, type Keyboard
 
 import { ButtonLink } from '../ui/ButtonLink'
 import { TicketIcon } from '../ui/TicketIcon'
-import { ACCOUNT_HREF, AFISHA_GROUPS, MAIN_NAV, type NavLink } from './navigation'
+import { endSession, useSession } from '../auth/session'
+import { ACCOUNT_LINKS, GUEST_LINKS } from './AccountMenu'
+import { AFISHA_GROUPS, MAIN_NAV, type NavLink } from './navigation'
 import { NavIcon } from './NavIcon'
 import styles from './MainNav.module.css'
 
@@ -60,6 +62,7 @@ export function MainNav({ shows, months, nearest }: Props) {
   const closeTimer = useRef<number>(undefined)
   const [open, setOpen] = useState<number | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const session = useSession()
   // Статическая сборка фиксирует список на момент build — начавшиеся показы отсеиваем
   // в браузере (на сервере берём первый из списка).
   const nearestId = useSyncExternalStore(
@@ -319,14 +322,38 @@ export function MainNav({ shows, months, nearest }: Props) {
               )}
             </li>
           ))}
+          {/* Кабинет: гостю — вход и регистрация, вошедшему — разделы и выход. */}
           <li>
-            <Link
-              href={ACCOUNT_HREF}
-              className={styles.panelLink}
-              onClick={() => setMobileOpen(false)}
-            >
-              Личный кабинет
-            </Link>
+            <span className={styles.panelLink}>
+              {session ? `Кабинет · ${session.name.split(' ')[0]}` : 'Личный кабинет'}
+            </span>
+            <ul className={styles.panelSub}>
+              {(session ? ACCOUNT_LINKS : GUEST_LINKS).map((l) => (
+                <li key={l.href}>
+                  <Link
+                    href={l.href}
+                    className={styles.panelSubLink}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+              {session && (
+                <li>
+                  <button
+                    type="button"
+                    className={`${styles.panelSubLink} ${styles.panelLogout}`}
+                    onClick={() => {
+                      endSession()
+                      setMobileOpen(false)
+                    }}
+                  >
+                    Выйти из аккаунта
+                  </button>
+                </li>
+              )}
+            </ul>
           </li>
         </ul>
       </div>

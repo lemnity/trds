@@ -11,6 +11,24 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
+const SECTIONS = [
+  {
+    id: 'tickets',
+    title: 'Мои билеты',
+    text: 'Будущие, прошедшие и возвращённые билеты с QR-кодом, датой, площадкой и статусом. Появятся вместе с продажей билетов на сайте.',
+  },
+  {
+    id: 'bonuses',
+    title: 'Бонусы',
+    text: 'Баланс, история начислений и списаний, даты сгорания и ссылка «Пригласить друга». Правила бонусной программы утверждает театр.',
+  },
+  {
+    id: 'profile',
+    title: 'Профиль',
+    text: 'Имя, телефон, пароль и вход через Яндекс ID, выход на всех устройствах.',
+  },
+]
+
 // Вход по коду из письма и «Мои билеты» — T-050/T-051. Формы входа — прототип (/login, /register).
 export default function AccountPage() {
   return (
@@ -32,6 +50,16 @@ export default function AccountPage() {
           <a href="mailto:rechevik@inbox.ru">rechevik@inbox.ru</a>.
         </p>
         <ButtonLink href="/afisha">Перейти в афишу</ButtonLink>
+      </div>
+
+      {/* Разделы кабинета — куда ведёт меню «Личный кабинет». Наполнение — T-051, T-060. */}
+      <div className={styles.sections}>
+        {SECTIONS.map((section) => (
+          <section key={section.id} id={section.id} className={cardClass(styles.section)}>
+            <h2 className={styles.title}>{section.title}</h2>
+            <p>{section.text}</p>
+          </section>
+        ))}
       </div>
 
       {/* Прототип входа по коду (T-050): формы есть, сервера выдачи кода пока нет. */}
