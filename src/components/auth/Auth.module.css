@@ -1,0 +1,441 @@
+/* Вход и регистрация: тёмная панель с кадром слева, форма справа. */
+.page {
+  display: grid;
+  align-content: start;
+  gap: clamp(1rem, 3vw, 1.75rem);
+  min-height: 100dvh;
+  padding-block: clamp(1rem, 3vw, 1.75rem) clamp(1.5rem, 4vw, 3rem);
+}
+
+/* Вместо шапки сайта: логотип и «Вернуться на сайт». */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brand {
+  display: inline-flex;
+  min-height: var(--tap-min);
+  align-items: center;
+}
+
+.logo {
+  width: auto;
+  height: 2.6rem;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+}
+
+.back:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* Одна высота у входа и регистрации — по более длинной форме (регистрация). */
+  min-height: 50rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.visual {
+  position: relative;
+  display: grid;
+  align-content: end;
+  overflow: hidden;
+  background: var(--color-night);
+  color: #ffffff;
+}
+
+/* Слайд-шоу: кадры друг над другом, активный проявляется и медленно наезжает. */
+.slides {
+  position: absolute;
+  inset: 0;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+.slide[data-active] {
+  opacity: 1;
+}
+
+.slide img {
+  object-fit: cover;
+  object-position: center 30%;
+  transform: scale(1.02);
+}
+
+.slide[data-active]:not([data-still]) img {
+  animation: kenburns 6.5s ease-out both;
+}
+
+@keyframes kenburns {
+  from {
+    transform: scale(1.14) translate(1.5%, 1%);
+  }
+  to {
+    transform: scale(1.02) translate(0, 0);
+  }
+}
+
+/* Подпись спектакля, точки и пауза — в верхнем углу панели. */
+.slideBar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem clamp(1rem, 3vw, 1.5rem);
+  background: linear-gradient(to bottom, rgb(15 20 38 / 0.6), transparent);
+  color: #ffffff;
+}
+
+.slideCaption {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--step--1);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.slideDots {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.slideDots i {
+  width: 1rem;
+  height: 3px;
+  background: rgb(255 255 255 / 0.35);
+  transition: background 0.3s;
+}
+
+.slideDots i[data-on] {
+  background: #ffffff;
+}
+
+.slidePause {
+  display: grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: 1.5px solid rgb(255 255 255 / 0.5);
+  background: none;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.slidePause:hover {
+  border-color: #ffffff;
+  background: rgb(255 255 255 / 0.12);
+}
+
+.slidePause:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.visualText {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background: linear-gradient(to top, rgb(15 20 38 / 0.95) 35%, transparent);
+}
+
+.visualKicker {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c9cedb;
+}
+
+.visualTitle {
+  max-width: 18ch;
+  font-weight: 700;
+  font-size: clamp(1.75rem, 1rem + 2.4vw, 3rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+.perks {
+  display: grid;
+  gap: 0.5rem;
+  font-size: var(--step--1);
+  color: #dde1ea;
+}
+
+.perks li::before {
+  content: '—';
+  margin-right: 0.6rem;
+  color: #ffffff;
+}
+
+.panel {
+  display: grid;
+  align-content: center;
+  gap: 0.75rem;
+  width: min(100%, 28rem);
+  justify-self: center;
+  padding: clamp(2rem, 5vw, 3.5rem) var(--page-gutter);
+}
+
+.title {
+  font-weight: 700;
+  font-size: clamp(2.5rem, 1.5rem + 3vw, 4rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.lead {
+  margin-bottom: 1rem;
+  color: var(--color-muted);
+}
+
+.form {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.submit {
+  margin-top: 0.25rem;
+}
+
+.hint,
+.muted {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.hint a {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+/* «или Войти по паролю» — разделитель с линиями по бокам. */
+.alt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem 0.6rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.alt .linkButton {
+  justify-self: auto;
+}
+
+.or {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-basis: 100%;
+  margin-bottom: 0.25rem;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.or::before,
+.or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-hairline);
+}
+
+/* Пароль с кнопкой «показать» внутри поля. */
+.passwordRow {
+  position: relative;
+}
+
+.passwordRow input {
+  width: 100%;
+  padding-right: 3rem;
+}
+
+.reveal {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: 0;
+  background: none;
+  color: var(--color-muted);
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.reveal:hover,
+.reveal[aria-pressed='true'] {
+  color: var(--color-ink);
+}
+
+.reveal:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
+}
+
+.sent {
+  font-size: var(--step-0, 1rem);
+}
+
+/* Поле кода: невидимый input поверх шести клеток — вставка и автозаполнение работают. */
+.codeField {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.codeLabel {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.cells {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.codeInput {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  opacity: 0;
+  font-size: 16px;
+  caret-color: transparent;
+  cursor: text;
+}
+
+.cell {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 5 / 6;
+  border: 1.5px solid var(--color-control-border);
+  background: var(--color-surface);
+  font-weight: 700;
+  font-size: 1.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell[data-filled] {
+  border-color: var(--color-ink);
+}
+
+/* Курсор — в текущей клетке, когда поле в фокусе. */
+.codeInput:focus-visible ~ .cell[data-active] {
+  border-color: var(--color-ink);
+  box-shadow: 0 0 0 3px var(--color-ink);
+}
+
+.cells[data-invalid] .cell {
+  border-color: var(--color-danger);
+}
+
+.error {
+  font-size: var(--step--1);
+  color: var(--color-danger);
+}
+
+.codeActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  align-items: center;
+}
+
+.linkButton {
+  min-height: var(--tap-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 600;
+  font-size: var(--step--1);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+  justify-self: start;
+}
+
+.switch {
+  margin-top: 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-hairline);
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.switch a {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+@media (max-width: 60rem) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .visual {
+    min-height: 15rem;
+  }
+
+  /* Телефон: форма одной высоты в обоих окнах, содержимое по центру. */
+  .panel {
+    min-height: 49rem;
+  }
+
+  .perks {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide,
+  .slideDots i {
+    transition: none;
+  }
+}
+
+/* Телефон: точки не нужны, подпись короче. */
+@media (max-width: 30rem) {
+  .slideDots {
+    display: none;
+  }
+}

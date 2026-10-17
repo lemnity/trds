@@ -19,7 +19,9 @@ const MAIN = [
   { href: '/troupe', title: 'Труппа' },
   { href: '/leadership', title: 'Руководство' },
   { href: '/news', title: 'Архив новостей' },
-  { href: '/account', title: 'Личный кабинет' },
+  { href: '/contacts', title: 'Контакты' },
+  { href: '/login', title: 'Вход в личный кабинет' },
+  { href: '/register', title: 'Регистрация' },
 ]
 
 /** Все разделы, спектакли и документы сайта — из тех же данных, что и страницы. */

@@ -1,0 +1,266 @@
+/* Контакты: крупная типографика слева, тёмная карточка офиса справа, ниже — «по какому вопросу». */
+.page {
+  padding-bottom: var(--section-space);
+}
+
+.head {
+  display: grid;
+  gap: 1rem;
+  padding-block: clamp(2rem, 6vw, 4.5rem) clamp(1.5rem, 4vw, 3rem);
+}
+
+.kicker,
+.label,
+.officeLabel {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.title {
+  font-weight: 700;
+  font-size: clamp(3rem, 1.5rem + 7vw, 8rem);
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+}
+
+.main {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: stretch;
+  padding-top: clamp(1.5rem, 3vw, 2.5rem);
+  border-top: 1px solid var(--color-ink);
+}
+
+.direct {
+  display: grid;
+  align-content: start;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  min-width: 0;
+}
+
+/* Телефон и почта — огромные ссылки с подписью над ними. */
+.huge {
+  display: grid;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: clamp(1.75rem, 0.9rem + 3.6vw, 4.25rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.huge:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 0.12em;
+}
+
+.social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.socialLink {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 3.5rem;
+  padding: 0.6rem 1.25rem 0.6rem 1rem;
+  border: 1.5px solid var(--color-control-border);
+  text-decoration: none;
+  transition:
+    background var(--motion-base),
+    color var(--motion-base),
+    border-color var(--motion-base);
+}
+
+.socialLink > span {
+  display: grid;
+  line-height: 1.2;
+}
+
+.handle {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.socialLink:hover {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: #ffffff;
+}
+
+.socialLink:hover .handle {
+  color: #c9cedb;
+}
+
+/* Офис — тёмная карточка. */
+.office {
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  background: var(--color-ink);
+  color: #ffffff;
+  font-style: normal;
+}
+
+.officeLabel {
+  color: #9aa1b2;
+}
+
+.officeAddress {
+  font-weight: 700;
+  font-size: var(--step-2);
+  line-height: 1.25;
+}
+
+.officeHours {
+  color: #dde1ea;
+}
+
+.mapLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-self: start;
+  min-height: var(--tap-min);
+  margin-top: 0.5rem;
+  padding: 0 1.1rem;
+  background: #ffffff;
+  color: var(--color-ink);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  text-decoration: none;
+}
+
+.mapLink:hover {
+  background: #e4e4e7;
+}
+
+.officeNote {
+  margin-top: auto;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgb(255 255 255 / 0.18);
+  font-size: var(--step--1);
+  line-height: 1.5;
+  color: #c9cedb;
+}
+
+.officeNote a {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+/* По какому вопросу — четыре плитки со стрелкой. */
+.topicsWrap {
+  margin-top: var(--section-space);
+}
+
+.topicsTitle {
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  font-size: var(--step-3);
+  letter-spacing: -0.02em;
+}
+
+.topics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--color-ink);
+}
+
+.topics > li + li {
+  border-left: 1px solid var(--color-hairline);
+}
+
+.topic {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.5rem;
+  height: 100%;
+  min-height: 11rem;
+  padding: 1.5rem 1.25rem;
+  text-decoration: none;
+  transition:
+    background var(--motion-base),
+    color var(--motion-base);
+}
+
+.topicTitle {
+  font-weight: 700;
+  font-size: var(--step-1);
+}
+
+.topicText {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+  line-height: 1.45;
+}
+
+.arrow {
+  transition: transform var(--motion-base) var(--ease-standard);
+}
+
+.topic:hover {
+  background: var(--color-ink);
+  color: #ffffff;
+}
+
+.topic:hover .topicText {
+  color: #c9cedb;
+}
+
+.topic:hover .arrow,
+.mapLink:hover .arrow {
+  transform: translateX(0.3rem);
+}
+
+@media (max-width: 60rem) {
+  .main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .topics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .topics > li:nth-child(3) {
+    border-left: 0;
+  }
+
+  .topics > li:nth-child(n + 3) {
+    border-top: 1px solid var(--color-hairline);
+  }
+}
+
+@media (max-width: 30rem) {
+  .topics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .topics > li + li {
+    border-left: 0;
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  .topic {
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow,
+  .topic,
+  .socialLink {
+    transition: none;
+  }
+}

@@ -46,5 +46,12 @@ export const MAIN_NAV: NavItem[] = [
       { href: '/#reviews', label: 'Отзывы', icon: 'reviews' },
     ],
   },
-  { href: '#contacts', label: 'Контакты' },
+  { href: '/contacts', label: 'Контакты' },
 ]
+
+/**
+ * Куда ведёт «Личный кабинет»: без входа — на страницу входа, после входа — в кабинет.
+ * Сессий пока нет (вход по коду — T-050), поэтому всегда вход. С T-050 — проверка сессии
+ * на сервере: /account без сессии перенаправляет на /login.
+ */
+export const ACCOUNT_HREF = '/login'

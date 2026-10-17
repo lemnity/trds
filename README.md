@@ -1,6 +1,6 @@
 # Театр «Турдус» — сайт и билетная система
 
-Next.js + Payload CMS + PostgreSQL. Документация проекта: `PRD.md`, `architecture.md`, `rules.md`, `design.md`, `tasks.md`, `memory.md`.
+Next.js + Payload CMS + PostgreSQL. Документация проекта: `PRD.md`, `architecture.md`, `rules.md`, `design.md`, `tasks.md`, `memory.md`; сводный план — `plan/plan-main.md`.
 
 Версии закреплены (`architecture.md` §2): Node.js из `.node-version`, pnpm через corepack (`packageManager`).
 

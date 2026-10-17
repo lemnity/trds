@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-// Вход по коду из письма и «Мои билеты» — T-050/T-051. До них — честное объяснение без формы входа.
+// Вход по коду из письма и «Мои билеты» — T-050/T-051. Формы входа — прототип (/login, /register).
 export default function AccountPage() {
   return (
     <div className="container">
@@ -32,6 +32,14 @@ export default function AccountPage() {
           <a href="mailto:rechevik@inbox.ru">rechevik@inbox.ru</a>.
         </p>
         <ButtonLink href="/afisha">Перейти в афишу</ButtonLink>
+      </div>
+
+      {/* Прототип входа по коду (T-050): формы есть, сервера выдачи кода пока нет. */}
+      <div className={styles.auth}>
+        <ButtonLink href="/login">Войти</ButtonLink>
+        <ButtonLink href="/register" variant="outline">
+          Регистрация
+        </ButtonLink>
       </div>
     </div>
   )

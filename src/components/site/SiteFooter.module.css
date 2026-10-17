@@ -112,8 +112,17 @@
 }
 
 .creditName {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
   font-weight: 700;
   color: var(--color-ink);
+  text-decoration: none;
+}
+
+.creditName:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .creditWord {

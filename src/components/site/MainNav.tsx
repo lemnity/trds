@@ -6,7 +6,7 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore, type Keyboard
 
 import { ButtonLink } from '../ui/ButtonLink'
 import { TicketIcon } from '../ui/TicketIcon'
-import { AFISHA_GROUPS, MAIN_NAV, type NavLink } from './navigation'
+import { ACCOUNT_HREF, AFISHA_GROUPS, MAIN_NAV, type NavLink } from './navigation'
 import { NavIcon } from './NavIcon'
 import styles from './MainNav.module.css'
 
@@ -320,7 +320,11 @@ export function MainNav({ shows, months, nearest }: Props) {
             </li>
           ))}
           <li>
-            <Link href="/account" className={styles.panelLink} onClick={() => setMobileOpen(false)}>
+            <Link
+              href={ACCOUNT_HREF}
+              className={styles.panelLink}
+              onClick={() => setMobileOpen(false)}
+            >
               Личный кабинет
             </Link>
           </li>

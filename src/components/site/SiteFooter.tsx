@@ -2,24 +2,26 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import logo from '@/assets/logo.webp'
-import { legalDocuments } from '@/modules/content'
+import { contacts, legalDocuments } from '@/modules/content'
 
 import { LogoBird } from './LogoBird'
+import { ACCOUNT_HREF } from './navigation'
 import styles from './SiteFooter.module.css'
 
 const NAV = [
   { href: '/afisha', title: 'Афиша' },
   { href: '/about', title: 'О театре' },
-  { href: '/account', title: 'Личный кабинет' },
+  { href: '/contacts', title: 'Контакты' },
+  { href: ACCOUNT_HREF, title: 'Личный кабинет' },
 ]
 
-/** «oo» в Simakoov — знак бесконечности, по которому бежит штрих (без анимации при reduced motion). */
+/** Ссылка на сайт разработчика (simakoov.ru). «oo» в Simakoov — знак бесконечности, по которому бежит штрих (без анимации при reduced motion). */
 function DevCredit() {
   return (
     <p className={styles.credit}>
       Разработка{' '}
-      <strong className={styles.creditName}>
-        <span className="visually-hidden">Simakoov</span>
+      <a href="https://simakoov.ru/" target="_blank" rel="noopener" className={styles.creditName}>
+        <span className="visually-hidden">Simakoov (откроется в новой вкладке)</span>
         <span aria-hidden="true" className={styles.creditWord}>
           Simak
           <svg viewBox="0 0 24 12" className={styles.infinity}>
@@ -36,13 +38,12 @@ function DevCredit() {
           </svg>
           v
         </span>
-      </strong>
+      </a>
     </p>
   )
 }
 
-// Контакты с главной страницы teatrturdus.ru (14.10.2026). На внутренних страницах старого сайта
-// указаны другие телефоны — актуальный набор подтверждает театр (memory.md).
+// Контакты — из modules/content (общие с /contacts).
 export function SiteFooter() {
   return (
     <footer id="contacts" tabIndex={-1} className={styles.footer}>
@@ -67,14 +68,14 @@ export function SiteFooter() {
         </nav>
         <address className={styles.column}>
           <h2 className={styles.label}>Контакты</h2>
-          <a href="tel:+79826575426" className={styles.big}>
-            +7 982 657-54-26
+          <a href={contacts.phone.href} className={styles.big}>
+            {contacts.phone.display}
           </a>
-          <a href="mailto:rechevik@inbox.ru" className={styles.big}>
-            rechevik@inbox.ru
+          <a href={`mailto:${contacts.email}`} className={styles.big}>
+            {contacts.email}
           </a>
-          <span>ул. Малышева, 19, деловой центр, 3 этаж, офис 1308</span>
-          <span className={styles.muted}>Без выходных с 10:00 до 22:00</span>
+          <span>{contacts.office.short}</span>
+          <span className={styles.muted}>{contacts.office.hours}</span>
         </address>
       </div>
 

@@ -73,6 +73,30 @@ export const news: NewsItem[] = [
   },
 ]
 
+/**
+ * Контакты театра — с teatrturdus.ru (главная и /contacts, 16–18.10.2026). На старых внутренних
+ * страницах встречаются другие телефоны — актуальный набор подтверждает театр.
+ */
+export const contacts = {
+  phone: { display: '+7 982 657-54-26', href: 'tel:+79826575426' },
+  email: 'rechevik@inbox.ru',
+  office: {
+    address: 'Екатеринбург, ул. Малышева, 19, деловой центр, 3 этаж, офис 1308',
+    short: 'ул. Малышева, 19, деловой центр, 3 этаж, офис 1308',
+    hours: 'Без выходных с 10:00 до 22:00',
+    mapUrl:
+      'https://yandex.ru/maps/?text=' + encodeURIComponent('Екатеринбург, улица Малышева, 19'),
+  },
+  social: [
+    { name: 'Telegram', handle: '@Turdustheatre', href: 'https://telegram.me/Turdustheatre' },
+    { name: 'ВКонтакте', handle: 'turdustheater', href: 'https://vk.com/turdustheater' },
+  ],
+}
+
+/** Письмо в театр с готовой темой. */
+export const mailTo = (subject: string) =>
+  `mailto:${contacts.email}?subject=${encodeURIComponent(subject)}`
+
 /** Партнёры и площадки, упомянутые на сайте театра. Список и логотипы подтверждает театр. */
 export const partners: Partner[] = [
   { name: 'Бар «Дом Культуры»', role: 'Площадка' },

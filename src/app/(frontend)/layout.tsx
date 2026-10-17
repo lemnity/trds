@@ -5,6 +5,7 @@ import { LOW_VISION_KEY } from '@/components/site/lowVision'
 import { PageLoader } from '@/components/site/PageLoader'
 import { RevealOnScroll } from '@/components/site/RevealOnScroll'
 import { ScrollBuyButton } from '@/components/site/ScrollBuyButton'
+import { SiteChrome } from '@/components/site/SiteChrome'
 import { SiteFooter } from '@/components/site/SiteFooter'
 import { SiteHeader } from '@/components/site/SiteHeader'
 
@@ -38,10 +39,9 @@ export default function FrontendLayout({ children }: { children: ReactNode }) {
           К содержанию
         </a>
         <Providers>
-          <SiteHeader />
-          <main id="main">{children}</main>
-          <SiteFooter />
-          <ScrollBuyButton />
+          <SiteChrome header={<SiteHeader />} footer={<SiteFooter />} extras={<ScrollBuyButton />}>
+            {children}
+          </SiteChrome>
           <RevealOnScroll />
         </Providers>
       </body>

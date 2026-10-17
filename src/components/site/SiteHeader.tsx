@@ -12,6 +12,7 @@ import { HeaderSearch } from './HeaderSearch'
 import { LogoBird } from './LogoBird'
 import { MainNav, type MegaShow } from './MainNav'
 import { LowVisionToggle } from './LowVisionToggle'
+import { ACCOUNT_HREF } from './navigation'
 
 // «Корпоративы» и поиск появятся вместе со своими страницами (T-034): ссылки в никуда не показываем.
 // «Личный кабинет» ведёт на /account: до T-050/T-051 там честное объяснение, без формы входа.
@@ -61,7 +62,7 @@ export function SiteHeader() {
         <div className={styles.actions}>
           <HeaderSearch />
           <LowVisionToggle />
-          <ButtonLink href="/account" variant="outline" className={styles.account}>
+          <ButtonLink href={ACCOUNT_HREF} variant="outline" className={styles.account}>
             <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
               <circle cx="10" cy="7" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
               <path
