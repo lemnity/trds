@@ -83,6 +83,55 @@
   font-weight: 600;
 }
 
+/* Репертуар, архив: обложки приглушены (оживают при наведении), состав — ссылками. */
+.past .media img {
+  filter: grayscale(1);
+  opacity: 0.85;
+  transition:
+    filter var(--motion-slow) var(--ease-standard),
+    opacity var(--motion-slow) var(--ease-standard);
+}
+
+.past:hover .media img {
+  filter: none;
+  opacity: 1;
+}
+
+.pastTitle {
+  font-weight: 700;
+  font-size: var(--step-2);
+  line-height: 1.15;
+}
+
+.credits {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-hairline);
+  font-size: var(--step--1);
+  line-height: 1.45;
+}
+
+.credits dt {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.credits dd {
+  margin: 0;
+}
+
+.credits a {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+}
+
 /* Труппа: группы по направлению, люди — аватар и имя. */
 .group {
   padding-bottom: 2.5rem;
@@ -215,7 +264,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .media img {
+  .media img,
+  .past .media img {
     transition: none;
   }
 }

@@ -477,7 +477,8 @@ export const demoShowsData: ShowsData = {
 
   /**
    * Архив — прошедшие постановки со страницы teatrturdus.ru/past (16.10.2026). Составы —
-   * дословно со страниц постановок; где имён на сайте нет, постановку не берём.
+   * дословно со страниц постановок; где имён на сайте нет — состав пустой (только название и афиша).
+   * Соавторы — отдельными записями; несколько имён в одной записи — состав в очередь.
    */
   archive: [
     {
@@ -486,7 +487,10 @@ export const demoShowsData: ShowsData = {
       genre: 'Иммерсивный спектакль',
       posterUrl: 'https://static.tildacdn.com/tild6539-6562-4066-a533-666233623161/photo.png',
       credits: [
-        { role: 'Режиссёры', entries: [{ people: ['Артём Аксёнов', 'Анастасия Нохова'] }] },
+        {
+          role: 'Режиссёры',
+          entries: [{ people: ['Артём Аксёнов'] }, { people: ['Анастасия Нохова'] }],
+        },
         { role: 'Драматург', entries: [{ people: ['Татьяна Усова'] }] },
         {
           role: 'В ролях',
@@ -518,7 +522,10 @@ export const demoShowsData: ShowsData = {
       credits: [
         { role: 'Режиссер', entries: [{ people: ['Артём Аксёнов'] }] },
         { role: 'В ролях', entries: [{ people: ['Ксения Сосновских'] }] },
-        { role: 'Сценаристы', entries: [{ people: ['Вера Плехова', 'Олег Таратухин'] }] },
+        {
+          role: 'Сценаристы',
+          entries: [{ people: ['Вера Плехова'] }, { people: ['Олег Таратухин'] }],
+        },
       ],
     },
     {
@@ -538,7 +545,7 @@ export const demoShowsData: ShowsData = {
     },
     {
       slug: 'kkvartirnik',
-      title: 'Театральный квартирник',
+      title: 'Театральный квартирник в караоке-баре',
       genre: 'Творческий вечер',
       posterUrl:
         'https://static.tildacdn.com/tild3264-6266-4537-b865-613434613530/19201080_01_8.jpg',
@@ -551,7 +558,10 @@ export const demoShowsData: ShowsData = {
       posterUrl:
         'https://static.tildacdn.com/tild6465-3461-4939-a439-623130613939/19201080____1.jpg',
       credits: [
-        { role: 'Авторы сценария', entries: [{ people: ['Татьяна Усова', 'Стефания-Марьяна'] }] },
+        {
+          role: 'Авторы сценария',
+          entries: [{ people: ['Татьяна Усова'] }, { people: ['Стефания-Марьяна'] }],
+        },
       ],
     },
     {
@@ -561,6 +571,51 @@ export const demoShowsData: ShowsData = {
       posterUrl:
         'https://static.tildacdn.com/tild3366-3331-4234-b165-626264373666/1920_1080_18_.JPG',
       credits: [{ role: 'Автор сценария', entries: [{ people: ['Саша Цариков'] }] }],
+    },
+    // Постановки из архива сайта без указанного состава: название, жанр и афиша.
+    {
+      slug: 'onroof',
+      title: 'Театральный квартирник на крыше',
+      genre: 'Творческий вечер',
+      posterUrl:
+        'https://static.tildacdn.com/tild6163-3732-4135-b566-303762336563/19201080_01_6.jpg',
+      credits: [],
+    },
+    {
+      slug: 'eatpray',
+      title: 'Музыкальная терраса. Ешь. Пой. Люби.',
+      genre: 'Творческий вечер',
+      posterUrl: 'https://static.tildacdn.com/tild3330-3234-4537-b066-623161346339/eat.jpg',
+      credits: [],
+    },
+    {
+      slug: 'singapore',
+      title: 'Рейс до Сингапура',
+      genre: 'Иммерсивный ужин-спектакль',
+      posterUrl: 'https://static.tildacdn.com/tild3562-3836-4437-b561-623530663836/1920x1080.jpg',
+      credits: [],
+    },
+    {
+      slug: 'mandrink',
+      title: 'О чём пьют мужчины',
+      genre: 'Иммерсивный спектакль',
+      posterUrl: 'https://static.tildacdn.com/tild3237-3665-4730-b663-396265636534/19201080_8.jpg',
+      credits: [],
+    },
+    {
+      slug: 'mandrink2',
+      title: 'О чём пьют мужчины 2',
+      genre: 'Иммерсивный спектакль',
+      posterUrl: 'https://static.tildacdn.com/tild3035-3263-4037-b133-383365626162/19201080_11.jpg',
+      credits: [],
+    },
+    {
+      slug: 'ozhogin',
+      title: 'Иван Ожогин. В ожидании Рождества',
+      genre: 'Концерт',
+      posterUrl:
+        'https://static.tildacdn.com/tild6465-3130-4639-b566-633265636563/2022-11-22_16-21-33.png',
+      credits: [],
     },
   ],
 
