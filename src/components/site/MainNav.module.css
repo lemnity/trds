@@ -454,3 +454,8 @@
   text-align: left;
   cursor: pointer;
 }
+
+/* «Актёрская школа» в панели «Меню» — фирменным синим, как кнопка в шапке. */
+.panelSchool {
+  color: var(--color-brand);
+}

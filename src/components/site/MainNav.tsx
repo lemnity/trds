@@ -8,7 +8,7 @@ import { ButtonLink } from '../ui/ButtonLink'
 import { TicketIcon } from '../ui/TicketIcon'
 import { endSession, useSession } from '../auth/session'
 import { ACCOUNT_LINKS, GUEST_LINKS } from './AccountMenu'
-import { AFISHA_GROUPS, MAIN_NAV, type NavLink } from './navigation'
+import { AFISHA_GROUPS, MAIN_NAV, SCHOOL_LINK, type NavLink } from './navigation'
 import { NavIcon } from './NavIcon'
 import styles from './MainNav.module.css'
 
@@ -322,6 +322,18 @@ export function MainNav({ shows, months, nearest }: Props) {
               )}
             </li>
           ))}
+          <li>
+            <a
+              href={SCHOOL_LINK.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${styles.panelLink} ${styles.panelSchool}`}
+              onClick={() => setMobileOpen(false)}
+            >
+              {SCHOOL_LINK.label}
+              <span className="visually-hidden"> (откроется в новой вкладке)</span>
+            </a>
+          </li>
           {/* Кабинет: гостю — вход и регистрация, вошедшему — разделы и выход. */}
           <li>
             <span className={styles.panelLink}>

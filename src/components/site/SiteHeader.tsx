@@ -13,6 +13,7 @@ import { LogoBird } from './LogoBird'
 import { MainNav, type MegaShow } from './MainNav'
 import { LowVisionToggle } from './LowVisionToggle'
 import { AccountMenu } from './AccountMenu'
+import { SCHOOL_LINK } from './navigation'
 
 // «Корпоративы» и поиск появятся вместе со своими страницами (T-034): ссылки в никуда не показываем.
 // «Личный кабинет» — кнопка с подменю (AccountMenu): гостю вход/регистрация, вошедшему — кабинет.
@@ -62,6 +63,19 @@ export function SiteHeader() {
         <div className={styles.actions}>
           <HeaderSearch />
           <LowVisionToggle />
+          <a
+            href={SCHOOL_LINK.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.school}
+          >
+            <span className={styles.schoolDot} aria-hidden="true" />
+            <span className={styles.schoolFull}>{SCHOOL_LINK.label}</span>
+            <span className={styles.schoolShort} aria-hidden="true">
+              Школа
+            </span>
+            <span className="visually-hidden"> (откроется в новой вкладке)</span>
+          </a>
           <AccountMenu />
           <ButtonLink href="/afisha" className={styles.cta}>
             <TicketIcon />
