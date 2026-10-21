@@ -65,6 +65,7 @@ const toView = (data: ShowsData, p: Performance): PerformanceView | null => {
       eventType: show.eventType,
       premiere: show.premiere === true,
       pushkinCard: show.pushkinCard === true,
+      studentOffer: show.studentOffer === true,
       imageUrl: show.gallery[0] ?? show.posterUrl,
     },
     venue,
@@ -185,19 +186,50 @@ export const groupByMonth = (items: PerformanceView[]): MonthGroup[] => {
   return [...groups.values()]
 }
 
+/**
+ * «Для кого»: по возрастному ограничению спектакля и признаку студенческих условий.
+ * Детям — 12+ и младше; молодёжи — 16+ и младше; взрослым — 18+; студентам — есть
+ * студенческие условия (признак `studentOffer`, заполняет театр). Возраст не указан — ни в одну
+ * возрастную группу не попадает.
+ */
+export const AUDIENCES = [
+  { id: 'kids', label: 'Детям' },
+  { id: 'youth', label: 'Молодёжи' },
+  { id: 'students', label: 'Студентам' },
+  { id: 'adults', label: 'Взрослым' },
+] as const
+
+export type Audience = (typeof AUDIENCES)[number]['id']
+
+const KIDS_MAX_AGE = 12
+const YOUTH_MAX_AGE = 16
+const ADULT_AGE = 18
+
+const fitsAudience = (show: PerformanceView['show'], audience: Audience) => {
+  const age = show.ageLimit
+  switch (audience) {
+    case 'kids':
+      return age !== null && age <= KIDS_MAX_AGE
+    case 'youth':
+      return age !== null && age <= YOUTH_MAX_AGE
+    case 'adults':
+      return age !== null && age >= ADULT_AGE
+    case 'students':
+      return show.studentOffer
+  }
+}
+
 export type AfishaFilters = {
   /** Ключ месяца «2026-11» в часовом поясе театра. */
   month?: string
   venueKind?: VenueKind
   eventType?: EventType
-  /** Детям — 12+ и младше. */
-  kids?: boolean
+  audience?: Audience
   premiere?: boolean
   pushkin?: boolean
   query?: string
 }
 
-const KIDS_MAX_AGE = 12
 const normalize = (s: string) => s.toLowerCase().replaceAll('ё', 'е').trim()
 
 export const filterPerformances = (
@@ -210,7 +242,7 @@ export const filterPerformances = (
       (!f.month || formatPerformanceDate(p.startsAt).monthKey === f.month) &&
       (!f.venueKind || p.venue.kind === f.venueKind) &&
       (!f.eventType || p.show.eventType === f.eventType) &&
-      (!f.kids || (p.show.ageLimit !== null && p.show.ageLimit <= KIDS_MAX_AGE)) &&
+      (!f.audience || fitsAudience(p.show, f.audience)) &&
       (!f.premiere || p.show.premiere) &&
       (!f.pushkin || p.show.pushkinCard) &&
       (!query ||

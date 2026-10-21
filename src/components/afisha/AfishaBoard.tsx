@@ -5,11 +5,13 @@ import { useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 
 import {
+  AUDIENCES,
   EVENT_TYPE_LABELS,
   VENUE_KIND_LABELS,
   filterPerformances,
   groupByMonth,
   type AfishaFilters,
+  type Audience,
   type EventType,
   type PerformanceView,
   type VenueKind,
@@ -21,15 +23,18 @@ import styles from './AfishaBoard.module.css'
 
 const isKind = (v: string | null): v is VenueKind => v !== null && v in VENUE_KIND_LABELS
 const isType = (v: string | null): v is EventType => v !== null && v in EVENT_TYPE_LABELS
+const isAudience = (v: string | null): v is Audience => AUDIENCES.some((a) => a.id === v)
 
 const fromParams = (params: URLSearchParams): AfishaFilters => {
   const kind = params.get('kind')
   const type = params.get('type')
+  // ?for=youth; старые ссылки ?kids=1 — тоже «Детям».
+  const audience = params.get('for') ?? (params.get('kids') === '1' ? 'kids' : null)
   return {
     month: params.get('month') ?? undefined,
     venueKind: isKind(kind) ? kind : undefined,
     eventType: isType(type) ? type : undefined,
-    kids: params.get('kids') === '1' || undefined,
+    audience: isAudience(audience) ? audience : undefined,
     premiere: params.get('premiere') === '1' || undefined,
     pushkin: params.get('pushkin') === '1' || undefined,
     query: params.get('q') ?? undefined,
@@ -41,7 +46,7 @@ const toParams = (f: AfishaFilters) => {
   if (f.month) params.set('month', f.month)
   if (f.venueKind) params.set('kind', f.venueKind)
   if (f.eventType) params.set('type', f.eventType)
-  if (f.kids) params.set('kids', '1')
+  if (f.audience) params.set('for', f.audience)
   if (f.premiere) params.set('premiere', '1')
   if (f.pushkin) params.set('pushkin', '1')
   if (f.query) params.set('q', f.query)
@@ -128,14 +133,13 @@ export function AfishaBoard({ items }: { items: PerformanceView[] }) {
       month: undefined,
       venueKind: undefined,
       eventType: undefined,
-      kids: undefined,
+      audience: undefined,
       premiere: undefined,
       pushkin: undefined,
       query: undefined,
     })
 
   const toggles: Array<[keyof AfishaFilters, string]> = [
-    ['kids', 'Детям'],
     ['premiere', 'Премьера'],
     ['pushkin', 'Пушкинская карта'],
   ]
@@ -161,6 +165,12 @@ export function AfishaBoard({ items }: { items: PerformanceView[] }) {
             value={filters.eventType}
             options={types.map((t) => ({ id: t, label: EVENT_TYPE_LABELS[t] }))}
             onChange={(eventType) => update({ eventType })}
+          />
+          <FilterSelect
+            label="Для кого"
+            value={filters.audience}
+            options={AUDIENCES.map((a) => ({ id: a.id, label: a.label }))}
+            onChange={(audience) => update({ audience })}
           />
           {toggles.map(([key, label]) => (
             <ToggleButton
@@ -201,9 +211,11 @@ export function AfishaBoard({ items }: { items: PerformanceView[] }) {
           <p>
             {filters.pushkin
               ? 'Сведения о спектаклях по Пушкинской карте театр ещё не передал.'
-              : filters.kids
-                ? 'Сейчас в афише нет спектаклей для детей.'
-                : 'Попробуйте изменить фильтры или поиск.'}{' '}
+              : filters.audience === 'students'
+                ? 'Театр ещё не передал, на какие спектакли действуют студенческие условия.'
+                : filters.audience
+                  ? `Сейчас в афише нет спектаклей в категории «${AUDIENCES.find((a) => a.id === filters.audience)?.label}».`
+                  : 'Попробуйте изменить фильтры или поиск.'}{' '}
             <Button variant="tertiary" onPress={resetAll} className={styles.resetInline}>
               Показать всю афишу
             </Button>

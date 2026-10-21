@@ -28,6 +28,8 @@ export {
   type MonthGroup,
   type PerformanceDate,
   type SalePerformance,
+  AUDIENCES,
+  type Audience,
 } from './queries'
 export { demoShowsData } from './demo-data'
 export {

@@ -1,4 +1,4 @@
-import { VENUE_KIND_LABELS, type VenueKind } from '@/modules/shows'
+import { AUDIENCES, VENUE_KIND_LABELS, type VenueKind } from '@/modules/shows'
 
 import type { NavIconName } from './NavIcon'
 
@@ -22,6 +22,10 @@ export const AFISHA_GROUPS: NavGroup[] = [
   {
     title: 'Площадки',
     links: VENUES.map((kind) => ({ href: `/afisha?kind=${kind}`, label: VENUE_KIND_LABELS[kind] })),
+  },
+  {
+    title: 'Для кого',
+    links: AUDIENCES.map((a) => ({ href: `/afisha?for=${a.id}`, label: a.label })),
   },
 ]
 

@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest'
 import {
   availabilityLevel,
   availabilityText,
+  AUDIENCES,
   filterPerformances,
+  type AfishaFilters,
   findPerformance,
   formatPerformanceDate,
   getShowPage,
@@ -191,8 +193,32 @@ describe('filterPerformances', () => {
 
   it('filters premieres, kids shows and Pushkin card', () => {
     expect(filterPerformances(all(), { premiere: true })).toHaveLength(4)
-    expect(filterPerformances(all(), { kids: true })).toEqual([])
+    expect(filterPerformances(all(), { audience: 'kids' })).toEqual([])
     expect(filterPerformances(all(), { pushkin: true })).toEqual([])
+  })
+
+  it('filters by audience from the age limit and the student offer', () => {
+    // Возраст 6+, 16+, 18+ и не указан; студенческие условия — только у первого.
+    const ages = [6, 16, 18, null]
+    const items = all().map((p, i) => ({
+      ...p,
+      show: { ...p.show, ageLimit: ages[i] ?? null, studentOffer: i === 0 },
+    }))
+    const ids = (audience: AfishaFilters['audience']) =>
+      filterPerformances(items, { audience }).map((p) => p.show.ageLimit)
+    expect(ids('kids')).toEqual([6])
+    expect(ids('youth')).toEqual([6, 16])
+    expect(ids('adults')).toEqual([18])
+    expect(ids('students')).toEqual([6])
+  })
+
+  it('labels every audience', () => {
+    expect(AUDIENCES.map((a) => [a.id, a.label])).toEqual([
+      ['kids', 'Детям'],
+      ['youth', 'Молодёжи'],
+      ['students', 'Студентам'],
+      ['adults', 'Взрослым'],
+    ])
   })
 
   it('searches by title ignoring case and ё', () => {

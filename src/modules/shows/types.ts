@@ -46,6 +46,8 @@ export type Show = {
   premiere?: boolean
   /** Можно купить по Пушкинской карте — подтверждает театр. */
   pushkinCard?: boolean
+  /** Есть студенческие условия (скидка, места по студенческому). Подтверждает театр. */
+  studentOffer?: boolean
   /** Фото спектакля (не афиши) для баннера, коллажа и галереи. */
   gallery: string[]
   posterUrl: string
@@ -101,6 +103,7 @@ export type PerformanceView = {
   show: Pick<Show, 'slug' | 'title' | 'ageLimit' | 'genre' | 'eventType'> & {
     premiere: boolean
     pushkinCard: boolean
+    studentOffer: boolean
     /** Превью: фото спектакля, если есть, иначе афиша. */
     imageUrl: string
   }
