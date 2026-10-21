@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { createRateLimiter } from '@/lib/rate-limit'
 import { getAccounts } from '@/modules/accounts'
 
-import { clientIp, json, sameOrigin, sessionCookie } from '../http'
+import { clientIp, json, sameOrigin, sessionCookie, guarded } from '../http'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,7 +15,7 @@ const byEmail = createRateLimiter({ limit: 5, windowMs: 15 * 60_000 })
 const body = z.object({ email: z.email(), password: z.string().min(1).max(128) })
 
 /** POST /api/auth/password — вход по паролю (T-055). Ответ одинаков, если почты нет. */
-export async function POST(req: NextRequest) {
+export const POST = guarded(async (req: NextRequest) => {
   if (!sameOrigin(req)) return json({ error: 'forbidden' }, 403)
   const parsed = body.safeParse(await req.json().catch(() => null))
   if (!parsed.success) return json({ error: 'invalid' }, 400)
@@ -27,4 +27,4 @@ export async function POST(req: NextRequest) {
   return json({ customer: { name: result.customer.name, email: result.customer.email } }, 200, {
     'Set-Cookie': sessionCookie(result.session.token, result.session.expiresAt),
   })
-}
+})

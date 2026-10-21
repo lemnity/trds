@@ -75,3 +75,25 @@
     transition: none;
   }
 }
+
+/* Телефон: три вкладки помещаются в строку. */
+@media (max-width: 30rem) {
+  .list {
+    gap: 1rem;
+  }
+
+  .tab {
+    font-size: 1.0625rem;
+  }
+
+  .count {
+    font-size: 0.75rem;
+  }
+}
+
+/* Совсем узко (до 360px): без счётчиков — подписи важнее. */
+@media (max-width: 22.4rem) {
+  .count {
+    display: none;
+  }
+}

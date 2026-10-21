@@ -136,8 +136,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
   }
 
   const problem = (status: number, data: { error?: string; retryAfter?: number } | null) => {
-    if (status === 503 || data?.error === 'email_unavailable')
+    if (data?.error === 'email_unavailable')
       return 'Отправка писем пока не настроена — вход временно недоступен.'
+    if (status === 503) return 'Вход временно недоступен: нет связи с сервером. Попробуйте позже.'
     if (data?.error === 'too_many')
       return `Слишком много попыток. Попробуйте через ${Math.ceil((data.retryAfter ?? 600) / 60)} мин.`
     if (status === 0) return 'Нет связи с сервером. Проверьте интернет и попробуйте ещё раз.'

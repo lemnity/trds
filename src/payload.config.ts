@@ -28,6 +28,8 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URL ?? '',
+      // Без базы — быстрая ошибка, а не вечное ожидание (кабинет и API отвечают «недоступно»).
+      connectionTimeoutMillis: 5000,
     },
     // Доменные таблицы кабинета (src/db/schema) — в общей схеме: синхронизация в dev и
     // миграции Payload их учитывают и не удаляют.

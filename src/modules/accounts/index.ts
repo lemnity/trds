@@ -68,5 +68,9 @@ export function getAccounts() {
       })
     return { auth, consent }
   })()
+  // Не запоминаем неудачу (база была недоступна) — следующий запрос попробует снова.
+  service.catch(() => {
+    service = undefined
+  })
   return service
 }
