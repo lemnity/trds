@@ -11,3 +11,6 @@ next-env.d.ts
 media/
 dist/
 out/
+
+# Локальные скриншоты проверки вёрстки
+.preview/
