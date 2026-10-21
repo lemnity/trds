@@ -323,19 +323,14 @@ export function MainNav({ shows, months, nearest }: Props) {
             </li>
           ))}
           <li>
-            <a
+            <Link
               href={SCHOOL_LINK.href}
-              target="_blank"
-              rel="noopener noreferrer"
               className={`${styles.panelLink} ${styles.panelSchool}`}
               onClick={() => setMobileOpen(false)}
             >
               {SCHOOL_LINK.label}
-              <span className="visually-hidden">
-                {' '}
-                {SCHOOL_LINK.hint} (откроется в новой вкладке)
-              </span>
-            </a>
+              <span className="visually-hidden"> {SCHOOL_LINK.hint}</span>
+            </Link>
           </li>
           {/* Кабинет: гостю — вход и регистрация, вошедшему — разделы и выход. */}
           <li>

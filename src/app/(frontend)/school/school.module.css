@@ -1,0 +1,570 @@
+/* Актёрская школа: шапка с фото, цифры, программа, тариф на тёмной карточке, педагоги, фото, отзывы. */
+.page {
+  padding-bottom: var(--section-space);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: center;
+  padding-block: clamp(2rem, 6vw, 4.5rem) clamp(2rem, 4vw, 3rem);
+}
+
+.heroText {
+  display: grid;
+  gap: 1rem;
+}
+
+.kicker {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.title {
+  font-weight: 700;
+  font-size: clamp(2.25rem, 1rem + 4.2vw, 5.25rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.lead {
+  max-width: 38rem;
+  font-size: var(--step-1);
+  line-height: 1.5;
+}
+
+.promise {
+  max-width: 38rem;
+  padding-left: 1rem;
+  border-left: 3px solid var(--color-ink);
+  font-weight: 600;
+  font-size: var(--step-1);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.heroPhoto {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--color-surface);
+}
+
+.heroPhoto img {
+  object-fit: cover;
+}
+
+/* Цифры — четыре на линии, на телефоне 2×2. */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-block: 1px solid var(--color-ink);
+}
+
+.fact {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  padding: clamp(1rem, 2.5vw, 1.5rem) clamp(0.75rem, 2vw, 1.5rem);
+}
+
+.fact + .fact {
+  border-left: 1px solid var(--color-hairline);
+}
+
+.fact b {
+  font-size: clamp(1.75rem, 1.2rem + 1.8vw, 3rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
+.fact span {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.section {
+  margin-top: var(--section-space);
+}
+
+.sectionTitle {
+  margin-bottom: 1.25rem;
+  font-weight: 700;
+  font-size: var(--step-3);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* Программа — нумерованные строки в три колонки. */
+.program {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: clamp(1.5rem, 3vw, 2.5rem);
+  border-top: 1px solid var(--color-ink);
+}
+
+.program li {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: 0.5rem;
+  padding-block: 1.1rem;
+  border-bottom: 1px solid var(--color-hairline);
+  line-height: 1.45;
+}
+
+.num {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-muted);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2rem, 5vw, 4.5rem);
+}
+
+.lines {
+  display: grid;
+  border-top: 1px solid var(--color-ink);
+}
+
+.lines li {
+  display: grid;
+  gap: 0.2rem;
+  padding: 1rem 0 1rem 1.75rem;
+  border-bottom: 1px solid var(--color-hairline);
+  position: relative;
+}
+
+.lines li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  top: 1rem;
+}
+
+.lines b {
+  font-size: var(--step-1);
+  font-weight: 600;
+}
+
+.lines span {
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+/* Тариф: тёмная карточка с ценой и условия рядом. */
+.tariff {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: start;
+}
+
+.tariffCard {
+  display: grid;
+  justify-items: start;
+  gap: 1rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background: var(--color-ink);
+  color: #ffffff;
+}
+
+.tariffName {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c9cedb;
+}
+
+.price {
+  font-weight: 700;
+  font-size: clamp(3rem, 1.8rem + 4vw, 5.5rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.price span {
+  font-size: var(--step-2);
+  letter-spacing: 0;
+  color: #c9cedb;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem 1.5rem;
+  width: 100%;
+  margin-block: 0.5rem 1rem;
+}
+
+.features li {
+  padding-left: 1.4rem;
+  position: relative;
+  line-height: 1.4;
+}
+
+.features li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 0.55rem;
+  height: 0.55rem;
+  background: #ffffff;
+}
+
+/* На тёмной карточке основная кнопка — светлая. */
+.tariffCard :global(.button) {
+  background: #ffffff;
+  color: var(--color-ink);
+}
+
+.terms {
+  display: grid;
+  border-top: 1px solid var(--color-ink);
+}
+
+.terms > div {
+  display: grid;
+  gap: 0.3rem;
+  padding-block: 1.1rem;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.terms dt {
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.terms dd {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  font-size: var(--step-1);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.terms a {
+  text-decoration: none;
+}
+
+.terms a:hover {
+  text-decoration: underline;
+}
+
+/* Педагоги — три колонки: вертикальный портрет, должность, имя, биография. */
+.teachers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.teacher {
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+}
+
+.portrait {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+  margin-bottom: 0.5rem;
+  border-radius: 3px;
+  font-size: var(--step-4);
+}
+
+.position {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.teacherName {
+  font-weight: 700;
+  font-size: var(--step-2);
+  letter-spacing: -0.02em;
+}
+
+.teacherName a {
+  text-decoration: none;
+}
+
+.teacherName a:hover {
+  text-decoration: underline;
+}
+
+.bio {
+  line-height: 1.55;
+  color: var(--color-muted);
+}
+
+.works {
+  border-top: 1px solid var(--color-hairline);
+  padding-top: 0.6rem;
+}
+
+.works summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.works ul {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 0.6rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+/* Спектакли — 14 вертикальных плиток: 7 в ряд, на узких экранах по 2. */
+.shows {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem) clamp(0.75rem, 1.5vw, 1.25rem);
+}
+
+.show {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.showPhoto {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--color-surface);
+}
+
+.showPhoto img {
+  object-fit: cover;
+  transition: transform var(--motion-base) var(--ease-standard);
+}
+
+.show:hover .showPhoto img {
+  transform: scale(1.04);
+}
+
+.showTitle {
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Отзывы — масонри-колонки: тексты разной длины не оставляют дыр. */
+.reviews {
+  columns: 3 20rem;
+  column-gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.review {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+  break-inside: avoid;
+  border-top: 3px solid var(--color-ink);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.review blockquote {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.author {
+  font-weight: 700;
+}
+
+/* Другие программы — ссылки на страницы старого сайта. */
+.programs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--color-ink);
+}
+
+.programs li + li a {
+  border-left: 1px solid var(--color-hairline);
+}
+
+.programs a {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 0.6rem;
+  height: 100%;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border-bottom: 1px solid var(--color-hairline);
+  text-decoration: none;
+  transition: background var(--motion-base);
+}
+
+.programs a:hover {
+  background: var(--color-surface);
+}
+
+.audience {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.programs b {
+  font-size: var(--step-1);
+  line-height: 1.25;
+}
+
+.programText {
+  font-size: var(--step--1);
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+
+.more {
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+
+.more::after {
+  content: ' ↗';
+}
+
+.final {
+  display: grid;
+  justify-items: start;
+  gap: 1rem;
+  margin-top: var(--section-space);
+  padding-top: clamp(2rem, 4vw, 3rem);
+  border-top: 1px solid var(--color-ink);
+}
+
+.finalTitle {
+  max-width: 22ch;
+  font-weight: 700;
+  font-size: clamp(2rem, 1.2rem + 3vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+@media (max-width: 70rem) {
+  .programs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .programs li:nth-child(3) a {
+    border-left: 0;
+  }
+
+  .shows {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 60rem) {
+  .hero,
+  .tariff,
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .heroPhoto {
+    aspect-ratio: 3 / 2;
+    order: -1;
+  }
+
+  .program,
+  .teachers {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .teacher {
+    grid-template-columns: 9rem minmax(0, 1fr);
+    column-gap: 1.25rem;
+  }
+
+  .teacher > * {
+    grid-column: 2;
+  }
+
+  .teacher > .portrait {
+    grid-column: 1;
+    grid-row: 1 / span 6;
+  }
+
+  .shows {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fact:nth-child(3) {
+    border-left: 0;
+  }
+
+  .fact:nth-child(n + 3) {
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  .features {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .teacher {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .teacher > *,
+  .teacher > .portrait {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .portrait {
+    max-width: 14rem;
+  }
+
+  .programs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .programs li + li a {
+    border-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showPhoto img,
+  .programs a {
+    transition: none;
+  }
+}

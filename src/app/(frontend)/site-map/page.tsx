@@ -23,6 +23,7 @@ const MAIN = [
   { href: '/leadership', title: 'Руководство' },
   { href: '/news', title: 'Архив новостей' },
   { href: '/corporate', title: 'Корпоративы' },
+  { href: '/school', title: 'Актёрская школа' },
   { href: '/contacts', title: 'Контакты' },
   { href: '/login', title: 'Вход в личный кабинет' },
   { href: '/register', title: 'Регистрация' },

@@ -63,16 +63,11 @@ export function SiteHeader() {
         <div className={styles.actions}>
           <HeaderSearch />
           <LowVisionToggle />
-          <a
-            href={SCHOOL_LINK.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.school}
-          >
+          <Link href={SCHOOL_LINK.href} className={styles.school}>
             <span className={styles.schoolDot} aria-hidden="true" />
             {SCHOOL_LINK.label}
-            <span className="visually-hidden"> {SCHOOL_LINK.hint} (откроется в новой вкладке)</span>
-          </a>
+            <span className="visually-hidden"> {SCHOOL_LINK.hint}</span>
+          </Link>
           <AccountMenu />
           <ButtonLink href="/afisha" className={styles.cta}>
             <TicketIcon />

@@ -1,6 +1,7 @@
 import type { StaticImageData } from 'next/image'
 
 import artemAksenov from '@/assets/people/artem-aksenov.jpg'
+import larisaVavilova from '@/assets/people/larisa-vavilova.jpg'
 import marinaShuranova from '@/assets/people/marina-shuranova.jpg'
 
 /**
@@ -9,5 +10,6 @@ import marinaShuranova from '@/assets/people/marina-shuranova.jpg'
  */
 export const personPhotos: Record<string, StaticImageData> = {
   'artem-aksenov': artemAksenov,
+  'larisa-vavilova': larisaVavilova,
   'marina-shuranova': marinaShuranova,
 }

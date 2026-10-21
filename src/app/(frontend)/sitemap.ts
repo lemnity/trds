@@ -20,6 +20,7 @@ const SECTIONS: { path: string; priority: number }[] = [
   { path: '/leadership', priority: 0.5 },
   { path: '/news', priority: 0.5 },
   { path: '/corporate', priority: 0.6 },
+  { path: '/school', priority: 0.6 },
   { path: '/contacts', priority: 0.6 },
   { path: '/site-map', priority: 0.2 },
 ]

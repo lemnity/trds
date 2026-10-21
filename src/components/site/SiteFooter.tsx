@@ -13,6 +13,7 @@ const NAV = [
   { href: '/afisha', title: 'Афиша' },
   { href: '/about', title: 'О театре' },
   { href: '/corporate', title: 'Корпоративы' },
+  { href: '/school', title: 'Актёрская школа' },
   { href: '/contacts', title: 'Контакты' },
   { href: ACCOUNT_HREF, title: 'Личный кабинет' },
 ]
