@@ -70,11 +70,8 @@ export function SiteHeader() {
             className={styles.school}
           >
             <span className={styles.schoolDot} aria-hidden="true" />
-            <span className={styles.schoolFull}>{SCHOOL_LINK.label}</span>
-            <span className={styles.schoolShort} aria-hidden="true">
-              Школа
-            </span>
-            <span className="visually-hidden"> (откроется в новой вкладке)</span>
+            {SCHOOL_LINK.label}
+            <span className="visually-hidden"> {SCHOOL_LINK.hint} (откроется в новой вкладке)</span>
           </a>
           <AccountMenu />
           <ButtonLink href="/afisha" className={styles.cta}>

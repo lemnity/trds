@@ -331,7 +331,10 @@ export function MainNav({ shows, months, nearest }: Props) {
               onClick={() => setMobileOpen(false)}
             >
               {SCHOOL_LINK.label}
-              <span className="visually-hidden"> (откроется в новой вкладке)</span>
+              <span className="visually-hidden">
+                {' '}
+                {SCHOOL_LINK.hint} (откроется в новой вкладке)
+              </span>
             </a>
           </li>
           {/* Кабинет: гостю — вход и регистрация, вошедшему — разделы и выход. */}
