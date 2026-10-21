@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useId, useRef, useState } from 'react'
 
-import { endSession, useSession } from '../auth/session'
+import { displayName, endSession, useSession } from '../auth/session'
 import styles from './SiteHeader.module.css'
 
 const UserIcon = () => (
@@ -76,13 +76,13 @@ export function AccountMenu() {
     setOpen(!open)
   }
 
-  const logout = () => {
-    endSession()
+  const logout = async () => {
     setOpen(false)
+    await endSession()
     router.push('/')
   }
 
-  const firstName = session?.name.split(' ')[0]
+  const firstName = session ? displayName(session) : undefined
 
   return (
     <div ref={rootRef} className={styles.accountRoot}>
@@ -121,7 +121,7 @@ export function AccountMenu() {
         {session ? (
           <>
             <div className={styles.accountWho}>
-              <b>{session.name}</b>
+              <b>{session.name ?? session.email}</b>
               <span>{session.email}</span>
               {session.demo && <span className={styles.accountDemo}>Демо-вход</span>}
             </div>

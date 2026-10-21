@@ -2,6 +2,7 @@
 
 import { Button, Checkbox, Description, FieldError, Input, Label, TextField } from '@heroui/react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 
 import {
@@ -17,7 +18,8 @@ import {
 } from '@/modules/auth'
 
 import { InlineNotice } from '../ui/InlineNotice'
-import { startDemoSession } from './session'
+import { postJson, returnPath } from './api'
+import { IS_STATIC_PREVIEW, setSignedIn, startDemoSession, type Session } from './session'
 import styles from './Auth.module.css'
 
 type Mode = 'login' | 'register'
@@ -89,8 +91,8 @@ function PasswordField({
 
 /**
  * Вход и регистрация (PRD 5.5): почта (и имя с согласием при регистрации) → код из письма;
- * при входе — запасной способ «по паролю». ПРОТОТИП: сервера выдачи и проверки кода ещё нет (T-050) — код не
- * отправляется, данные никуда не уходят; это сказано пользователю на странице.
+ * при входе — запасной способ «по паролю». На сервере — настоящие запросы к /api/auth/* (T-050, T-055);
+ * на статическом превью без сервера — демо-вход в браузере с честной пометкой.
  */
 export function AuthForm({ mode }: { mode: Mode }) {
   const [step, setStep] = useState<Step>('details')
@@ -105,6 +107,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [method, setMethod] = useState<'code' | 'password'>('code')
   const [password, setPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [notice, setNotice] = useState('')
+  const router = useRouter()
   const codeRef = useRef<HTMLInputElement>(null)
 
   // Обратный отсчёт до повторной отправки.
@@ -118,14 +123,54 @@ export function AuthForm({ mode }: { mode: Mode }) {
     if (step === 'code') codeRef.current?.focus()
   }, [step])
 
-  // ДЕМО до T-050: «вход» только в этом браузере, чтобы посмотреть меню кабинета.
-  const signIn = () => {
+  // Превью без сервера (GitHub Pages) — демо-вход в этом браузере, чтобы посмотреть меню.
+  const demoSignIn = () => {
     startDemoSession({ name: name.trim() || email.split('@')[0] || 'Зритель', email })
     setStep('checked')
   }
 
-  const submitDetails = (event: FormEvent) => {
+  // Сервер: сессия уже в HttpOnly cookie — обновляем меню и уходим туда, откуда пришли.
+  const finishSignIn = (customer: Session) => {
+    setSignedIn(customer)
+    router.push(returnPath())
+  }
+
+  const problem = (status: number, data: { error?: string; retryAfter?: number } | null) => {
+    if (status === 503 || data?.error === 'email_unavailable')
+      return 'Отправка писем пока не настроена — вход временно недоступен.'
+    if (data?.error === 'too_many')
+      return `Слишком много попыток. Попробуйте через ${Math.ceil((data.retryAfter ?? 600) / 60)} мин.`
+    if (status === 0) return 'Нет связи с сервером. Проверьте интернет и попробуйте ещё раз.'
+    return 'Что-то пошло не так. Попробуйте ещё раз.'
+  }
+
+  /** Запросить код у сервера. true — можно вводить код. */
+  const requestCode = async (address: string) => {
+    if (IS_STATIC_PREVIEW) return true
+    setBusy(true)
+    const { status, data } = await postJson<{ error?: string; retryAfter?: number }>(
+      '/api/auth/email-code/request',
+      mode === 'login'
+        ? { purpose: 'login', email: address }
+        : { purpose: 'register', email: address, name, password, consent },
+    )
+    setBusy(false)
+    if (status === 200) {
+      setLeft(RESEND_AFTER)
+      return true
+    }
+    // Код уже отправлен недавно — пусть вводит его, повтор — по таймеру.
+    if (data?.error === 'cooldown') {
+      setLeft(data.retryAfter ?? RESEND_AFTER)
+      return true
+    }
+    setNotice(problem(status, data))
+    return false
+  }
+
+  const submitDetails = async (event: FormEvent) => {
     event.preventDefault()
+    setNotice('')
     const result =
       mode === 'login'
         ? parseLogin({ email })
@@ -138,22 +183,43 @@ export function AuthForm({ mode }: { mode: Mode }) {
     setEmail(result.value.email)
     setCode('')
     setCodeError('')
-    setLeft(RESEND_AFTER)
+    if (!(await requestCode(result.value.email))) return
+    if (IS_STATIC_PREVIEW) setLeft(RESEND_AFTER)
     setStep('code')
   }
 
-  const submitCode = (event: FormEvent) => {
+  const submitCode = async (event: FormEvent) => {
     event.preventDefault()
     if (!isCodeComplete(code)) {
       setCodeError(`Введите ${CODE_LENGTH} цифр из письма`)
       return
     }
     setCodeError('')
-    signIn()
+    if (IS_STATIC_PREVIEW) return demoSignIn()
+    setBusy(true)
+    const { status, data } = await postJson<{ customer?: Session; error?: string }>(
+      '/api/auth/email-code/verify',
+      { email, code },
+    )
+    setBusy(false)
+    if (status === 200 && data?.customer) return finishSignIn(data.customer)
+    if (status === 400) {
+      setCodeError('Неверный или устаревший код. Проверьте письмо или запросите новый.')
+      return
+    }
+    setCodeError(problem(status, data))
   }
 
-  const submitPassword = (event: FormEvent) => {
+  const resend = async () => {
+    setCodeError('')
+    setCode('')
+    if (IS_STATIC_PREVIEW) return setLeft(RESEND_AFTER)
+    await requestCode(email)
+  }
+
+  const submitPassword = async (event: FormEvent) => {
     event.preventDefault()
+    setNotice('')
     const result = parsePasswordLogin({ email, password })
     if (!result.ok) {
       setErrors({ email: result.errors.email })
@@ -162,7 +228,19 @@ export function AuthForm({ mode }: { mode: Mode }) {
     }
     setErrors({})
     setPasswordError('')
-    signIn()
+    if (IS_STATIC_PREVIEW) return demoSignIn()
+    setBusy(true)
+    const { status, data } = await postJson<{ customer?: Session; error?: string }>(
+      '/api/auth/password',
+      result.value,
+    )
+    setBusy(false)
+    if (status === 200 && data?.customer) return finishSignIn(data.customer)
+    if (status === 400) {
+      setPasswordError('Неверная почта или пароль')
+      return
+    }
+    setNotice(problem(status, data))
   }
 
   const switchMethod = (next: 'code' | 'password') => {
@@ -200,7 +278,12 @@ export function AuthForm({ mode }: { mode: Mode }) {
           error={passwordError}
           autoComplete="current-password"
         />
-        <Button type="submit" fullWidth className={styles.submit}>
+        {notice && (
+          <p className={styles.error} role="alert">
+            {notice}
+          </p>
+        )}
+        <Button type="submit" fullWidth className={styles.submit} isPending={busy}>
           Войти
         </Button>
         <p className={styles.alt}>
@@ -290,7 +373,12 @@ export function AuthForm({ mode }: { mode: Mode }) {
             </Link>
           </p>
         )}
-        <Button type="submit" fullWidth className={styles.submit}>
+        {notice && (
+          <p className={styles.error} role="alert">
+            {notice}
+          </p>
+        )}
+        <Button type="submit" fullWidth className={styles.submit} isPending={busy}>
           Получить код
         </Button>
         <p className={styles.hint}>
@@ -358,9 +446,18 @@ export function AuthForm({ mode }: { mode: Mode }) {
             </p>
           )}
         </div>
-        <Button type="submit" fullWidth className={styles.submit}>
+        <Button type="submit" fullWidth className={styles.submit} isPending={busy}>
           {mode === 'login' ? 'Войти' : 'Подтвердить и войти'}
         </Button>
+        {process.env.NODE_ENV === 'development' && !IS_STATIC_PREVIEW && (
+          // Почтовый сервис не подключён (T-047): в разработке письма — в локальном ящике.
+          <p className={styles.hint}>
+            Разработка: письмо с кодом —{' '}
+            <a href="/api/dev/outbox" target="_blank" rel="noopener">
+              локальный ящик
+            </a>
+          </p>
+        )}
         <div className={styles.codeActions}>
           <button type="button" className={styles.linkButton} onClick={() => setStep('details')}>
             Изменить почту
@@ -368,11 +465,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           {left > 0 ? (
             <span className={styles.muted}>Отправить ещё раз через {left} с</span>
           ) : (
-            <button
-              type="button"
-              className={styles.linkButton}
-              onClick={() => setLeft(RESEND_AFTER)}
-            >
+            <button type="button" className={styles.linkButton} onClick={resend} disabled={busy}>
               Отправить код ещё раз
             </button>
           )}

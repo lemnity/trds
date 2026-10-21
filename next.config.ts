@@ -13,7 +13,8 @@ const basePath = pagesExport ? (process.env.PAGES_BASE_PATH ?? '') : ''
 
 const nextConfig: NextConfig = {
   // Префикс адресов для ссылок react-aria/HeroUI (RouterProvider.useHref) на GitHub Pages.
-  env: { NEXT_PUBLIC_BASE_PATH: basePath },
+  // NEXT_PUBLIC_STATIC_PREVIEW — превью без сервера: вход и кабинет работают в демо-режиме.
+  env: { NEXT_PUBLIC_BASE_PATH: basePath, NEXT_PUBLIC_STATIC_PREVIEW: pagesExport ? '1' : '' },
   ...(pagesExport
     ? {
         output: 'export',

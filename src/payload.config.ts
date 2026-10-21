@@ -5,6 +5,7 @@ import { buildConfig } from 'payload'
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
+import { accountsTables } from './db/schema/accounts'
 import { AdminUsers } from './payload/collections/AdminUsers'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -28,6 +29,11 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URL ?? '',
     },
+    // Доменные таблицы кабинета (src/db/schema) — в общей схеме: синхронизация в dev и
+    // миграции Payload их учитывают и не удаляют.
+    beforeSchemaInit: [
+      ({ schema }) => ({ ...schema, tables: { ...schema.tables, ...accountsTables } }),
+    ],
   }),
   sharp,
 })

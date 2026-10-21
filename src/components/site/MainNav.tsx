@@ -6,7 +6,7 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore, type Keyboard
 
 import { ButtonLink } from '../ui/ButtonLink'
 import { TicketIcon } from '../ui/TicketIcon'
-import { endSession, useSession } from '../auth/session'
+import { displayName, endSession, useSession } from '../auth/session'
 import { ACCOUNT_LINKS, GUEST_LINKS } from './AccountMenu'
 import { AFISHA_GROUPS, MAIN_NAV, SCHOOL_LINK, type NavLink } from './navigation'
 import { NavIcon } from './NavIcon'
@@ -340,7 +340,7 @@ export function MainNav({ shows, months, nearest }: Props) {
           {/* Кабинет: гостю — вход и регистрация, вошедшему — разделы и выход. */}
           <li>
             <span className={styles.panelLink}>
-              {session ? `Кабинет · ${session.name.split(' ')[0]}` : 'Личный кабинет'}
+              {session ? `Кабинет · ${displayName(session)}` : 'Личный кабинет'}
             </span>
             <ul className={styles.panelSub}>
               {(session ? ACCOUNT_LINKS : GUEST_LINKS).map((l) => (
@@ -360,8 +360,8 @@ export function MainNav({ shows, months, nearest }: Props) {
                     type="button"
                     className={`${styles.panelSubLink} ${styles.panelLogout}`}
                     onClick={() => {
-                      endSession()
                       setMobileOpen(false)
+                      void endSession()
                     }}
                   >
                     Выйти из аккаунта

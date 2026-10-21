@@ -1,4 +1,8 @@
 import type { Metadata } from 'next'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+
+import { IS_PREVIEW } from '@/lib/site'
 
 import { ButtonLink } from '@/components/ui/ButtonLink'
 
@@ -29,15 +33,31 @@ const SECTIONS = [
   },
 ]
 
-// Вход по коду из письма и «Мои билеты» — T-050/T-051. Формы входа — прототип (/login, /register).
-export default function AccountPage() {
+/**
+ * Кабинет (T-050/T-051). На сервере — только для вошедших: без сессии — на вход с возвратом сюда.
+ * На статическом превью (без сервера) проверки нет — страница показывает разделы как есть.
+ */
+async function currentCustomer() {
+  if (IS_PREVIEW) return null
+  const { getAccounts, SESSION_COOKIE } = await import('@/modules/accounts')
+  const token = (await cookies()).get(SESSION_COOKIE)?.value
+  const session = await (await getAccounts()).auth.getSession(token)
+  if (!session) redirect('/login?next=/account')
+  return session.customer
+}
+
+export default async function AccountPage() {
+  const customer = await currentCustomer()
   return (
     <div className="container">
       <header className={head.head}>
-        <h1 className={head.title}>Личный кабинет</h1>
+        <h1 className={head.title}>
+          {customer?.name ? `Здравствуйте, ${customer.name.split(' ')[0]}` : 'Личный кабинет'}
+        </h1>
         <p className={head.lead}>
-          Здесь будут ваши билеты, возвраты и бонусы. Кабинет откроется вместе с продажей билетов на
-          этом сайте.
+          {customer
+            ? `Вы вошли как ${customer.email}. Здесь будут ваши билеты, возвраты и бонусы.`
+            : 'Здесь будут ваши билеты, возвраты и бонусы. Кабинет откроется вместе с продажей билетов на этом сайте.'}
         </p>
       </header>
 
@@ -62,13 +82,15 @@ export default function AccountPage() {
         ))}
       </div>
 
-      {/* Прототип входа по коду (T-050): формы есть, сервера выдачи кода пока нет. */}
-      <div className={styles.auth}>
-        <ButtonLink href="/login">Войти</ButtonLink>
-        <ButtonLink href="/register" variant="outline">
-          Регистрация
-        </ButtonLink>
-      </div>
+      {/* Превью без сервера: вход — демо на /login и /register. */}
+      {!customer && (
+        <div className={styles.auth}>
+          <ButtonLink href="/login">Войти</ButtonLink>
+          <ButtonLink href="/register" variant="outline">
+            Регистрация
+          </ButtonLink>
+        </div>
+      )}
     </div>
   )
 }
