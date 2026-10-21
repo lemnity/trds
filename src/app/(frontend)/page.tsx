@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -13,6 +14,8 @@ import styles from './home.module.css'
 import { buttonVariants } from '@heroui/styles'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { cardClass } from '@/components/ui/card'
+
+export const metadata: Metadata = { alternates: { canonical: '/' } }
 
 const HERO_NEAREST = 4
 /** На главной — последние новости, остальные в архиве /news. */
@@ -85,13 +88,12 @@ export default function HomePage() {
             <p className={styles.bannerLead}>
               Спектакль или перформанс для вашей компании и частных гостей.
             </p>
-            {/* Форма заявки — T-034; до неё заявка уходит на почту театра. */}
-            <a
-              href="mailto:rechevik@inbox.ru?subject=%D0%9A%D0%BE%D1%80%D0%BF%D0%BE%D1%80%D0%B0%D1%82%D0%B8%D0%B2"
+            <Link
+              href="/corporate"
               className={buttonVariants({ variant: 'outline', className: styles.onDark })}
             >
               Оставить заявку
-            </a>
+            </Link>
           </div>
           {bannerPoster && (
             <div className={styles.bannerMedia}>

@@ -9,11 +9,19 @@ import { SiteChrome } from '@/components/site/SiteChrome'
 import { SiteFooter } from '@/components/site/SiteFooter'
 import { SiteHeader } from '@/components/site/SiteHeader'
 
+import { SITE_URL } from '@/lib/site'
+
 import { onest } from './fonts'
 import { Providers } from './providers'
 import './globals.css'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  openGraph: {
+    siteName: 'Модный театр TURDUS',
+    locale: 'ru_RU',
+    type: 'website',
+  },
   title: { default: 'Модный театр TURDUS — Екатеринбург', template: '%s — TURDUS' },
   description:
     'Иммерсивные спектакли модного театра TURDUS в Екатеринбурге: в барах, ресторанах, квартире и на улицах города.',

@@ -12,6 +12,7 @@ import { getShowsData, plural } from '@/modules/shows'
 import styles from './leadership.module.css'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/leadership' },
   title: 'Руководство',
   description: 'Основатели и художественный руководитель модного театра TURDUS.',
 }

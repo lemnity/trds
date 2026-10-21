@@ -8,6 +8,7 @@ import { getShowsData, listUpcoming } from '@/modules/shows'
 import styles from '../page-head.module.css'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/afisha' },
   title: 'Афиша',
   description: 'Ближайшие спектакли модного театра TURDUS: даты, площадки и билеты.',
 }

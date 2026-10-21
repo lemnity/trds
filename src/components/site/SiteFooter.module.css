@@ -174,3 +174,45 @@
     grid-template-columns: 1.4fr 1fr 1.2fr;
   }
 }
+
+/* Соцсети — кнопки со значком и названием под контактами. */
+.social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: var(--tap-min);
+  padding: 0 1rem 0 0.8rem;
+  border: 1.5px solid var(--color-control-border);
+  color: var(--color-ink);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  transition:
+    background var(--motion-base),
+    color var(--motion-base),
+    border-color var(--motion-base);
+}
+
+.socialLink:hover {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: #ffffff;
+}
+
+.socialLink:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .socialLink {
+    transition: none;
+  }
+}

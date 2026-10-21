@@ -97,6 +97,37 @@ export const contacts = {
 export const mailTo = (subject: string) =>
   `mailto:${contacts.email}?subject=${encodeURIComponent(subject)}`
 
+/**
+ * Корпоративы и частные события — тексты, ссылки и фото со страницы teatrturdus.ru/show
+ * (21.10.2026). Презентация с ценами — файл театра на Google Диске.
+ */
+export const corporate = {
+  title: 'Корпоративные праздники',
+  slogan: 'Модный театр TURDUS — ваш повод удивить!',
+  paragraphs: [
+    'Планируете корпоративное мероприятие, конференцию или презентацию продукта и не знаете, чем удивить своих гостей?',
+    'Постановки театра TURDUS — секретный ингредиент, который сделает ваше событие ярким и не похожим ни на какие другие мероприятия.',
+    'Дайте свободу творчеству и экспериментируйте! Наша команда превращает событие в искусство.',
+  ],
+  presentationUrl:
+    'https://drive.google.com/file/d/1ZLifmKe4Jw8SuVhUr0OZjbLpeQv1y2SO/view?usp=sharing',
+  manager: {
+    label: 'Написать руководителю',
+    handle: '@artyom_aksen',
+    href: 'https://telegram.me/artyom_aksen',
+  },
+  photos: [
+    'https://static.tildacdn.com/tild3336-3435-4138-a439-656331626435/WhatsApp_Image_2024-.jpeg',
+    'https://static.tildacdn.com/tild3635-3634-4739-b866-633638303366/WhatsApp_Image_2024-.jpeg',
+    'https://static.tildacdn.com/tild6135-3530-4135-a363-643430363164/WhatsApp_Image_2024-.jpeg',
+    'https://static.tildacdn.com/tild3332-6262-4935-b134-326530353633/WhatsApp_Image_2024-.jpeg',
+    'https://static.tildacdn.com/tild6366-3963-4665-b936-366232643663/WhatsApp_Image_2024-.jpeg',
+    'https://static.tildacdn.com/tild6130-3230-4332-b934-646437326538/WhatsApp_Image_2024-.jpeg',
+    'https://static.tildacdn.com/tild3166-3630-4531-a364-343538393466/IMG_153_Varzegov_23_.jpg',
+    'https://static.tildacdn.com/tild3637-3936-4136-a165-316239393638/IMG_079_Varzegov_23_.jpg',
+  ],
+}
+
 /** Партнёры и площадки, упомянутые на сайте театра. Список и логотипы подтверждает театр. */
 export const partners: Partner[] = [
   { name: 'Бар «Дом Культуры»', role: 'Площадка' },

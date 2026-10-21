@@ -8,7 +8,10 @@ import { getShowsData } from '@/modules/shows'
 import head from '../page-head.module.css'
 import styles from './site-map.module.css'
 
-export const metadata: Metadata = { title: 'Карта сайта' }
+export const metadata: Metadata = {
+  alternates: { canonical: '/site-map' },
+  title: 'Карта сайта',
+}
 
 const MAIN = [
   { href: '/', title: 'Главная' },
@@ -19,6 +22,7 @@ const MAIN = [
   { href: '/troupe', title: 'Труппа' },
   { href: '/leadership', title: 'Руководство' },
   { href: '/news', title: 'Архив новостей' },
+  { href: '/corporate', title: 'Корпоративы' },
   { href: '/contacts', title: 'Контакты' },
   { href: '/login', title: 'Вход в личный кабинет' },
   { href: '/register', title: 'Регистрация' },

@@ -8,6 +8,7 @@ import { reveal } from '@/components/ui/reveal'
 import styles from '../theatre.module.css'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/venues' },
   title: 'Площадки',
   description: 'Где играет модный театр TURDUS: бары, рестораны, лофт, квартира и город.',
 }

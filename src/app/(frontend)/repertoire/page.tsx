@@ -11,6 +11,7 @@ import head from '../page-head.module.css'
 import styles from '../theatre.module.css'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/repertoire' },
   title: 'Репертуар',
   description: 'Спектакли модного театра TURDUS — идущие сейчас и архив прошедших постановок.',
 }

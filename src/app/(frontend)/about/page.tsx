@@ -8,6 +8,7 @@ import head from '../page-head.module.css'
 import styles from './about.module.css'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/about' },
   title: 'О театре',
   description: 'Модный театр TURDUS: спектакли на неординарных площадках Екатеринбурга.',
 }

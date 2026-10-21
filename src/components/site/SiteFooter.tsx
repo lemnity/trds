@@ -5,12 +5,14 @@ import logo from '@/assets/logo.webp'
 import { contacts, legalDocuments } from '@/modules/content'
 
 import { LogoBird } from './LogoBird'
+import { SocialIcon } from './SocialIcon'
 import { ACCOUNT_HREF } from './navigation'
 import styles from './SiteFooter.module.css'
 
 const NAV = [
   { href: '/afisha', title: 'Афиша' },
   { href: '/about', title: 'О театре' },
+  { href: '/corporate', title: 'Корпоративы' },
   { href: '/contacts', title: 'Контакты' },
   { href: ACCOUNT_HREF, title: 'Личный кабинет' },
 ]
@@ -76,6 +78,22 @@ export function SiteFooter() {
           </a>
           <span>{contacts.office.short}</span>
           <span className={styles.muted}>{contacts.office.hours}</span>
+          <ul className={styles.social} aria-label="Театр в соцсетях">
+            {contacts.social.map((s) => (
+              <li key={s.name}>
+                <a
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.socialLink}
+                  aria-label={`${s.name} — ${s.handle} (откроется в новой вкладке)`}
+                >
+                  <SocialIcon name={s.name} />
+                  <span>{s.name}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </address>
       </div>
 

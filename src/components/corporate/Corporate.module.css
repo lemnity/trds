@@ -1,0 +1,119 @@
+/* Форма заявки на корпоратив. */
+.form {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.legend {
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+}
+
+.formats {
+  display: grid;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Формат — плашки-переключатели; выбранная чёрная. */
+.chip {
+  margin: 0;
+}
+
+.chipBody {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--tap-min);
+  padding: 0 1rem;
+  border: 1.5px solid var(--color-control-border);
+  background: var(--color-surface);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition:
+    background var(--motion-base),
+    color var(--motion-base),
+    border-color var(--motion-base);
+}
+
+.chipControl {
+  display: none;
+}
+
+.chip:hover .chipBody {
+  border-color: var(--color-ink);
+}
+
+.chip[data-selected='true'] .chipBody {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: #ffffff;
+}
+
+/* Подпись HeroUI задаёт свой цвет — на чёрной плашке перекрашиваем явно. */
+.chipBody > * {
+  color: inherit;
+}
+
+.chip[data-focus-visible='true'] .chipBody {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.hint {
+  margin-top: -0.4rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.hint a,
+.linkButton {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.submit {
+  margin-top: 0.4rem;
+}
+
+.sentActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 40rem) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chipBody {
+    transition: none;
+  }
+}

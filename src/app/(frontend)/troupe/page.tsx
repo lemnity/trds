@@ -11,6 +11,7 @@ import { reveal } from '@/components/ui/reveal'
 import styles from '../theatre.module.css'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/troupe' },
   title: 'Труппа',
   description: 'Актёры, режиссёры и создатели спектаклей модного театра TURDUS.',
 }

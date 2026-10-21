@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+
+import { pageOpenGraph } from '@/lib/site'
 import { Suspense } from 'react'
 
 import { HideWhenStarted } from '@/components/board/HideWhenStarted'
@@ -26,7 +28,13 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const { slug } = await params
   const page = getShowPage(getShowsData(), slug, new Date())
   if (!page) return {}
-  return { title: page.show.title, description: page.show.lead }
+  return {
+    title: page.show.title,
+    description: page.show.lead,
+    alternates: { canonical: `/shows/${page.show.slug}` },
+    // Обложка спектакля — горизонтальная 16:9, подходит для карточки ссылки в мессенджерах.
+    openGraph: pageOpenGraph(page.show.title, page.show.posterUrl, page.show.lead),
+  }
 }
 
 const OTHER_SHOWS = 4

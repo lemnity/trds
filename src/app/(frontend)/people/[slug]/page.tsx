@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import { pageOpenGraph } from '@/lib/site'
 import { personBios } from '@/modules/content'
 import { getPersonProfile, listPeople, type PersonRole } from '@/modules/people'
 import { formatPerformanceDate, getShowsData, plural } from '@/modules/shows'
@@ -28,11 +29,16 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const { slug } = await params
   const profile = getPersonProfile(getShowsData(), slug, new Date())
   if (!profile) return {}
+  const titles = [...profile.shows, ...profile.archive].map((s) => `«${s.title}»`)
+  const description = titles.length
+    ? `${profile.person.name} в спектаклях модного театра TURDUS: ${titles.join(', ')}.`
+    : `${profile.person.name} — модный театр TURDUS.`
+  const photo = personPhotos[profile.person.slug]
   return {
     title: profile.person.name,
-    description: `${profile.person.name} в спектаклях модного театра TURDUS: ${profile.shows
-      .map((s) => `«${s.title}»`)
-      .join(', ')}.`,
+    description,
+    alternates: { canonical: `/people/${profile.person.slug}` },
+    openGraph: pageOpenGraph(profile.person.name, photo?.src, description),
   }
 }
 

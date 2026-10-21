@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
+import { SocialIcon } from '@/components/site/SocialIcon'
 import { reveal } from '@/components/ui/reveal'
 import { contacts, mailTo } from '@/modules/content'
 
 import styles from './contacts.module.css'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/contacts' },
   title: 'Контакты',
   description: `Модный театр TURDUS: ${contacts.phone.display}, ${contacts.email}, ${contacts.office.short}.`,
 }
@@ -23,13 +25,6 @@ const Arrow = () => (
     />
   </svg>
 )
-
-/** Значки соцсетей — упрощённые линейные, цвет текста. */
-const SOCIAL_ICONS: Record<string, string> = {
-  Telegram: 'M21 4 3 11l6 2.2M21 4l-3 16-9-6.8M21 4 9 13.2v5.3l3.2-3.4',
-  ВКонтакте:
-    'M3.5 7h3.2c.6 3 2.2 5.2 3.6 5.7V7h3v3.5c1.4-.2 2.8-1.8 3.3-3.5h3c-.5 2.4-2.2 4.2-3.4 4.9 1.2.6 3.1 2.1 3.8 4.6h-3.3c-.6-1.6-1.9-2.9-3.4-3V16.5h-.4C7.2 16.5 4 13.4 3.5 7Z',
-}
 
 /** По какому вопросу: куда идти или о чём написать (тема письма подставляется). */
 const TOPICS = [
@@ -86,16 +81,7 @@ export default function ContactsPage() {
                   rel="noopener noreferrer"
                   className={styles.socialLink}
                 >
-                  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-                    <path
-                      d={SOCIAL_ICONS[s.name]}
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                    />
-                  </svg>
+                  <SocialIcon name={s.name} />
                   <span>
                     <b>{s.name}</b>
                     <span className={styles.handle}>{s.handle}</span>

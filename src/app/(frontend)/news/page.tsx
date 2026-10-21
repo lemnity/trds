@@ -7,6 +7,7 @@ import { news } from '@/modules/content'
 import head from '../page-head.module.css'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/news' },
   title: 'Архив новостей',
   description: 'Премьеры и анонсы модного театра TURDUS.',
 }
