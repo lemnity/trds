@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 
 const price = formatRub(school.tariff.priceRub * 100)
 
-/** Запись — сообщение театру в WhatsApp (ссылка со старого сайта), в новой вкладке. */
+/** Запись — сообщение руководителю курса в Telegram, в новой вкладке. */
 function SignupLink() {
   return (
     <ButtonLink href={school.signup.href} target="_blank" rel="noopener noreferrer" size="lg">
