@@ -337,40 +337,6 @@
   color: var(--color-muted);
 }
 
-/* Спектакли — 14 вертикальных плиток: 7 в ряд, на узких экранах по 2. */
-.shows {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: clamp(1rem, 2vw, 1.5rem) clamp(0.75rem, 1.5vw, 1.25rem);
-}
-
-.show {
-  display: grid;
-  gap: 0.6rem;
-}
-
-.showPhoto {
-  position: relative;
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  border-radius: 3px;
-  background: var(--color-surface);
-}
-
-.showPhoto img {
-  object-fit: cover;
-  transition: transform var(--motion-base) var(--ease-standard);
-}
-
-.show:hover .showPhoto img {
-  transform: scale(1.04);
-}
-
-.showTitle {
-  font-weight: 600;
-  line-height: 1.3;
-}
-
 /* Отзывы — масонри-колонки: тексты разной длины не оставляют дыр. */
 .reviews {
   columns: 3 20rem;
@@ -480,10 +446,6 @@
   .programs li:nth-child(3) a {
     border-left: 0;
   }
-
-  .shows {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 60rem) {
@@ -515,10 +477,6 @@
   .teacher > .portrait {
     grid-column: 1;
     grid-row: 1 / span 6;
-  }
-
-  .shows {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -563,7 +521,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .showPhoto img,
   .programs a {
     transition: none;
   }

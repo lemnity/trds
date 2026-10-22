@@ -323,74 +323,133 @@ export const school = {
       ],
     },
   ] satisfies SchoolTeacher[],
-  /** Спектакли, поставленные с участниками школы, — обложка из галереи каждого на старом сайте. */
+  /** Спектакли, поставленные с участниками школы, — галерея каждого со старого сайта; первое фото — обложка. */
   shows: [
     {
       title: 'Ромео и Джульетта',
-      photo:
+      photos: [
         'https://static.tildacdn.com/tild6564-3239-4436-b663-396532343464/2019-08-19_213355_2_.jpg',
+        'https://static.tildacdn.com/tild6466-6663-4462-b738-343162313633/2019-08-192021335520.JPG',
+        'https://static.tildacdn.com/tild3064-3961-4763-a339-643762336532/2019-08-1920213355.JPG',
+        'https://static.tildacdn.com/tild3939-3535-4234-b334-313036323238/003_2017-01-08_15-24.jpg',
+      ],
     },
     {
       title: 'Сон в летнюю ночь',
-      photo:
+      photos: [
         'https://static.tildacdn.com/tild3765-3966-4331-a662-333732633538/2020-03-1820233108.JPG',
+        'https://static.tildacdn.com/tild6136-3137-4539-b232-373666626331/2020-03-1820233110.JPG',
+        'https://static.tildacdn.com/tild3934-3032-4764-a265-333133376661/2020-03-182023311420.JPG',
+        'https://static.tildacdn.com/tild3964-3533-4363-a461-383962333031/2020-03-1920000327.JPG',
+      ],
     },
     {
       title: 'Женитьба',
-      photo:
+      photos: [
         'https://static.tildacdn.com/tild3334-6265-4463-a631-303561313263/2018-05-20_185754_1.jpg',
+        'https://static.tildacdn.com/tild3166-3236-4764-b262-336365663937/2018-04-1820004120.JPG',
+        'https://static.tildacdn.com/tild3766-6563-4331-a366-663637336237/2018-01-162001234520.JPG',
+        'https://static.tildacdn.com/tild3836-3961-4565-a130-316466346332/FNoh_G-WBkQr9AE4FGT6.jpg',
+      ],
     },
     {
       title: 'Загадочные письма',
-      photo:
+      photos: [
         'https://static.tildacdn.com/tild3536-3163-4564-a633-373036613461/2019-08-19_211722_1.jpg',
+        'https://static.tildacdn.com/tild6466-3563-4866-b334-366633646337/WhatsApp_Image_2022-.jpg',
+        'https://static.tildacdn.com/tild3166-3933-4834-a632-303138383232/WhatsApp_Image_2022-.jpeg',
+        'https://static.tildacdn.com/tild3333-3337-4962-b339-333133333565/WhatsApp_Image_2022-.jpg',
+      ],
     },
     {
       title: 'Кровать, леди и джентльмены',
-      photo:
+      photos: [
         'https://static.tildacdn.com/tild6266-3034-4739-b063-316533313236/2020-01-05_224611.JPG',
+        'https://static.tildacdn.com/tild6434-3963-4237-b864-346363393238/2018-10-31_210724.JPG',
+        'https://static.tildacdn.com/tild6434-6532-4662-b739-306534363463/2020-01-05_224614.JPG',
+        'https://static.tildacdn.com/tild6636-3835-4361-b534-396466383635/2018-10-31_174346.JPG',
+      ],
     },
     {
       title: 'Федра',
-      photo:
+      photos: [
         'https://static.tildacdn.com/tild3461-6564-4663-b937-333430366436/ph_200225_AksenovThe.jpg',
+        'https://static.tildacdn.com/tild6531-6631-4637-b164-386466623939/ph_200225_AksenovThe.jpg',
+        'https://static.tildacdn.com/tild6139-3632-4665-b735-633031653265/ph_200225_AksenovThe.jpg',
+        'https://static.tildacdn.com/tild6437-6235-4462-b334-613066383332/ph_200225_AksenovThe.jpg',
+      ],
     },
     {
       title: '8 любящих женщин',
-      photo: 'https://static.tildacdn.com/tild6238-3233-4437-a439-646536373739/ph_190125-131.jpg',
+      photos: [
+        'https://static.tildacdn.com/tild6238-3233-4437-a439-646536373739/ph_190125-131.jpg',
+        'https://static.tildacdn.com/tild3536-6237-4439-b663-663632386534/prW7AAw24dq0isAPNCCP.jpg',
+        'https://static.tildacdn.com/tild6363-3438-4039-b363-313735323239/iDPad7Bfb2882S000Wiq.jpg',
+        'https://static.tildacdn.com/tild3466-3431-4363-a461-373839393435/2020-01-2420184915.JPG',
+      ],
     },
     {
       title: 'Тартюф',
-      photo:
+      photos: [
         'https://static.tildacdn.com/tild3439-6235-4430-b461-646665363961/2019-07-2820032654.JPG',
+        'https://static.tildacdn.com/tild3038-3761-4061-b339-653737333938/2019-06-12_012212_1_.jpg',
+        'https://static.tildacdn.com/tild6462-6534-4737-a435-393130386263/2019-09-30_200230.jpeg',
+        'https://static.tildacdn.com/tild3861-3734-4833-b431-343035616332/2019-09-29_145148_1_.jpg',
+      ],
     },
     {
       title: 'Обыкновенное чудо',
-      photo:
+      photos: [
         'https://static.tildacdn.com/tild3331-6535-4463-a531-336365343835/BeregFILM_01-11_-169.jpg',
+        'https://static.tildacdn.com/tild6338-6362-4332-b030-383337323765/2019-11-0120221239.JPG',
+        'https://static.tildacdn.com/tild6566-3836-4864-a234-363836616366/BeregFILM_01-11_-195.jpg',
+        'https://static.tildacdn.com/tild6265-3766-4638-b930-666166366130/BeregFILM_01-11_-305.jpg',
+      ],
     },
     {
       title: 'Невстреча',
-      photo:
+      photos: [
         'https://static.tildacdn.com/tild3134-3261-4365-b962-386666386561/2020-12-1420122903.JPG',
+        'https://static.tildacdn.com/tild3463-3066-4135-b832-666133376465/2020-12-1420154829.JPG',
+        'https://static.tildacdn.com/tild6266-3536-4339-a266-323161336132/2020-10-09_142822_1.jpeg',
+        'https://static.tildacdn.com/tild3232-3165-4338-b561-313466646234/2020-12-1420154830.JPG',
+      ],
     },
     {
       title: 'Не ходите в гости к незнакомцам',
-      photo:
+      photos: [
         'https://static.tildacdn.com/tild3265-3566-4361-b438-316464346434/iIDfugXQnMY-ZZZRHqlJ.jpg',
+        'https://static.tildacdn.com/tild6135-3931-4365-b434-383661303835/9d3bTuWbWebkNwduYNhV.jpg',
+        'https://static.tildacdn.com/tild3863-3737-4037-b833-613034613962/ofTNtMsLsJK6g9o2VnjA.jpg',
+        'https://static.tildacdn.com/tild6366-3938-4837-b030-373531376164/FdsjZZnEK516LlgihV74.jpg',
+      ],
     },
     {
       title: 'В бананово-лимонном Сингапуре',
-      photo: 'https://static.tildacdn.com/tild3030-6631-4364-a565-613031646361/PRVL1790.JPG',
+      photos: [
+        'https://static.tildacdn.com/tild3030-6631-4364-a565-613031646361/PRVL1790.JPG',
+        'https://static.tildacdn.com/tild6262-3564-4364-b033-663861326365/PRVL1758.JPG',
+        'https://static.tildacdn.com/tild6131-3939-4635-b335-336164323739/PRVL1767.JPG',
+        'https://static.tildacdn.com/tild3630-6436-4537-b836-313836356232/PRVL1782.JPG',
+      ],
     },
     {
       title: 'Муж для Памелы',
-      photo:
+      photos: [
         'https://static.tildacdn.com/tild3566-3638-4363-b464-333734373464/WhatsApp_Image_2022-.jpg',
+        'https://static.tildacdn.com/tild6561-3563-4338-b366-363939656263/WhatsApp_Image_2022-.jpg',
+        'https://static.tildacdn.com/tild6133-3633-4661-b866-616437343864/WhatsApp_Image_2022-.jpeg',
+        'https://static.tildacdn.com/tild6665-3263-4230-b736-346632353562/WhatsApp_Image_2022-.jpg',
+      ],
     },
     {
       title: 'Пока она умирала',
-      photo: 'https://static.tildacdn.com/tild3234-3535-4565-a639-333037363731/H56A5425_.jpg',
+      photos: [
+        'https://static.tildacdn.com/tild3234-3535-4565-a639-333037363731/H56A5425_.jpg',
+        'https://static.tildacdn.com/tild6330-3337-4339-a637-646336383335/H56A5518_.jpg',
+        'https://static.tildacdn.com/tild6437-6435-4330-a566-383533646162/H56A5374_.jpg',
+        'https://static.tildacdn.com/tild6232-3330-4063-b664-623731323164/H56A5339_.jpg',
+      ],
     },
   ],
   /** «Фотографии с прогонов и репетиций». */

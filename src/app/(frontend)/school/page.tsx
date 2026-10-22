@@ -9,6 +9,7 @@ import { listPeople } from '@/modules/people'
 import { getShowsData } from '@/modules/shows'
 
 import { personPhotos } from '@/components/people/personPhotos'
+import { ShowsGallery } from '@/components/school/ShowsGallery'
 import { Gallery } from '@/components/show/Gallery'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { PersonAvatar } from '@/components/ui/PersonAvatar'
@@ -218,21 +219,7 @@ export default function SchoolPage() {
         <h2 id="shows-title" className={styles.sectionTitle} {...reveal()}>
           Поставленные спектакли
         </h2>
-        <ul className={styles.shows}>
-          {school.shows.map((show, i) => (
-            <li key={show.title} className={styles.show} {...reveal(i % 4)}>
-              <div className={styles.showPhoto}>
-                <Image
-                  src={show.photo}
-                  alt={`Сцена из спектакля «${show.title}»`}
-                  fill
-                  sizes="(min-width: 70rem) 15vw, (min-width: 60rem) 25vw, 50vw"
-                />
-              </div>
-              <p className={styles.showTitle}>{show.title}</p>
-            </li>
-          ))}
-        </ul>
+        <ShowsGallery label="Поставленные спектакли" shows={school.shows} />
       </section>
 
       <section className={styles.section} aria-labelledby="rehearsals-title">
