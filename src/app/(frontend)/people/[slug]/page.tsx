@@ -79,7 +79,8 @@ const aboutTitle = (fields: string[]) =>
     : (fields.map((f) => ABOUT_TITLES[f]).find(Boolean) ?? 'Об участнике')
 
 /**
- * Страница актёра (и других людей театра): шапка с направлениями и цифрами, «Об актёре», роли
+ * Страница актёра (и других людей театра): шапка с направлениями и цифрами, «Об актёре» (если есть
+ * биография), роли
  * хронологией (репертуар по ближайшей дате, ниже архив), внизу — фото масонри-сеткой.
  * Только данные из составов: биографию и личные фото театр ещё не передал.
  */
@@ -139,11 +140,12 @@ export default async function PersonPage({ params }: { params: Promise<Params> }
         )}
       </ul>
 
-      <section className={styles.about} aria-labelledby="about-title" {...reveal()}>
-        <h2 id="about-title" className={styles.sectionTitle}>
-          {aboutTitle(fields)}
-        </h2>
-        {bio ? (
+      {/* Блок о человеке — только когда есть биография от театра (заглушку не показываем). */}
+      {bio && (
+        <section className={styles.about} aria-labelledby="about-title" {...reveal()}>
+          <h2 id="about-title" className={styles.sectionTitle}>
+            {aboutTitle(fields)}
+          </h2>
           <div className={styles.bio}>
             <p className={styles.bioTitle}>{bio.title}</p>
             {bio.paragraphs.map((text) => (
@@ -161,13 +163,8 @@ export default async function PersonPage({ params }: { params: Promise<Params> }
             )}
             <p className={styles.bioSource}>Источник: {bio.source}</p>
           </div>
-        ) : (
-          // ЗАГЛУШКА: текст биографии — после согласования с театром.
-          <p className={styles.placeholder}>
-            Биография и фото появятся после согласования с театром.
-          </p>
-        )}
-      </section>
+        </section>
+      )}
 
       <section className={styles.section} aria-labelledby="roles-title">
         <h2 id="roles-title" className={styles.sectionTitle}>

@@ -6,6 +6,7 @@ import { personSlug } from '@/modules/people'
 import { formatAge, formatDuration, type Credit, type Show } from '@/modules/shows'
 
 import styles from './ShowAbout.module.css'
+import { personPhotos } from '../people/personPhotos'
 import { PersonAvatar } from '../ui/PersonAvatar'
 import { cardClass } from '../ui/card'
 
@@ -173,8 +174,12 @@ export function ShowAbout({ show, buy }: AboutProps) {
             <ul className={styles.actors}>
               {actors.map((a) => (
                 <li key={a.name} className={styles.actor}>
-                  {/* Фото людей театр ещё не передал — инициалы. */}
-                  <PersonAvatar name={a.name} className={styles.avatar} />
+                  {/* Портрет, если театр его передал, иначе инициалы. */}
+                  <PersonAvatar
+                    name={a.name}
+                    photo={personPhotos[personSlug(a.name)]}
+                    className={styles.avatar}
+                  />
                   <span className={styles.actorText}>
                     {a.role && <span className={styles.actorRole}>{a.role}</span>}
                     <Link href={`/people/${personSlug(a.name)}`} className={styles.actorName}>
