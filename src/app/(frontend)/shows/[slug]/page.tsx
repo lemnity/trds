@@ -47,7 +47,7 @@ export default async function ShowPage({ params }: { params: Promise<Params> }) 
   if (!page) notFound()
   const { show, performances } = page
 
-  const posters = new Map(data.shows.map((s) => [s.slug, s.posterUrl]))
+  const posters = new Map(data.shows.map((s) => [s.slug, s.previewUrl ?? s.posterUrl]))
   const seen = new Set([slug])
   const others = listUpcoming(data, now)
     .filter((p) => !seen.has(p.show.slug) && seen.add(p.show.slug))

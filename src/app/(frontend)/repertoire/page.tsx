@@ -36,7 +36,12 @@ export default function RepertoirePage() {
         return (
           <li key={show.slug} className={styles.card} {...reveal(i % 4)}>
             <div className={styles.media}>
-              <Image src={show.posterUrl} alt="" fill sizes="(min-width: 64rem) 30vw, 100vw" />
+              <Image
+                src={show.previewUrl ?? show.posterUrl}
+                alt=""
+                fill
+                sizes="(min-width: 64rem) 30vw, 100vw"
+              />
             </div>
             <p className={styles.kicker}>
               {[show.genre, formatAge(show.ageLimit)].filter(Boolean).join(' · ')}

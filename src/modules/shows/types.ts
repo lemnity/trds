@@ -44,6 +44,11 @@ export type Show = {
   eventType: EventType
   /** Премьера — по пометке театра. */
   premiere?: boolean
+  /**
+   * Дата анонса (YYYY-MM-DD) — чем новее, тем раньше спектакль в слайдере главной.
+   * В CMS — дата создания записи.
+   */
+  announcedAt?: string
   /** Можно купить по Пушкинской карте — подтверждает театр. */
   pushkinCard?: boolean
   /** Есть студенческие условия (скидка, места по студенческому). Подтверждает театр. */
@@ -51,6 +56,12 @@ export type Show = {
   /** Фото спектакля (не афиши) для баннера, коллажа и галереи. */
   gallery: string[]
   posterUrl: string
+  /** Обложка наверху страницы спектакля; нет — первое фото галереи, иначе афиша. */
+  coverUrl?: string
+  /** Точка фокуса обложки (CSS object-position), если главное не в центре кадра. */
+  coverFocus?: string
+  /** Превью для карточек (368×250); нет — карточка берёт афишу `posterUrl`. */
+  previewUrl?: string
   status: 'published' | 'draft'
 }
 
@@ -100,11 +111,11 @@ export type Availability = {
 export type PerformanceView = {
   id: string
   startsAt: string
-  show: Pick<Show, 'slug' | 'title' | 'ageLimit' | 'genre' | 'eventType'> & {
+  show: Pick<Show, 'slug' | 'title' | 'ageLimit' | 'genre' | 'eventType' | 'announcedAt'> & {
     premiere: boolean
     pushkinCard: boolean
     studentOffer: boolean
-    /** Превью: фото спектакля, если есть, иначе афиша. */
+    /** Превью: фото спектакля, если есть, иначе превью карточки, иначе афиша. */
     imageUrl: string
   }
   venue: Venue

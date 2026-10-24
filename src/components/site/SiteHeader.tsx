@@ -23,7 +23,7 @@ const MEGA_UPCOMING = 8
 export function SiteHeader() {
   const data = getShowsData()
   const upcoming = listUpcoming(data, new Date())
-  const posters = new Map(data.shows.map((s) => [s.slug, s.posterUrl]))
+  const posters = new Map(data.shows.map((s) => [s.slug, s.previewUrl ?? s.posterUrl]))
   const months = groupByMonth(upcoming).map((g) => ({
     href: `/afisha?month=${g.key}`,
     label: g.label,

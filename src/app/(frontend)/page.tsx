@@ -24,9 +24,9 @@ const HOME_NEWS = 4
 export default function HomePage() {
   const data = getShowsData()
   const upcoming = listUpcoming(data, new Date())
-  const posters = new Map(data.shows.map((s) => [s.slug, s.posterUrl]))
-  // Слайд — обложка спектакля (превью с сайта театра).
-  const covers = new Map(data.shows.map((s) => [s.slug, s.posterUrl]))
+  const posters = new Map(data.shows.map((s) => [s.slug, s.previewUrl ?? s.posterUrl]))
+  // Слайд — превью спектакля (368×250, если театр его передал), иначе обложка.
+  const covers = new Map(data.shows.map((s) => [s.slug, s.previewUrl ?? s.posterUrl]))
   const slides = heroSlides(data, new Date(), HERO_NEAREST).map((performance) => ({
     performance,
     imageUrl: covers.get(performance.show.slug)!,

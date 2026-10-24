@@ -10,12 +10,19 @@ import { TicketIcon } from '../ui/TicketIcon'
 
 /** Обложка на всю ширину (название и крошки — в ShowHero над ней). */
 export function ShowCover({ show }: { show: Show }) {
-  const photo = show.gallery[0]
+  const photo = show.coverUrl ?? show.gallery[0]
   return (
     <div className="container">
       <div className={styles.media} data-kind={photo ? 'photo' : 'poster'}>
         {photo ? (
-          <Image src={photo} alt="" fill priority sizes="100vw" />
+          <Image
+            src={photo}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            style={show.coverFocus ? { objectPosition: show.coverFocus } : undefined}
+          />
         ) : (
           <>
             <Image src={show.posterUrl} alt="" fill sizes="30vw" className={styles.backdrop} />

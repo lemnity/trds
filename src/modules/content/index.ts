@@ -33,6 +33,15 @@ export const aboutTheatre = {
 
 export const news: NewsItem[] = [
   {
+    id: 'crime-punishment-premiere',
+    tag: 'Премьера',
+    title: 'Преступление? Наказание?',
+    summary:
+      'Спектакль по роману Ф. М. Достоевского. 23 ноября в 19:00, лофт «Батон», Хлебозавод №6, ул. 8 Марта, 203. 12+.',
+    href: '/shows/crime-punishment',
+    imageUrl: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/posters/crime-punishment.webp`,
+  },
+  {
     id: 'shakespeare-premiere',
     tag: 'Премьера',
     title: 'Весь Шекспир за 1,5 часа',

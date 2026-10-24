@@ -63,10 +63,11 @@ const toView = (data: ShowsData, p: Performance): PerformanceView | null => {
       ageLimit: show.ageLimit,
       genre: show.genre,
       eventType: show.eventType,
+      announcedAt: show.announcedAt,
       premiere: show.premiere === true,
       pushkinCard: show.pushkinCard === true,
       studentOffer: show.studentOffer === true,
-      imageUrl: show.gallery[0] ?? show.posterUrl,
+      imageUrl: show.gallery[0] ?? show.previewUrl ?? show.posterUrl,
     },
     venue,
     minPriceKopecks: prices.length > 0 ? Math.min(...prices) : null,
@@ -253,8 +254,9 @@ export const filterPerformances = (
 }
 
 /**
- * Слайды главного экрана: ближайший показ каждого спектакля (первые `limit`)
- * плюс все премьеры, без повторов, по дате.
+ * Слайды главного экрана: ближайший показ каждого спектакля (первые `limit`) плюс все
+ * премьеры, без повторов. Сначала премьеры — самая новая по `announcedAt` первой (без даты
+ * анонса — после датированных), при равенстве по дате показа; затем остальные по дате.
  */
 export const heroSlides = (data: ShowsData, now: Date, limit: number): PerformanceView[] => {
   const seen = new Set<string>()
@@ -262,6 +264,11 @@ export const heroSlides = (data: ShowsData, now: Date, limit: number): Performan
     (p) => !seen.has(p.show.slug) && seen.add(p.show.slug),
   )
   const nearest = nextPerShow.slice(0, limit)
-  const premieres = nextPerShow.filter((p) => p.show.premiere && !nearest.includes(p))
-  return [...nearest, ...premieres].sort(byStart)
+  const premieres = nextPerShow
+    .filter((p) => p.show.premiere)
+    .sort(
+      (a, b) => (b.show.announcedAt ?? '').localeCompare(a.show.announcedAt ?? '') || byStart(a, b),
+    )
+  const rest = nearest.filter((p) => !p.show.premiere).sort(byStart)
+  return [...premieres, ...rest]
 }

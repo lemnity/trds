@@ -9,6 +9,12 @@ import type { ShowsData } from './types'
  */
 
 const tz = '+05:00'
+
+/**
+ * Файл из `public/` (афиши, переданные театром). next/image сам не добавляет basePath к
+ * локальному адресу — на GitHub Pages (/trds) префикс нужен вручную (документация basePath).
+ */
+export const publicAsset = (path: string) => `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}${path}`
 const at = (date: string, time: string) => `${date}T${time}:00${tz}`
 
 // ЗАГЛУШКА по просьбе заказчика (15.10.2026): цены категорий не утверждены театром.
@@ -378,6 +384,28 @@ export const demoShowsData: ShowsData = {
       status: 'published',
     },
     {
+      slug: 'crime-punishment',
+      eventType: 'spectacle',
+      // Пометка «Премьера» и дата 23.11 19:00 — с афиши, переданной театром 24.10.2026. Цен,
+      // состава и описания нет — добавить, когда театр передаст.
+      premiere: true,
+      announcedAt: '2026-10-24',
+      title: 'Преступление? Наказание?',
+      genre: 'Спектакль по роману Ф. М. Достоевского',
+      ageLimit: 12,
+      durationMinutes: null,
+      lead: 'Премьера модного театра TURDUS — спектакль по роману Ф. М. Достоевского в лофте «Батон» на Хлебозаводе №6.',
+      description: [],
+      credits: [],
+      gallery: [],
+      posterUrl: publicAsset('/posters/crime-punishment.webp'),
+      previewUrl: publicAsset('/posters/crime-punishment-card.webp'),
+      coverUrl: publicAsset('/posters/crime-punishment-cover.webp'),
+      // Фигура внизу кадра — в широкой полосе обложки держим её в поле зрения.
+      coverFocus: '50% 85%',
+      status: 'published',
+    },
+    {
       slug: 'concertsp',
       eventType: 'concert',
       title: 'В бананово-лимонном Сингапуре',
@@ -668,6 +696,14 @@ export const demoShowsData: ShowsData = {
       showSlug: 'facetoface',
       venueId: 'leburg',
       startsAt: at('2026-10-25', '18:00'),
+      ticketTypes: [],
+    },
+    // Дата и время — с афиши театра (24.10.2026); цен нет — продажи на сайте закрыты.
+    {
+      id: 'crime-punishment-1123',
+      showSlug: 'crime-punishment',
+      venueId: 'baton',
+      startsAt: at('2026-11-23', '19:00'),
       ticketTypes: [],
     },
     {
