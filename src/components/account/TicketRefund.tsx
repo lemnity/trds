@@ -77,8 +77,29 @@ const ERROR_TEXT: Record<string, string> = {
 
 const newKey = () => crypto.randomUUID()
 
-export function TicketRefund({ ticketNumber }: { ticketNumber: string }) {
-  const [state, setState] = useState<State>({ step: 'idle' })
+const DEMO_TEXT =
+  'Демо: на сайте театра здесь откроется возврат — сумма к возврату, правила театра и подтверждение.'
+
+/**
+ * `autoStart` — проверка возврата запускается сразу (кнопка «Вернуть» на карточке билета);
+ * `demo` — на превью сервера нет, показываем честную пометку вместо запроса.
+ */
+export function TicketRefund({
+  ticketNumber,
+  autoStart = false,
+  demo = false,
+}: {
+  ticketNumber: string
+  autoStart?: boolean
+  demo?: boolean
+}) {
+  const [state, setState] = useState<State>(() =>
+    autoStart
+      ? demo
+        ? { step: 'error', message: DEMO_TEXT }
+        : { step: 'loading' }
+      : { step: 'idle' },
+  )
   // Список билетов обновляем, когда диалог закрыт (блок размонтирован): перезагрузка сразу после
   // возврата убирала карточку билета из «Будущих» вместе с открытым диалогом — зритель не видел
   // результат «Возврат выполнен/оформлен» (найдено e2e, T-070).
@@ -90,8 +111,8 @@ export function TicketRefund({ ticketNumber }: { ticketNumber: string }) {
     [],
   )
 
-  const load = async () => {
-    setState({ step: 'loading' })
+  // Предпросмотр без синхронного setState — его же вызывает эффект автозапуска.
+  const fetchQuote = async () => {
     try {
       const res = await fetch(`/api/account/refunds?tickets=${encodeURIComponent(ticketNumber)}`, {
         cache: 'no-store',
@@ -103,6 +124,24 @@ export function TicketRefund({ ticketNumber }: { ticketNumber: string }) {
       setState({ step: 'error', message: 'Не удалось проверить возврат. Повторите позже.' })
     }
   }
+
+  const load = () => {
+    if (demo) {
+      setState({ step: 'error', message: DEMO_TEXT })
+      return
+    }
+    setState({ step: 'loading' })
+    void fetchQuote()
+  }
+
+  const started = useRef(false)
+  useEffect(() => {
+    if (!autoStart || demo || started.current) return
+    started.current = true
+    void fetchQuote()
+    // fetchQuote читает только ticketNumber; повторный запуск не нужен.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const confirm = async (quote: Quote, key: string) => {
     setState({ step: 'sending', quote, key })

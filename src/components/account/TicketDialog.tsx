@@ -33,12 +33,15 @@ export function TicketDialog({
   isOpen,
   onOpenChange,
   demo,
+  startRefund = false,
 }: {
   ticket: TicketView
   order: OrderView | null
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   demo: boolean
+  /** Открыт кнопкой «Вернуть» на карточке — сразу проверяем возврат. */
+  startRefund?: boolean
 }) {
   const { date, time } = formatTicketDate(ticket.startsAt)
   const now = new Date()
@@ -138,8 +141,8 @@ export function TicketDialog({
               {order && <OrderDetails order={order} />}
 
               {/* Возврат — только у действующего билета на будущий показ; правила проверит сервер. */}
-              {!demo && ticket.state === 'valid' && ticket.qrUrl && (
-                <TicketRefund ticketNumber={ticket.number} />
+              {ticket.state === 'valid' && ticket.qrUrl && (
+                <TicketRefund ticketNumber={ticket.number} autoStart={startRefund} demo={demo} />
               )}
             </>
           )}

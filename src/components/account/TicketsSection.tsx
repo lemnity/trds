@@ -44,7 +44,14 @@ function TicketCard({
   demo: boolean
 }) {
   const [open, setOpen] = useState(false)
+  const [refund, setRefund] = useState(false)
   const { date, time } = formatTicketDate(ticket.startsAt)
+  // Возврат — только у действующего билета на будущий показ (как и в диалоге).
+  const refundable = ticket.state === 'valid' && Boolean(ticket.qrUrl)
+  const show = (withRefund: boolean) => {
+    setRefund(withRefund)
+    setOpen(true)
+  }
   return (
     <li className={styles.card} data-state={ticket.state}>
       <div className={styles.cardBody}>
@@ -67,17 +74,30 @@ function TicketCard({
           {demo && <DemoBadge />}
         </p>
       </div>
-      <button
-        type="button"
-        className={buttonVariants({
-          variant: ticket.qrUrl ? 'primary' : 'outline',
-          className: styles.open,
-        })}
-        onClick={() => setOpen(true)}
-        aria-haspopup="dialog"
-      >
-        {ticket.qrUrl ? 'Показать QR' : 'Подробнее'}
-      </button>
+      <div className={styles.actions}>
+        {refundable && (
+          <button
+            type="button"
+            className={buttonVariants({ variant: 'outline', className: styles.open })}
+            onClick={() => show(true)}
+            aria-haspopup="dialog"
+            aria-label={`Вернуть билет ${ticket.number}`}
+          >
+            Вернуть
+          </button>
+        )}
+        <button
+          type="button"
+          className={buttonVariants({
+            variant: ticket.qrUrl ? 'primary' : 'outline',
+            className: styles.open,
+          })}
+          onClick={() => show(false)}
+          aria-haspopup="dialog"
+        >
+          {ticket.qrUrl ? 'Показать QR' : 'Подробнее'}
+        </button>
+      </div>
       {open && (
         <TicketDialog
           ticket={ticket}
@@ -85,6 +105,7 @@ function TicketCard({
           isOpen={open}
           onOpenChange={setOpen}
           demo={demo}
+          startRefund={refund}
         />
       )}
     </li>

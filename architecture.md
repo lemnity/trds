@@ -44,13 +44,14 @@
 | Node.js | 24.21.0 (LTS «Krypton») | Payload 3.90.2 `engines.node`: `^18.20.2 \|\| >=20.9.0`; Next 16 — `>=20.9.0` |
 | pnpm | 10.34.6 (через corepack, `packageManager`) | Payload `engines.pnpm`: `^9 \|\| ^10 \|\| ^11` |
 | Payload CMS | 3.90.2 (все `@payloadcms/*` той же версии) | — |
-| Next.js | 16.3.8 | peer `@payloadcms/next@3.90.2`: `>=16.3.3 <17.0.0` (а также узкие окна 15.2.9+/15.3.9+/15.4.11+) |
+| Next.js | 16.4.2 | peer `@payloadcms/next@3.90.2`: `>=16.3.3 <17.0.0` (а также узкие окна 15.2.9+/15.3.9+/15.4.11+) |
 | React / React DOM | 19.2.8 | peer `@payloadcms/ui`: `^19.2.1` |
 | TypeScript | 5.9.3 | Next 16 требует TS ≥ 5.1; Payload тестируется на 5.7.x; TS 6/7 не берём без отдельной проверки |
 | PostgreSQL | 16 (образ закрепить в T-012) | `@payloadcms/db-postgres` (drizzle-orm 0.45.2, pg 8.20.0) |
 | Docker base | `node:24.21.0-bookworm-slim@sha256:d6aa75…` | glibc-образ: `sharp` без musl-особенностей |
 
 Правила выбора и обновления:
+- 26.10.2026 — исключение из правила 14 дней ради исправлений безопасности (`pnpm audit`: критические уязвимости Next.js ≤ 16.4.0): Next.js и `eslint-config-next` 16.4.2 (релиз 15.10.2026), `zod` 4.6.7, `nodemailer` 10.1.7, overrides `undici` 7.30.1 и `dompurify` 3.4.17. Правило 7 дней (`minimumReleaseAge`) соблюдено без исключений; `happy-dom` 21.0.4 (high, через `@lexical/headless`) и `fast-uri` 3.1.9 (moderate) ему пока не удовлетворяют — обновить override после 27.10.2026.
 - Берём только релизы старше 14 дней. Поэтому не Next.js 16.4.0 (релиз 06.10.2026, вне проверенной Payload линии) и не Node 24.22.0 (релиз 14.10.2026). Дополнительная защита — `minimumReleaseAge: 10080` (7 дней) в `pnpm-workspace.yaml`.
 - Ранее в документе было указано «документация Payload требует Node.js 24.15.0+ и Next.js 16.4.0+». Это не подтвердилось: документация установки Payload v3.90.2 указывает Node.js 20.9.0+ и Next.js 16.2.6+, а peerDependencies строже (`>=16.3.3`). Источник истины — peerDependencies `@payloadcms/next`/`@payloadcms/ui` конкретной версии.
 - Next.js 15 из исходного плана совместим только в узких патч-окнах; на нём не стартуем.

@@ -92,6 +92,13 @@
   color: var(--color-muted);
 }
 
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
 .open {
   flex: 0 0 auto;
   min-height: var(--tap-min);
@@ -274,7 +281,11 @@
     min-height: 100dvh;
   }
 
-  .open {
+  .actions {
     width: 100%;
+  }
+
+  .open {
+    flex: 1 1 0;
   }
 }

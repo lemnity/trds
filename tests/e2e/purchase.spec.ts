@@ -132,6 +132,20 @@ test('покупка с бонусами, QR в кабинете и возвра
     await page.getByRole('tab', { name: /Будущие/ }).click()
     await expect(page.getByRole('tabpanel').getByRole('listitem')).toHaveCount(1)
 
+    // Кнопка «Вернуть» на карточке действующего билета открывает его сразу с расчётом возврата.
+    await page
+      .getByRole('tabpanel')
+      .getByRole('listitem')
+      .first()
+      .getByRole('button', { name: /^Вернуть билет/ })
+      .click()
+    const second = page.getByRole('dialog')
+    await expect(second.getByRole('region', { name: 'Возврат билета' })).toContainText(
+      'Вернётся на карту',
+    )
+    await second.getByRole('button', { name: 'Отмена' }).click()
+    await second.getByRole('button', { name: 'Закрыть' }).click()
+
     // В базе — один возврат одного билета (деньги вернул учебный банк).
     const refunds = await rows<{ status: string; tickets: number }>(
       db,
