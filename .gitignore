@@ -1,5 +1,10 @@
 node_modules/
 .next/
+# e2e: каталог сборки dev-сервера, рабочие файлы прогона, отчёты Playwright
+.next-e2e/
+.e2e/
+playwright-report/
+test-results/
 out/
 coverage/
 *.tsbuildinfo

@@ -3,7 +3,9 @@
  * (`NEXT_PUBLIC_SITE_URL`); по умолчанию — домен театра, куда переедет сайт (T-004, T-075).
  * Превью на GitHub Pages закрыто от индексации, canonical там указывает на домен театра.
  */
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://teatrturdus.ru').replace(
+// `||`, а не `??`: пустая переменная (`NEXT_PUBLIC_SITE_URL=` в .env) давала `new URL('')`
+// в metadataBase и падение каждой страницы (найдено e2e, T-070).
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://teatrturdus.ru').replace(
   /\/$/,
   '',
 )

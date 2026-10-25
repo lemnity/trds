@@ -53,6 +53,54 @@ jobs:
       - name: Build production image
         run: docker build --tag trds:ci .
 
+  # E2E (T-070, HTTP-часть T-071): next dev с учебным банком против одноразовой базы.
+  # global-setup стирает схему public, поэтому имя базы содержит e2e.
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    needs: verify
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+      E2E_DATABASE_URL: postgres://postgres:e2e-ci-only@127.0.0.1:5432/trds_e2e
+    services:
+      postgres:
+        image: postgres:16.15-alpine
+        env:
+          POSTGRES_PASSWORD: e2e-ci-only
+          POSTGRES_DB: trds_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - name: Enable pinned pnpm (packageManager)
+        run: corepack enable
+      - name: Clean install
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: E2E tests
+        run: pnpm test:e2e
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+            .e2e/next-dev.log
+          # Лог сервера лежит в скрытом каталоге .e2e.
+          include-hidden-files: true
+          retention-days: 14
+
   # Отдельно от verify: новый advisory в транзитивной зависимости виден сразу,
   # но не маскирует результат typecheck/tests/build. Принятые риски — architecture.md §2.
   audit:

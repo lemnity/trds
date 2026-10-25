@@ -18,6 +18,11 @@ export default defineConfig([
   },
   globalIgnores([
     '.next/**',
+    // e2e: сборка dev-сервера, рабочие файлы и отчёты Playwright.
+    '.next-e2e/**',
+    '.e2e/**',
+    'playwright-report/**',
+    'test-results/**',
     'node_modules/**',
     'next-env.d.ts',
     // Генерируются Payload — не редактируются вручную.

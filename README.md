@@ -25,6 +25,13 @@ pnpm dev --port 3010   # сайт: http://localhost:3010, админка: /admin
 pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build
 ```
 
+E2E (Playwright, только Chromium): `pnpm exec playwright install chromium`, затем `pnpm test:e2e`.
+Нужен Docker: setup поднимает одноразовый PostgreSQL (`postgres:16.15-alpine`), применяет миграции
+и сид, выпускает тестовые сертификаты и запускает `next dev` с учебным банком на свободном порту
+в `.next-e2e` (не мешает своему `pnpm dev`). Своя база — `E2E_DATABASE_URL` (имя с `e2e`: схема
+стирается); `E2E_KEEP_DB=1` — не удалять контейнер. Отчёт — `playwright-report/`, лог сервера —
+`.e2e/next-dev.log`. Подробности — `tests/e2e/global-setup.ts`.
+
 ## Production-окружение одной командой
 
 Заполнить в `.env`: `POSTGRES_PASSWORD`, `PAYLOAD_SECRET`, `SITE_DOMAIN` (для production — без `HSTS_MAX_AGE`). Затем:

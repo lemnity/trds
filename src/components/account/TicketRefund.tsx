@@ -1,7 +1,7 @@
 'use client'
 
 import { buttonVariants } from '@heroui/styles'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from 'react-aria-components'
 
 import { formatRub } from '@/lib/money'
@@ -79,6 +79,16 @@ const newKey = () => crypto.randomUUID()
 
 export function TicketRefund({ ticketNumber }: { ticketNumber: string }) {
   const [state, setState] = useState<State>({ step: 'idle' })
+  // Список билетов обновляем, когда диалог закрыт (блок размонтирован): перезагрузка сразу после
+  // возврата убирала карточку билета из «Будущих» вместе с открытым диалогом — зритель не видел
+  // результат «Возврат выполнен/оформлен» (найдено e2e, T-070).
+  const changed = useRef(false)
+  useEffect(
+    () => () => {
+      if (changed.current) void reloadTickets()
+    },
+    [],
+  )
 
   const load = async () => {
     setState({ step: 'loading' })
@@ -103,7 +113,7 @@ export function TicketRefund({ ticketNumber }: { ticketNumber: string }) {
     }>('/api/account/refunds', { tickets: quote.ticketNumbers, clientKey: key })
     if (data?.refund) {
       setState({ step: 'done', refund: data.refund })
-      void reloadTickets()
+      changed.current = true
       return
     }
     const message =
