@@ -10,6 +10,7 @@ import {
   isStaticExport,
   payloadReaderFor,
   type CmsReader,
+  type StockReader,
 } from '../../src/modules/site-data'
 import type { Media, Performance, Person, Show, TicketType, Venue } from '../../src/payload-types'
 
@@ -250,6 +251,80 @@ describe('CMS read model (mocked Payload)', () => {
     expect(c.contacts.email).toBe('theatre@example.com')
     // Страниц «О театре» и «Корпоративы» в CMS нет — тексты остаются из демо-набора.
     expect(c.aboutTheatre).toBe(demoSiteContent.aboutTheatre)
+  })
+})
+
+// T-042/T-033: страницы показывают остаток ядра продаж; оформление — квоты CMS (решает acquire).
+describe('real availability (stock overlay)', () => {
+  const soldOut: StockReader = async (ids) =>
+    new Map(
+      ids
+        .filter((id) => id === 'guests-1115')
+        .map((id) => [
+          id,
+          {
+            categories: [
+              { ticketTypeId: 'standard', capacity: 20, sold: 19, held: 1 },
+              { ticketTypeId: 'vip', capacity: 20, sold: 20, held: 0 },
+            ],
+            unavailableSeatIds: [],
+          },
+        ]),
+    )
+
+  it('pages: one batched stock call for future performances; sold out → level none', async () => {
+    const stock = vi.fn(soldOut)
+    const site = createSiteData({
+      reader: async () => reader(),
+      stock,
+      env: DB,
+      logger: quiet,
+      now: () => NOW,
+    })
+    const data = await site.loadSiteShows()
+    expect(stock).toHaveBeenCalledTimes(1)
+    expect(stock).toHaveBeenCalledWith(['guests-1115', 'guests-1129'])
+    const view = listUpcoming(data, NOW).find((p) => p.id === 'guests-1115')
+    expect(view?.availability).toEqual({ available: 0, capacity: 40, level: 'none' })
+  })
+
+  it('checkout data (loadShowsData) stays on CMS quotas; demo path never asks the stock', async () => {
+    const stock = vi.fn(soldOut)
+    const site = createSiteData({ reader: async () => reader(), stock, env: DB, now: () => NOW })
+    const raw = await site.loadShowsData()
+    expect(listUpcoming(raw, NOW).find((p) => p.id === 'guests-1115')?.availability?.level).toBe(
+      'many',
+    )
+    const demo = createSiteData({
+      reader: async () => reader(),
+      stock,
+      env: { ...DB, PAGES_EXPORT: '1' },
+    })
+    expect(await demo.loadSiteShows()).toBe(demoShowsData)
+    const empty = createSiteData({
+      reader: async () => reader({ countAllShows: async () => 0 }),
+      stock,
+      env: DB,
+      logger: quiet,
+    })
+    expect(await empty.loadSiteShows()).toBe(demoShowsData)
+    expect(stock).not.toHaveBeenCalled()
+  })
+
+  it('stock read failure → CMS quotas with a warning, the afisha still renders', async () => {
+    const warn = vi.fn()
+    const site = createSiteData({
+      reader: async () => reader(),
+      stock: async () => {
+        throw new Error('ECONNRESET')
+      },
+      env: { ...DB, NODE_ENV: 'production' },
+      logger: { warn },
+      now: () => NOW,
+    })
+    const data = await site.loadSiteShows()
+    expect(data.performances.map((p) => p.id)).toEqual(['guests-1115', 'guests-1129'])
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('остатки недоступны'))
   })
 })
 

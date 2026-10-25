@@ -143,8 +143,14 @@ export interface WalletTx {
   findReferral(referredCustomerId: string): Promise<ReferralRow | null>
   /** Отметить первую покупку друга, только если ещё не отмечена. */
   markQualified(referredCustomerId: string, at: Date): Promise<boolean>
+  /**
+   * Снять отметку покупки друга (его покупку вернули целиком), только если друг отмечен и ещё
+   * не входит в тройку с выданной наградой. true — сняли.
+   */
+  unmarkQualified(referredCustomerId: string): Promise<boolean>
   countQualified(referrerId: string): Promise<number>
-  setReferralReward(referredCustomerId: string, entryId: string): Promise<void>
+  /** Привязать награду ко всем засчитанным друзьям пригласившего, ещё не вошедшим в награду. */
+  setGroupReward(referrerId: string, entryId: string): Promise<void>
   /**
    * Сериализовать операции с долгом покупателя (сторно при возврате ↔ погашение начислением):
    * advisory lock транзакции по покупателю — у покупателя без лотов строк для FOR UPDATE нет.
@@ -187,6 +193,17 @@ export type RefundCompensation = {
   accrualMissing: boolean
   duplicate: boolean
 }
+
+/** Возврат по заказу, прошедший раньше начисления: доля начисления на его билеты. */
+export type EarlierRefund = { refundId: string; kopecks: number }
+
+/** Итог снятия друга со счётчика «Приведи 3 друга» после полного возврата его покупки. */
+export type UnqualifyResult =
+  | { unqualified: true }
+  | {
+      unqualified: false
+      reason: 'NOT_REFERRED' | 'NOT_QUALIFIED' | 'REWARDED' | 'STILL_QUALIFIES'
+    }
 
 type Deps = {
   store: WalletStore
@@ -533,12 +550,23 @@ export function createWalletService({
    * Начисление 3% за оплаченные деньгами билеты — только по подтверждённому платежу (вызов из
    * обработки оплаты, `@/modules/payments`). Часть, оплаченная бонусами и сертификатом, в базу
    * не входит. Повтор — no-op.
+   *
+   * `earlierRefunds` (T-064): заказ успели частично вернуть раньше, чем прошло начисление, —
+   * тогда начисляется 3% от всего заказа и в той же транзакции сторнируются доли уже возвращённых
+   * билетов (ключ `reversal:<refundId>`, как у сторно при возврате). Итог — 3% от денег за
+   * оставшиеся билеты, а доли начисления по билетам остаются прежними: следующий возврат
+   * сторнирует ровно свою долю. Вызывается под блокировкой покупателя: возврат, чьи бонусы уже
+   * урегулированы «без начисления», к этому моменту виден как SUCCEEDED; более поздний — увидит
+   * начисление и сторнирует сам (тот же ключ — не дважды).
    */
   async function accrue(
     customerId: string,
     cashForTicketsKopecks: number,
     orderRef: string,
     now: Date,
+    {
+      earlierRefunds,
+    }: { earlierRefunds?: (accruedKopecks: number) => Promise<EarlierRefund[]> } = {},
   ) {
     if (!orderRef) throw new RangeError('orderRef is required')
     const amountKopecks = accrualFor(cashForTicketsKopecks, settings)
@@ -547,14 +575,34 @@ export function createWalletService({
     // Новое начисление сначала гасит долг по сторно (PRD §5.6) — в той же транзакции.
     const result = await store.transaction(async (tx) => {
       await tx.lockCustomer(customerId)
-      if (!(await tx.insertEntry(entry))) return { inserted: false, repaid: 0 }
-      return { inserted: true, repaid: await repayDebt(tx, entry) }
+      if (!(await tx.insertEntry(entry))) return { inserted: false, repaid: 0, reversed: 0 }
+      let reversed = 0
+      for (const r of earlierRefunds ? await earlierRefunds(amountKopecks) : []) {
+        if (!isKopecks(r.kopecks)) throw new RangeError('reversal share is out of range')
+        if (r.kopecks === 0) continue
+        const done = await reverseAccrual(tx, {
+          customerId,
+          orderId: orderRef,
+          refundId: r.refundId,
+          accrual: entry,
+          share: r.kopecks,
+          now,
+        })
+        if (!done.duplicate) reversed += done.reversedKopecks
+      }
+      if (reversed > amountKopecks) throw new RangeError('reversal exceeds accrual')
+      return {
+        inserted: true,
+        repaid: await repayDebt(tx, entry, amountKopecks - reversed),
+        reversed,
+      }
     })
     return {
       amountKopecks,
       duplicate: !result.inserted,
-      // Только если что-то погашено: форма ответа без долга прежняя.
+      // Только если что-то погашено/сторнировано: форма ответа без них прежняя.
       ...(result.repaid > 0 && { debtRepaidKopecks: result.repaid }),
+      ...(result.reversed > 0 && { reversedKopecks: result.reversed }),
     }
   }
 
@@ -563,8 +611,8 @@ export function createWalletService({
    * остаток лота уменьшается, погашение — строки `wallet_spend_allocations` к строке сторно.
    * Доступный баланс не становится отрицательным: берётся не больше остатка лота.
    */
-  const repayDebt = async (tx: WalletTx, entry: LedgerEntry) => {
-    let left = entry.amountKopecks
+  const repayDebt = async (tx: WalletTx, entry: LedgerEntry, available = entry.amountKopecks) => {
+    let left = available
     for (const debt of await tx.openDebts(entry.customerId)) {
       if (left === 0) break
       const take = Math.min(left, debt.outstandingKopecks)
@@ -575,7 +623,75 @@ export function createWalletService({
       ])
       left -= take
     }
-    return entry.amountKopecks - left
+    return available - left
+  }
+
+  /**
+   * Сторно доли начисления `accrual` по возврату `refundId` (внутри транзакции, под блокировкой
+   * покупателя). Берётся из лота начисления, затем из остального баланса (сначала сгорающее
+   * раньше); чего не хватило — долг. Повтор по тому же возврату — duplicate.
+   */
+  const reverseAccrual = async (
+    tx: WalletTx,
+    {
+      customerId,
+      orderId,
+      refundId,
+      accrual,
+      share,
+      now,
+    }: {
+      customerId: string
+      orderId: string
+      refundId: string
+      accrual: LedgerEntry
+      share: number
+      now: Date
+    },
+  ) => {
+    const reversed = await tx.findEntryByKey(`reversal:${refundId}`)
+    if (reversed)
+      return {
+        duplicate: true,
+        reversedKopecks: -reversed.amountKopecks,
+        coveredKopecks: 0,
+        debtKopecks: 0,
+      }
+    const lots = await tx.lockLiveLots(customerId, now)
+    const own = lots.find((l) => l.id === accrual.id)
+    const rest = lots
+      .filter((l) => l.id !== accrual.id)
+      .sort((a, b) => a.expiresAt.getTime() - b.expiresAt.getTime() || a.id.localeCompare(b.id))
+    const reversal: LedgerEntry = {
+      id: randomUUID(),
+      customerId,
+      kind: 'reversal',
+      amountKopecks: -share,
+      lotRemainingKopecks: null,
+      expiresAt: null,
+      sourceRef: orderId,
+      idempotencyKey: `reversal:${refundId}`,
+      relatedEntryId: accrual.id,
+      createdAt: now,
+    }
+    if (!(await tx.insertEntry(reversal))) throw new Error('wallet reversal changed concurrently')
+    let need = share
+    for (const lot of own ? [own, ...rest] : rest) {
+      if (need === 0) break
+      const take = Math.min(need, lot.remainingKopecks)
+      if (take === 0) continue
+      if (!(await tx.takeFromLot(lot.id, take))) throw new Error('wallet lot changed under lock')
+      await tx.insertAllocations([
+        { id: randomUUID(), spendEntryId: reversal.id, lotEntryId: lot.id, kopecks: take },
+      ])
+      need -= take
+    }
+    return {
+      duplicate: false,
+      reversedKopecks: share,
+      coveredKopecks: share - need,
+      debtKopecks: need,
+    }
   }
 
   /** Активное списание по заказу: при поздней оплате — повторное (`spend:<order>:late`). */
@@ -678,45 +794,19 @@ export function createWalletService({
       const share = accrual ? input.reversalShare(accrual.amountKopecks) : 0
       if (!isKopecks(share) || share > (accrual?.amountKopecks ?? 0))
         throw new RangeError('reversal share is out of range')
-      const reversed = share > 0 ? await tx.findEntryByKey(`reversal:${refundId}`) : null
-      if (reversed) {
-        result.duplicate = true
-        result.reversedKopecks = -reversed.amountKopecks
-      } else if (share > 0) {
-        const lots = await tx.lockLiveLots(customerId, now)
-        const own = lots.find((l) => l.id === accrual!.id)
-        const rest = lots
-          .filter((l) => l.id !== accrual!.id)
-          .sort((a, b) => a.expiresAt.getTime() - b.expiresAt.getTime() || a.id.localeCompare(b.id))
-        const reversal: LedgerEntry = {
-          id: randomUUID(),
+      if (share > 0) {
+        const done = await reverseAccrual(tx, {
           customerId,
-          kind: 'reversal',
-          amountKopecks: -share,
-          lotRemainingKopecks: null,
-          expiresAt: null,
-          sourceRef: orderId,
-          idempotencyKey: `reversal:${refundId}`,
-          relatedEntryId: accrual!.id,
-          createdAt: now,
-        }
-        if (!(await tx.insertEntry(reversal)))
-          throw new Error('wallet reversal changed concurrently')
-        let need = share
-        for (const lot of own ? [own, ...rest] : rest) {
-          if (need === 0) break
-          const take = Math.min(need, lot.remainingKopecks)
-          if (take === 0) continue
-          if (!(await tx.takeFromLot(lot.id, take)))
-            throw new Error('wallet lot changed under lock')
-          await tx.insertAllocations([
-            { id: randomUUID(), spendEntryId: reversal.id, lotEntryId: lot.id, kopecks: take },
-          ])
-          need -= take
-        }
-        result.reversedKopecks = share
-        result.coveredKopecks = share - need
-        result.debtKopecks = need
+          orderId,
+          refundId,
+          accrual: accrual!,
+          share,
+          now,
+        })
+        if (done.duplicate) result.duplicate = true
+        result.reversedKopecks = done.reversedKopecks
+        result.coveredKopecks = done.coveredKopecks
+        result.debtKopecks = done.debtKopecks
       }
       return result
     })
@@ -748,13 +838,23 @@ export function createWalletService({
    * Первая подтверждённая покупка приглашённого (вызывает заказ, T-040 — только для первой оплаты).
    * Засчитывается один раз; на каждом кратном 3 засчитанном друге пригласившему — 1000 ₽ лотом
    * `referral` с ключом `referral:<referrerId>:<n>`: повторные webhook и параллельные покупки
-   * друзей награду не удваивают.
+   * друзей награду не удваивают. Награда привязывается ко всем трём друзьям тройки — после неё
+   * никого из них со счётчика не снимают (`unqualifyReferral`).
+   *
+   * `stillPaid` — проверка под блокировкой пригласившего, что покупка всё ещё действует: иначе
+   * запоздалый вызов (заказ прочитан оплаченным, а его тут же вернули целиком и друга уже сняли)
+   * засчитал бы друга снова.
    */
-  async function qualifyReferral(referredCustomerId: string, now: Date) {
+  async function qualifyReferral(
+    referredCustomerId: string,
+    now: Date,
+    { stillPaid }: { stillPaid?: () => Promise<boolean> } = {},
+  ) {
     return store.transaction(async (tx) => {
       const referral = await tx.findReferral(referredCustomerId)
       if (!referral) return { qualified: false as const, rewarded: false }
       await tx.lockReferrer(referral.referrerId)
+      if (stillPaid && !(await stillPaid())) return { qualified: false as const, rewarded: false }
       if (!(await tx.markQualified(referredCustomerId, now)))
         return { qualified: false as const, rewarded: false }
       const count = await tx.countQualified(referral.referrerId)
@@ -771,11 +871,39 @@ export function createWalletService({
       )
       const rewarded = await tx.insertEntry(reward)
       if (rewarded) {
-        await tx.setReferralReward(referredCustomerId, reward.id)
+        await tx.setGroupReward(referral.referrerId, reward.id)
         await tx.lockCustomer(referral.referrerId)
         await repayDebt(tx, reward)
       }
       return { qualified: true as const, rewarded }
+    })
+  }
+
+  /**
+   * T-062: покупку друга вернули целиком — он больше не засчитан, если награда за его тройку ещё
+   * не выдана (счётчик пригласившего уменьшается, следующий друг займёт его место). Если награда
+   * уже выдана, её не отбираем и друга не снимаем: 1000 ₽ могли быть потрачены, а сторно награды
+   * сделало бы пригласившего должником за чужой возврат (решение 26.10.2026 до ответа театра).
+   *
+   * `stillQualifies` — под блокировкой пригласившего: есть ли у друга другая действующая покупка
+   * (тогда он по-прежнему засчитан). Повтор — no-op. Друг, снятый со счётчика, засчитается снова
+   * следующей оплаченной покупкой (`qualifyReferral`).
+   */
+  async function unqualifyReferral(
+    referredCustomerId: string,
+    { stillQualifies }: { stillQualifies: () => Promise<boolean> },
+  ): Promise<UnqualifyResult> {
+    return store.transaction(async (tx) => {
+      const referral = await tx.findReferral(referredCustomerId)
+      if (!referral) return { unqualified: false, reason: 'NOT_REFERRED' }
+      await tx.lockReferrer(referral.referrerId)
+      const fresh = await tx.findReferral(referredCustomerId)
+      if (!fresh?.qualifiedAt) return { unqualified: false, reason: 'NOT_QUALIFIED' }
+      if (fresh.rewardEntryId) return { unqualified: false, reason: 'REWARDED' }
+      if (await stillQualifies()) return { unqualified: false, reason: 'STILL_QUALIFIES' }
+      if (!(await tx.unmarkQualified(referredCustomerId)))
+        throw new Error('referral changed under lock')
+      return { unqualified: true }
     })
   }
 
@@ -825,6 +953,7 @@ export function createWalletService({
     accrue,
     attachReferral,
     qualifyReferral,
+    unqualifyReferral,
     expireDue,
     annulCertificate,
     ensureReferralCode,
@@ -1051,12 +1180,22 @@ export function memoryWalletStore(): WalletStore & {
           await pause()
           return referrals.filter((r) => r.referrerId === referrerId && r.qualifiedAt).length
         },
-        async setReferralReward(referredCustomerId, entryId) {
+        async unmarkQualified(referredCustomerId) {
           await pause()
-          const r = referrals.find((x) => x.referredCustomerId === referredCustomerId)!
-          const previous = r.rewardEntryId
-          r.rewardEntryId = entryId
-          undo.push(() => (r.rewardEntryId = previous))
+          const r = referrals.find((x) => x.referredCustomerId === referredCustomerId)
+          if (!r || !r.qualifiedAt || r.rewardEntryId) return false
+          const previous = r.qualifiedAt
+          r.qualifiedAt = null
+          undo.push(() => (r.qualifiedAt = previous))
+          return true
+        },
+        async setGroupReward(referrerId, entryId) {
+          await pause()
+          for (const r of referrals)
+            if (r.referrerId === referrerId && r.qualifiedAt && !r.rewardEntryId) {
+              r.rewardEntryId = entryId
+              undo.push(() => (r.rewardEntryId = null))
+            }
         },
         async lockCustomer(customerId) {
           await pause()

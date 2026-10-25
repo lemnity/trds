@@ -165,6 +165,17 @@ describe.skipIf(!url)('commerce on PostgreSQL', () => {
     expect(seat).toMatchObject({ status: 'sold', holdId: null, orderId: won[0]!.id })
   })
 
+  it('storefront batch: availabilityOf reads p1 and da1 in one pass (sold + taken seats)', async () => {
+    // После двух тестов выше: p1 распродан (3 из 3), на da1 продано место r5-s7.
+    const stock = await inventory.availabilityOf(['p1', 'da1', 'never-synced'])
+    expect(stock.get('p1')?.categories).toEqual([
+      { ticketTypeId: 'std', capacity: 3, sold: 3, held: 0, remaining: 0 },
+    ])
+    expect(stock.get('da1')?.unavailableSeatIds).toEqual(['r5-s7'])
+    expect(stock.has('never-synced')).toBe(false)
+    expect((await inventory.availabilityOf([])).size).toBe(0)
+  })
+
   it('crossing multi-line orders over seats and categories do not deadlock or oversell', async () => {
     await inventory.syncCapacity(
       {

@@ -3,7 +3,13 @@ import type { Payload } from 'payload'
 import { siteContentFromCms, type CmsContentDocs } from '../content/cms'
 import { demoSiteContent, type SiteContent } from '../content'
 import { showsDataFromCms, type CmsShowsDocs } from '../shows/cms'
-import { demoShowsData, type ShowsData } from '../shows'
+import {
+  applyStock,
+  demoShowsData,
+  stockPerformanceIds,
+  type ShowsData,
+  type ShowStock,
+} from '../shows'
 
 /**
  * Источник данных публичного сайта (T-021, T-022, T-025, T-026): опубликованное из Payload,
@@ -38,16 +44,24 @@ export interface CmsReader {
   countAllShows(): Promise<number>
 }
 
+/** Остатки показов из ядра продаж одним пакетом (`@/modules/inventory` `availabilityOf`). */
+export type StockReader = (performanceIds: string[]) => Promise<ReadonlyMap<string, ShowStock>>
+
 type Logger = { warn: (message: string) => void }
 
 export function createSiteData({
   reader,
+  stock,
   env = process.env,
   logger = console,
+  now = () => new Date(),
 }: {
   reader: () => Promise<CmsReader>
+  /** Нет — витрина показывает квоты CMS как есть. */
+  stock?: StockReader
   env?: Env
   logger?: Logger
+  now?: () => Date
 }) {
   const strict = env.CONTENT_SOURCE === 'cms' || env.NODE_ENV === 'production'
 
@@ -70,10 +84,38 @@ export function createSiteData({
     }
   }
 
+  /**
+   * Наложить остатки ядра продаж (одним запросом на все будущие показы). Сбой чтения остатков
+   * не роняет афишу: показываем квоты CMS с предупреждением в лог — продажу сверх остатка всё
+   * равно не допустит `acquire` при оформлении (409 «билетов не осталось»).
+   */
+  async function withStock(data: ShowsData): Promise<ShowsData> {
+    if (!stock) return data
+    const ids = stockPerformanceIds(data, now())
+    if (!ids.length) return data
+    try {
+      return applyStock(data, await stock(ids))
+    } catch (error) {
+      logger.warn(
+        `[site-data] остатки недоступны (${error instanceof Error ? error.name : 'unknown'}) — показываем квоты CMS`,
+      )
+      return data
+    }
+  }
+
   return {
+    /** Афиша как в CMS (квоты без учёта продаж) — для оформления заказа, его проверяет acquire. */
     async loadShowsData(): Promise<ShowsData> {
       const docs = await fromCms((r) => r.showsDocs())
       return docs ? showsDataFromCms(docs) : demoShowsData
+    },
+    /**
+     * Афиша для страниц: CMS + настоящие остатки. Демо-набор (превью, нет базы, пустая CMS)
+     * остаётся как есть — его показы в ядре продаж не синхронизируются.
+     */
+    async loadSiteShows(): Promise<ShowsData> {
+      const docs = await fromCms((r) => r.showsDocs())
+      return docs ? withStock(showsDataFromCms(docs)) : demoShowsData
     },
     async loadSiteContent(): Promise<SiteContent> {
       const docs = await fromCms((r) => r.contentDocs())
@@ -164,12 +206,20 @@ export function payloadReaderFor(payload: Payload): CmsReader {
   }
 }
 
+/** Остатки из ядра продаж; модуль подгружается лениво — статическая сборка его не трогает. */
+export const inventoryStock: StockReader = async (performanceIds) => {
+  const { getInventory } = await import('../inventory')
+  return (await getInventory()).availabilityOf(performanceIds)
+}
+
 let shared: SiteData | undefined
 
 /** Данные сайта для серверных страниц (один экземпляр на процесс). */
-export const siteData = (): SiteData => (shared ??= createSiteData({ reader: payloadReader }))
+export const siteData = (): SiteData =>
+  (shared ??= createSiteData({ reader: payloadReader, stock: inventoryStock }))
 
 export const loadShowsData = () => siteData().loadShowsData()
+export const loadSiteShows = () => siteData().loadSiteShows()
 export const loadSiteContent = () => siteData().loadSiteContent()
 
 export { DEFAULT_SEO, resolveSiteSeo, type ResolvedSiteSeo } from './seo'

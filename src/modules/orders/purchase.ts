@@ -9,6 +9,7 @@ import {
 } from '@/modules/inventory/inventory'
 import type { CommerceStore, OrderRow } from '@/modules/inventory/store'
 import { applyBonus } from '@/modules/loyalty'
+import { reversalShare } from '@/modules/refunds/amounts'
 import {
   PaymentProviderError,
   callProvider,
@@ -56,8 +57,11 @@ export type PurchaseWallet = Pick<
 type Deps = {
   orders: OrderService
   inventory: Pick<InventoryService, 'syncCapacity'>
-  /** Чтение остатков без блокировок: есть ли строки показа в ядре продаж. */
-  stock: Pick<CommerceStore, 'inventory' | 'seats'>
+  /**
+   * Чтение без блокировок: есть ли строки показа в ядре продаж; возвраты заказа, прошедшие до
+   * начисления бонусов (T-064).
+   */
+  stock: Pick<CommerceStore, 'inventory' | 'seats' | 'refundsOfOrder' | 'refundTickets' | 'tickets'>
   wallet: PurchaseWallet
   /** null — оплата не подключена (PAYMENT_PROVIDER пуст). */
   provider: PaymentProvider | null
@@ -305,19 +309,41 @@ export function createPurchaseService({
       await releaseBonus(view.order)
   }
 
+  /** Доли начисления на билеты уже успешных возвратов заказа (детерминированно, как при возврате). */
+  const earlierRefunds = async (orderId: string, accruedKopecks: number) => {
+    const done = (await stock.refundsOfOrder(orderId)).filter((r) => r.status === 'SUCCEEDED')
+    if (!done.length) return []
+    const tickets = await stock.tickets(orderId)
+    return Promise.all(
+      done.map(async (r) => {
+        const shares = await stock.refundTickets(r.id)
+        const ids = new Set(shares.filter((s) => s.voidedAt === null).map((s) => s.ticketId))
+        return { refundId: r.id, kopecks: reversalShare(accruedKopecks, tickets, ids) }
+      }),
+    )
+  }
+
+  const isLive = (status: OrderStatus) => status === 'PAID' || status === 'PARTIALLY_REFUNDED'
+
   /**
    * После подтверждённой оплаты: списание бонусов на месте (при поздней оплате, когда списание
    * уже компенсировано, — повторное, ключ `spend:<orderId>:late`), начисление 3% от оплаченной
    * деньгами стоимости билетов и засчёт друга по «Приведи 3 друга». Каждая операция идемпотентна —
    * вызов из webhook, сверки и worker в любом порядке и количестве даёт один результат.
+   *
+   * Заказ успели частично вернуть до этого шага (T-064) — начисление всё равно проходит, но только
+   * за оставшиеся билеты (`earlierRefunds`: доли возвращённых сторнируются в той же транзакции).
+   * Возвращённый целиком — без начисления и без засчёта друга.
    */
   async function afterPaid(orderId: string) {
     const view = await orders.getOrder(orderId)
-    if (!view || view.order.status !== 'PAID') return
+    if (!view || !isLive(view.order.status)) return
     const { order } = view
     if (!order.customerId) return
     const at = now()
-    if (order.bonusKopecks > 0) {
+    // Повторное списание при поздней оплате — только пока заказ не возвращали: возврат уже
+    // рассчитал бонусы по фактическому списанию.
+    if (order.status === 'PAID' && order.bonusKopecks > 0) {
       const state = await wallet.spendStatus(order.id)
       if (state !== 'spent') {
         const ref = state === 'released' ? `${order.id}:late` : order.id
@@ -330,13 +356,21 @@ export function createPurchaseService({
           })
       }
     }
+    // Возвраты читаются всегда (под блокировкой покупателя в кошельке): статус мог смениться
+    // между чтением заказа и начислением.
     const accrued = await wallet.accrue(
       order.customerId,
       order.grossKopecks - order.bonusKopecks,
       order.id,
       at,
+      { earlierRefunds: (accrued) => earlierRefunds(order.id, accrued) },
     )
-    const referral = await wallet.qualifyReferral(order.customerId, at)
+    const referral = await wallet.qualifyReferral(order.customerId, at, {
+      stillPaid: async () => {
+        const fresh = await orders.getOrder(order.id)
+        return fresh !== null && isLive(fresh.order.status)
+      },
+    })
     if (!accrued.duplicate && accrued.amountKopecks > 0)
       log.info('wallet.accrued', { orderId: order.id, kopecks: accrued.amountKopecks })
     if (referral.qualified)
@@ -709,7 +743,12 @@ export function createPurchaseService({
       if (await guard('release', order.id, () => releaseBonus(order))) stats.released++
     }
 
-    const paid = await orders.ordersInStatus(['PAID'], since(SETTLEMENT_WINDOW_MS), SWEEP_LIMIT)
+    // Частично возвращённые — тоже: начисление могло не успеть до возврата (T-064).
+    const paid = await orders.ordersInStatus(
+      ['PAID', 'PARTIALLY_REFUNDED'],
+      since(SETTLEMENT_WINDOW_MS),
+      SWEEP_LIMIT,
+    )
     for (const order of paid) {
       if (!order.customerId) continue
       if (await guard('after_paid', order.id, () => afterPaid(order.id))) stats.settled++

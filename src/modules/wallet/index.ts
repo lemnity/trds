@@ -11,9 +11,11 @@ export {
   MAX_CERTIFICATES_PER_BATCH,
   type ActivateResult,
   type AttachResult,
+  type EarlierRefund,
   type LedgerKind,
   type RefundCompensation,
   type SpendResult,
+  type UnqualifyResult,
   type WalletService,
   type WalletSummary,
 } from './service'

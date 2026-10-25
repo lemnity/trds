@@ -5,7 +5,7 @@ import { cache } from 'react'
 import { personPhotos } from '@/components/people/personPhotos'
 import { demoSiteContent } from '@/modules/content'
 import { demoShowsData } from '@/modules/shows'
-import { isStaticExport, loadShowsData, loadSiteContent } from '@/modules/site-data'
+import { isStaticExport, loadSiteContent, loadSiteShows } from '@/modules/site-data'
 
 /**
  * Данные публичных страниц (CMS или демо — @/modules/site-data), один запрос на рендер.
@@ -24,9 +24,14 @@ const perRequest = async () => {
  */
 const buildPhase = () => process.env.NEXT_PHASE === 'phase-production-build' && !isStaticExport()
 
+/**
+ * Афиша с настоящими остатками (квоты CMS минус проданное и забронированное в ядре продаж):
+ * `cache` — одна выборка CMS и один пакетный запрос остатков на рендер, сколько бы компонентов
+ * (шапка, афиша, карточки, страница спектакля) её ни спрашивали.
+ */
 export const getSiteShows = cache(async () => {
   await perRequest()
-  return buildPhase() ? demoShowsData : loadShowsData()
+  return buildPhase() ? demoShowsData : loadSiteShows()
 })
 
 export const getSiteContent = cache(async () => {

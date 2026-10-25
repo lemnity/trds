@@ -74,6 +74,7 @@ curl -s https://<домен>/api/health
 | `ALERT_OUTBOX_STUCK` | worker, задача `outbox.monitor` | необработанные события outbox старше 30 мин |
 | `ALERT_BACKUP_FAILED` | `scripts/backup.sh` (`step` — на каком шаге); app — если бэкап устарел (`source: health`) | бэкап не создан |
 | `ALERT_JOB_FAILED` | worker | задача упала (тип ошибки в `error`), повторится на следующем такте |
+| `ALERT_PAYMENT_REVIEW` | app, worker (оплата, возвраты) | заказ или возврат требует человека: поздняя оплата без мест, неверная сумма, нехватка бонусов, возврат на ручном разборе (что делать кассе — `docs/admin-guide.md` §8–9) |
 
 ## 4. Фоновые задачи (worker)
 

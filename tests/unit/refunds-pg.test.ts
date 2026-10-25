@@ -60,6 +60,23 @@ describe.skipIf(!url)('refunds on PostgreSQL', () => {
     allowPlaceholderPrices: true,
   })
   const refunds = createRefundService({ store, provider: fake.provider, wallet, log, now, call })
+  // Та же покупка, но шаг после оплаты (3% и засчёт друга) «не успел» — для T-064.
+  const purchaseWithoutAfterPaid = createPurchaseService({
+    orders: createOrderService({ store, ticketSecret: 'pg-ticket-secret' }),
+    inventory: createInventoryService({ store }),
+    stock: store,
+    wallet: {
+      ...wallet,
+      accrue: async () => ({ amountKopecks: 0, duplicate: true }),
+      qualifyReferral: async () => ({ qualified: false as const, rewarded: false }),
+    },
+    provider: fake.provider,
+    statusSecret: 'pg-status',
+    log,
+    now,
+    call,
+    allowPlaceholderPrices: true,
+  })
 
   let seq = 0
   const key = () => `pg-refund-key-${String(++seq).padStart(8, '0')}`
@@ -93,8 +110,9 @@ describe.skipIf(!url)('refunds on PostgreSQL', () => {
     customerId: string,
     quantity: number,
     bonus = 0,
+    via = purchase,
   ) => {
-    const placed = await purchase.checkout({
+    const placed = await via.checkout({
       clientKey: key(),
       performance: perf,
       selection: { kind: 'tickets', quantities: { std: quantity } },
@@ -108,7 +126,7 @@ describe.skipIf(!url)('refunds on PostgreSQL', () => {
     const payment = [...bankState.payments.values()].find((p) => p.orderId === placed.orderId)!
     fake.bank.decide(payment.id, 'succeeded')
     const n = fake.bank.notification(payment.id)!
-    await purchase.handleNotification('fake', {
+    await via.handleNotification('fake', {
       headers: new Headers(n.headers),
       rawBody: n.rawBody,
     })
@@ -304,5 +322,92 @@ describe.skipIf(!url)('refunds on PostgreSQL', () => {
       venueAddressSnapshot: 'ул. Ленина, 1',
       startsAtSnapshot: new Date('2026-11-25T14:00:00Z'),
     })
+  })
+  it('T-064: partial refund before the accrual → accrual of the remaining tickets; a parallel refund is reversed once', async () => {
+    const buyer = await customer()
+    const order = await buyPaid(
+      performance('pg-late-accrual'),
+      buyer,
+      3,
+      0,
+      purchaseWithoutAfterPaid,
+    )
+    const refund = (t: { number: string }) =>
+      refunds.requestCustomerRefund({
+        customerId: buyer,
+        ticketNumbers: [t.number],
+        clientKey: key(),
+      })
+    expect(await refund(order.tickets[0]!)).toMatchObject({ ok: true })
+    expect(await wallet.balance(buyer, now())).toBe(0)
+    // Начисление (3% от 4500 ₽ = 135 ₽, по 45 ₽ на билет) наперегонки с возвратом второго билета.
+    await Promise.all([
+      purchase.afterPaid(order.orderId),
+      purchase.afterPaid(order.orderId),
+      refund(order.tickets[1]!),
+    ])
+    await refunds.reconcile()
+    expect(await wallet.balance(buyer, now())).toBe(4_500)
+    expect(await wallet.debt(buyer)).toBe(0)
+    expect(
+      await count(
+        sql`SELECT count(*) AS n FROM wallet_ledger WHERE customer_id = ${buyer} AND kind = 'purchase'`,
+      ),
+    ).toBe(1)
+    expect(
+      await count(
+        sql`SELECT coalesce(sum(amount_kopecks), 0) AS n FROM wallet_ledger WHERE customer_id = ${buyer} AND kind = 'reversal'`,
+      ),
+    ).toBe(-9_000)
+  })
+
+  it('T-062: full refund before the reward un-qualifies the friend; the rewarded trio stays', async () => {
+    const referrer = await customer()
+    const code = await wallet.ensureReferralCode(referrer, now())
+    const friends = [await customer(), await customer(), await customer(), await customer()]
+    for (const f of friends)
+      expect(await wallet.attachReferral(f, code, now())).toEqual({ ok: true })
+    const perf = performance('pg-referral')
+    const refundAll = (customerId: string, tickets: { number: string }[]) =>
+      refunds.requestCustomerRefund({
+        customerId,
+        ticketNumbers: tickets.map((t) => t.number),
+        clientKey: key(),
+      })
+    const qualified = () =>
+      count(
+        sql`SELECT count(*) AS n FROM wallet_referrals WHERE referrer_id = ${referrer} AND qualified_at IS NOT NULL`,
+      )
+
+    const first = await buyPaid(perf, friends[0]!, 1)
+    expect(await qualified()).toBe(1)
+    // Полный возврат и повтор урегулирования параллельно — снятие одно.
+    const r = await refundAll(friends[0]!, first.tickets)
+    if (!r.ok) throw new Error(r.error)
+    await Promise.all([refunds.settleBonuses(r.refund.id), refunds.reconcile()])
+    expect(await qualified()).toBe(0)
+
+    // Тройка: друг 0 (снова купил), 1, 2 — награда одна и у всех троих.
+    const trio = await Promise.all([
+      buyPaid(perf, friends[0]!, 1),
+      buyPaid(perf, friends[1]!, 1),
+      buyPaid(perf, friends[2]!, 1),
+    ])
+    expect(await qualified()).toBe(3)
+    expect(await wallet.balance(referrer, now())).toBe(100_000)
+    expect(
+      await count(
+        sql`SELECT count(*) AS n FROM wallet_referrals WHERE referrer_id = ${referrer} AND reward_entry_id IS NOT NULL`,
+      ),
+    ).toBe(3)
+    const fourth = await buyPaid(perf, friends[3]!, 1)
+    expect(await qualified()).toBe(4)
+    // Друг из награждённой тройки вернул единственную покупку — не снимается, награда остаётся.
+    await refundAll(friends[2]!, trio[2].tickets)
+    expect(await qualified()).toBe(4)
+    expect(await wallet.balance(referrer, now())).toBe(100_000)
+    // Друг 3 (вне тройки) вернул единственную покупку — снят.
+    await refundAll(friends[3]!, fourth.tickets)
+    expect(await qualified()).toBe(3)
   })
 })

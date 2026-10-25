@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
+import { remainingOf } from '../../src/modules/checkout'
 import {
+  applyStock,
   availabilityLevel,
   availabilityText,
   AUDIENCES,
@@ -12,7 +14,9 @@ import {
   heroSlides,
   groupByMonth,
   listUpcoming,
+  stockPerformanceIds,
   type ShowsData,
+  type ShowStock,
 } from '../../src/modules/shows'
 
 const data: ShowsData = {
@@ -154,6 +158,105 @@ describe('availability', () => {
   it('is unknown while sales on the site are closed', () => {
     const closed = listUpcoming(data, now).find((p) => p.id === 'a-2')
     expect(closed?.availability).toBeNull()
+  })
+})
+
+// T-042/T-033: остаток на витрине — квоты CMS минус занятое в ядре продаж, а не демо-поле `sold`.
+describe('applyStock (real availability on the site)', () => {
+  const stock = (entries: [string, ShowStock][]) => new Map(entries)
+
+  it('category remaining = capacity − sold − held from inventory; demo `sold` is ignored', () => {
+    const real = applyStock(
+      data,
+      stock([
+        [
+          'a-1',
+          {
+            categories: [
+              { ticketTypeId: 'std', capacity: 20, sold: 15, held: 3 },
+              { ticketTypeId: 'vip', capacity: 8, sold: 0, held: 0 },
+            ],
+            unavailableSeatIds: [],
+          },
+        ],
+      ]),
+    )
+    const view = listUpcoming(real, now).find((p) => p.id === 'a-1')
+    expect(view?.availability).toEqual({ available: 10, capacity: 28, level: 'many' })
+    const sale = findPerformance(real, 'a-1', now)!
+    expect(sale.ticketTypes.map((t) => [t.id, remainingOf(t)])).toEqual([
+      ['std', 2],
+      ['vip', 8],
+    ])
+  })
+
+  it('sold out (including tickets on hold) → «Билетов нет»', () => {
+    const real = applyStock(
+      data,
+      stock([
+        [
+          'a-1',
+          {
+            categories: [
+              { ticketTypeId: 'std', capacity: 20, sold: 18, held: 2 },
+              { ticketTypeId: 'vip', capacity: 8, sold: 8, held: 0 },
+            ],
+            unavailableSeatIds: [],
+          },
+        ],
+      ]),
+    )
+    const view = listUpcoming(real, now).find((p) => p.id === 'a-1')!
+    expect(view.availability).toEqual({ available: 0, capacity: 28, level: 'none' })
+    expect(availabilityText(view.availability)).toBe('Билетов нет')
+    expect(getShowPage(real, 'a', now)?.performances[0]?.availability?.level).toBe('none')
+  })
+
+  it('capacity comes from inventory (CMS change not synced yet is not over-promised)', () => {
+    const real = applyStock(
+      data,
+      stock([
+        [
+          'a-1',
+          {
+            categories: [{ ticketTypeId: 'std', capacity: 4, sold: 1, held: 0 }],
+            unavailableSeatIds: [],
+          },
+        ],
+      ]),
+    )
+    const [std, vip] = findPerformance(real, 'a-1', now)!.ticketTypes
+    expect([std!.capacity, remainingOf(std!)]).toEqual([4, 3])
+    // Категории без строк в ядре продаж (ещё не синхронизированы) — квоты CMS как есть.
+    expect(vip).toEqual(data.performances[1]!.ticketTypes[1])
+  })
+
+  it('taken seats join the seats closed in the CMS', () => {
+    const real = applyStock(
+      data,
+      stock([
+        ['seated-priced', { categories: [], unavailableSeatIds: ['r1-s1', 'r1-s2', 'r2-s5'] }],
+      ]),
+    )
+    const sale = findPerformance(real, 'seated-priced', now)!
+    expect([...sale.seating!.unavailableSeatIds].sort()).toEqual(['r1-s1', 'r1-s2', 'r2-s5'])
+    expect(sale.availability).toEqual({ available: 133, capacity: 136, level: 'many' })
+  })
+
+  it('performances without inventory rows and an empty stock keep CMS data untouched', () => {
+    expect(applyStock(data, new Map())).toBe(data)
+    const real = applyStock(data, stock([['other', { categories: [], unavailableSeatIds: [] }]]))
+    expect(real.performances).toEqual(data.performances)
+  })
+
+  it('asks the inventory only about future performances', () => {
+    expect(stockPerformanceIds(data, now)).toEqual([
+      'a-2',
+      'a-1',
+      'seated-priced',
+      'seated-unpriced',
+      'draft-1',
+    ])
   })
 })
 

@@ -620,3 +620,59 @@ describe('payment events', () => {
     expect(store.dump().paymentEvents).toHaveLength(2)
   })
 })
+
+// Витрина (T-042/T-033): остатки всех будущих показов — одним пакетом, без запроса на показ.
+describe('availabilityOf (storefront batch)', () => {
+  it('reports capacity/sold/held per category and taken seats for many performances at once', async () => {
+    const { store, inventory, orders } = setup()
+    await syncP1(inventory)
+    await inventory.syncCapacity(capacityFromPerformance(daPerformance), NOW)
+    const paid = await place(orders, [std(2)])
+    if (!paid.ok) throw new Error(paid.error)
+    expect(await pay(orders, paid.order)).toMatchObject({ ok: true })
+    expect(await place(orders, [vip(1)])).toMatchObject({ ok: true })
+    expect(await place(orders, [seat('r1-s1')])).toMatchObject({ ok: true })
+
+    const calls = { inventoryOf: 0, takenSeatsOf: 0, inventory: 0, seats: 0 }
+    const counted = new Proxy(store, {
+      get(target, key, receiver) {
+        const value = Reflect.get(target, key, receiver)
+        if (typeof key === 'string' && key in calls && typeof value === 'function')
+          return (...args: unknown[]) => {
+            calls[key as keyof typeof calls]++
+            return value.apply(target, args)
+          }
+        return value
+      },
+    })
+    const result = await createInventoryService({ store: counted }).availabilityOf([
+      'p1',
+      'da1',
+      'never-synced',
+      'p1',
+    ])
+    expect(calls).toEqual({ inventoryOf: 1, takenSeatsOf: 1, inventory: 0, seats: 0 })
+    expect(result.get('p1')).toEqual({
+      categories: [
+        { ticketTypeId: 'std', capacity: 5, sold: 2, held: 0, remaining: 3 },
+        { ticketTypeId: 'vip', capacity: 2, sold: 0, held: 1, remaining: 1 },
+      ],
+      unavailableSeatIds: [],
+    })
+    // Занятое место (бронь) и закрытое театром — оба недоступны покупателю.
+    expect(result.get('da1')?.unavailableSeatIds).toEqual(['r1-s1', 'r12-s9'])
+    expect(result.has('never-synced')).toBe(false)
+    expect(await inventory.availability('never-synced')).toEqual({
+      categories: [],
+      unavailableSeatIds: [],
+    })
+  })
+
+  it('an empty list does not touch the store', async () => {
+    const store = memoryCommerceStore()
+    const service = createInventoryService({
+      store: { ...store, inventoryOf: () => Promise.reject(new Error('no')) },
+    })
+    expect((await service.availabilityOf([])).size).toBe(0)
+  })
+})

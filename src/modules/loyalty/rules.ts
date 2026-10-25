@@ -1,3 +1,5 @@
+import { plural } from '@/lib/plural'
+
 /**
  * Правила бонусной программы (решение заказчика 25.10.2026, PRD §5.6). Все суммы — целые копейки.
  * Значения — настройки: в production их задаёт администратор, здесь — утверждённые по умолчанию.
@@ -129,14 +131,8 @@ export const referralProgress = (
 }
 
 /** «Осталось ещё 2 друга» / «Остался 1 друг» — подпись индикатора. */
-export const referralRemainingText = (remaining: number) => {
-  const mod10 = remaining % 10
-  const mod100 = remaining % 100
-  if (mod10 === 1 && mod100 !== 11) return `Остался ещё ${remaining} друг`
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14))
-    return `Осталось ещё ${remaining} друга`
-  return `Осталось ещё ${remaining} друзей`
-}
+export const referralRemainingText = (remaining: number) =>
+  `${plural(remaining, 'Остался', 'Осталось', 'Осталось')} ещё ${remaining} ${plural(remaining, 'друг', 'друга', 'друзей')}`
 
 /** Остаток одного начисления в ledger. */
 export type BonusLot = { id: string; remainingKopecks: number; expiresAt: Date }

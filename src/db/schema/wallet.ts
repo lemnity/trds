@@ -139,7 +139,8 @@ export const walletReferralCodes = pgTable('wallet_referral_codes', {
 
 /**
  * Приглашённые: каждый покупатель привязан не более чем к одному пригласившему, себя
- * пригласить нельзя. `qualified_at` — первая подтверждённая покупка друга (ставится один раз).
+ * пригласить нельзя. `qualified_at` — подтверждённая покупка друга; снимается, если покупку
+ * вернули целиком до награды за его тройку (T-062), и ставится снова следующей покупкой.
  */
 export const walletReferrals = pgTable(
   'wallet_referrals',
@@ -154,7 +155,7 @@ export const walletReferrals = pgTable(
       .references(() => customers.id, { onDelete: 'restrict' }),
     attachedAt: timestamp('attached_at', { withTimezone: true }).notNull(),
     qualifiedAt: timestamp('qualified_at', { withTimezone: true }),
-    /** Награда, начисленная, когда этот друг замкнул тройку. */
+    /** Награда за тройку, в которую засчитан друг (у всех троих); после неё друга не снимают. */
     rewardEntryId: uuid('reward_entry_id').references(() => walletLedger.id),
   },
   (t) => [

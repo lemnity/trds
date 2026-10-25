@@ -4,6 +4,7 @@ import { formatRub } from '@/lib/money'
 
 import { reveal } from '../ui/reveal'
 import styles from './Account.module.css'
+import { accountStatLabel } from './stats-view'
 import { useAccountTickets } from './useAccountTickets'
 import { useLoyalty } from './useLoyalty'
 
@@ -18,28 +19,34 @@ export function AccountStats() {
   // Пока грузится или недоступно — прочерк, а не ложный ноль.
   const pending = loyalty.status === 'loading' || loyalty.status === 'unavailable'
 
+  const upcoming = ticketData?.upcoming.length ?? 0
+  // Несколько билетов на один показ — один спектакль.
+  const visited = new Set(ticketData?.past.map((t) => `${t.show?.slug}|${t.startsAt}`)).size
+  const friends = data?.referral.qualified ?? 0
   const stats = [
     {
-      value: ticketsPending ? '—' : String(ticketData?.upcoming.length ?? 0),
-      label: 'билетов впереди',
+      id: 'upcoming',
+      value: ticketsPending ? '—' : String(upcoming),
+      label: accountStatLabel('upcoming', ticketsPending ? null : upcoming),
       href: '#tickets',
     },
     {
-      // Несколько билетов на один показ — один спектакль.
-      value: ticketsPending
-        ? '—'
-        : String(new Set(ticketData?.past.map((t) => `${t.show?.slug}|${t.startsAt}`)).size),
-      label: 'спектаклей посещено',
+      id: 'visited',
+      value: ticketsPending ? '—' : String(visited),
+      label: accountStatLabel('visited', ticketsPending ? null : visited),
       href: '#tickets',
     },
     {
+      id: 'balance',
       value: pending ? '—' : formatRub(data?.balanceKopecks ?? 0),
+      // Сумма в рублях («500 ₽ бонусов») — подпись от числа не зависит.
       label: 'бонусов на счёте',
       href: '#bonuses',
     },
     {
-      value: pending ? '—' : String(data?.referral.qualified ?? 0),
-      label: 'друзей приглашено',
+      id: 'friends',
+      value: pending ? '—' : String(friends),
+      label: accountStatLabel('friends', pending ? null : friends),
       href: '#bonuses',
     },
   ]
@@ -47,7 +54,7 @@ export function AccountStats() {
   return (
     <ul className={styles.stats} aria-label="Коротко" aria-busy={loyalty.status === 'loading'}>
       {stats.map((stat, i) => (
-        <li key={stat.label} {...reveal(i)}>
+        <li key={stat.id} {...reveal(i)}>
           <a href={stat.href} className={styles.stat}>
             <b>{stat.value}</b>
             <span>{stat.label}</span>

@@ -323,7 +323,13 @@ export interface CommerceStore {
   isRetryable(error: unknown): boolean
   inventory(performanceId: string): Promise<InventoryRow[]>
   seats(performanceId: string): Promise<SeatRow[]>
+  /** Остатки сразу нескольких показов — витрина читает афишу одним запросом, без N+1. */
+  inventoryOf(performanceIds: string[]): Promise<InventoryRow[]>
+  /** Места этих показов не в статусе `free` (бронь, продажа, закрыто). */
+  takenSeatsOf(performanceIds: string[]): Promise<Pick<SeatRow, 'performanceId' | 'seatId'>[]>
   order(id: string): Promise<OrderRow | null>
+  /** Есть ли у покупателя действующая покупка (PAID / PARTIALLY_REFUNDED), кроме `exceptOrderId`. */
+  hasLiveOrder(customerId: string, exceptOrderId?: string): Promise<boolean>
   /** Заказы PENDING_PAYMENT с истёкшей бронью, без блокировки (сверка с провайдером до истечения). */
   overdueOrders(now: Date, limit: number): Promise<OrderRow[]>
   /**

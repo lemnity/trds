@@ -286,6 +286,18 @@ export const capacityFromPerformance = (performance: Performance): CapacitySpec 
   return spec
 }
 
+/** Остаток показа для витрины: по категориям и занятые места (бронь, продажа, закрыто). */
+export type PerformanceStock = {
+  categories: {
+    ticketTypeId: string
+    capacity: number
+    sold: number
+    held: number
+    remaining: number
+  }[]
+  unavailableSeatIds: string[]
+}
+
 class BelowCommitted extends Error {
   constructor(readonly conflicts: { ticketTypeId: string; capacity: number; committed: number }[]) {
     super('capacity below sold + held')
@@ -404,30 +416,48 @@ export function createInventoryService({ store }: { store: CommerceStore }) {
     }
   }
 
-  /** Остатки показа для витрины (без блокировок; окончательно решает `acquire`). */
-  async function availability(performanceId: string) {
-    const [rows, seats] = await Promise.all([
-      store.inventory(performanceId),
-      store.seats(performanceId),
-    ])
-    return {
-      categories: rows
-        .map((r) => ({
-          ticketTypeId: r.ticketTypeId,
-          capacity: r.capacity,
-          sold: r.sold,
-          held: r.held,
-          remaining: Math.max(0, r.capacity - r.sold - r.held),
-        }))
-        .sort((a, b) => cmp(a.ticketTypeId, b.ticketTypeId)),
-      unavailableSeatIds: seats
-        .filter((s) => s.status !== 'free')
-        .map((s) => s.seatId)
-        .sort(cmp),
+  /**
+   * Остатки показов для витрины (без блокировок; окончательно решает `acquire`). Два запроса на
+   * любой список показов — афиша не делает запрос на каждый показ. Показа без строк в ядре продаж
+   * в ответе нет: его ещё не синхронизировали, витрина берёт квоты CMS.
+   */
+  async function availabilityOf(performanceIds: readonly string[]) {
+    const ids = [...new Set(performanceIds)].sort(cmp)
+    const result = new Map<string, PerformanceStock>()
+    if (!ids.length) return result
+    const [rows, taken] = await Promise.all([store.inventoryOf(ids), store.takenSeatsOf(ids)])
+    const entry = (performanceId: string) => {
+      let e = result.get(performanceId)
+      if (!e) result.set(performanceId, (e = { categories: [], unavailableSeatIds: [] }))
+      return e
     }
+    for (const r of rows)
+      entry(r.performanceId).categories.push({
+        ticketTypeId: r.ticketTypeId,
+        capacity: r.capacity,
+        sold: r.sold,
+        held: r.held,
+        remaining: Math.max(0, r.capacity - r.sold - r.held),
+      })
+    for (const s of taken) entry(s.performanceId).unavailableSeatIds.push(s.seatId)
+    for (const e of result.values()) {
+      e.categories.sort((a, b) => cmp(a.ticketTypeId, b.ticketTypeId))
+      e.unavailableSeatIds.sort(cmp)
+    }
+    return result
   }
 
-  return { syncCapacity, availability }
+  /** Остатки одного показа (пустой ответ — показ ещё не синхронизирован). */
+  async function availability(performanceId: string): Promise<PerformanceStock> {
+    return (
+      (await availabilityOf([performanceId])).get(performanceId) ?? {
+        categories: [],
+        unavailableSeatIds: [],
+      }
+    )
+  }
+
+  return { syncCapacity, availability, availabilityOf }
 }
 
 export type InventoryService = ReturnType<typeof createInventoryService>

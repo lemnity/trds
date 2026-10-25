@@ -31,6 +31,7 @@ export {
   AUDIENCES,
   type Audience,
 } from './queries'
+export { applyStock, stockPerformanceIds, type ShowStock } from './stock'
 export { demoShowsData } from './demo-data'
 export {
   EVENT_TYPE_LABELS,

@@ -3,6 +3,8 @@
  * только `applyBonus` из `@/modules/loyalty`; здесь математики денег нет.
  */
 
+import { plural } from '@/lib/plural'
+
 const RUBLE = 100
 /** До 9 цифр рублей: больше любой корзины и гарантированно безопасное целое в копейках. */
 const MAX_DIGITS = 9
@@ -49,10 +51,4 @@ export const loginHrefFor = (pathname: string, search: string) => {
 }
 
 /** «1 бонус», «2 бонуса», «5 бонусов» — по количеству рублей. */
-export const bonusWord = (count: number) => {
-  const mod10 = count % 10
-  const mod100 = count % 100
-  if (mod10 === 1 && mod100 !== 11) return 'бонус'
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'бонуса'
-  return 'бонусов'
-}
+export const bonusWord = (count: number) => plural(count, 'бонус', 'бонуса', 'бонусов')

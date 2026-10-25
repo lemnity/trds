@@ -1,4 +1,16 @@
-import { and, asc, desc, eq, gt, gte, isNull, lte, or, sql } from '@payloadcms/db-postgres/drizzle'
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gt,
+  gte,
+  isNotNull,
+  isNull,
+  lte,
+  or,
+  sql,
+} from '@payloadcms/db-postgres/drizzle'
 import type { NodePgDatabase } from '@payloadcms/db-postgres/drizzle/node-postgres'
 
 import {
@@ -174,11 +186,31 @@ function pgTx(db: Db): WalletTx {
         )
       return row?.n ?? 0
     },
-    async setReferralReward(referredCustomerId, entryId) {
+    async unmarkQualified(referredCustomerId) {
+      const rows = await db
+        .update(walletReferrals)
+        .set({ qualifiedAt: null })
+        .where(
+          and(
+            eq(walletReferrals.referredCustomerId, referredCustomerId),
+            isNotNull(walletReferrals.qualifiedAt),
+            isNull(walletReferrals.rewardEntryId),
+          ),
+        )
+        .returning({ id: walletReferrals.id })
+      return rows.length === 1
+    },
+    async setGroupReward(referrerId, entryId) {
       await db
         .update(walletReferrals)
         .set({ rewardEntryId: entryId })
-        .where(eq(walletReferrals.referredCustomerId, referredCustomerId))
+        .where(
+          and(
+            eq(walletReferrals.referrerId, referrerId),
+            isNotNull(walletReferrals.qualifiedAt),
+            isNull(walletReferrals.rewardEntryId),
+          ),
+        )
     },
     async lockCustomer(customerId) {
       // Блокировка до конца транзакции; ключ — хеш метки и id покупателя (не пересекается с чужими).

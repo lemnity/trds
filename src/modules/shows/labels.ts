@@ -1,4 +1,8 @@
+import { plural } from '@/lib/plural'
+
 import type { Availability, EventType, VenueKind } from './types'
+
+export { plural }
 
 // Формат площадки — главное отличие театра: спектакли идут вне классической сцены.
 export const VENUE_KIND_LABELS: Record<VenueKind, string> = {
@@ -27,14 +31,6 @@ export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   concert: 'Концерт, кабаре',
   promenade: 'Спектакль-променад',
 }
-
-/** Форма слова по числу: plural(3, "билет", "билета", "билетов") → «билета». */
-export const plural = (n: number, one: string, few: string, many: string) =>
-  n % 10 === 1 && n % 100 !== 11
-    ? one
-    : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)
-      ? few
-      : many
 
 /** Подпись индикатора остатка: «Свободно N из M», «Осталось N билетов», «Билетов нет». */
 export const availabilityText = (a: Availability | null): string => {

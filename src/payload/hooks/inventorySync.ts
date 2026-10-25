@@ -6,6 +6,7 @@ import {
   type PayloadRequest,
 } from 'payload'
 
+import { plural } from '@/lib/plural'
 // Не через '@/modules/inventory': его вход импортирует @payload-config (цикл с этим конфигом).
 import {
   capacityFromPerformance,
@@ -106,13 +107,7 @@ const loadPerformance = async (req: PayloadRequest, id: Id) =>
     req,
   })) as unknown as PerformanceDoc
 
-const plural = (n: number) => {
-  const mod10 = n % 10
-  const mod100 = n % 100
-  if (mod10 === 1 && mod100 !== 11) return 'билет'
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'билета'
-  return 'билетов'
-}
+const ticketsWord = (n: number) => plural(n, 'билет', 'билета', 'билетов')
 
 async function sync(
   req: PayloadRequest,
@@ -127,7 +122,7 @@ async function sync(
     collection,
     errors: result.conflicts.map((c) => ({
       path,
-      message: `Нельзя меньше проданного и забронированного: «${c.ticketTypeId}» — уже ${c.committed} ${plural(c.committed)}, указано ${c.capacity}.`,
+      message: `Нельзя меньше проданного и забронированного: «${c.ticketTypeId}» — уже ${c.committed} ${ticketsWord(c.committed)}, указано ${c.capacity}.`,
     })),
     req,
   })

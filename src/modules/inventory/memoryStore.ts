@@ -444,9 +444,27 @@ export function memoryCommerceStore(
     async seats(performanceId) {
       return [...seats.values()].filter((s) => s.performanceId === performanceId).map(copy)
     },
+    async inventoryOf(performanceIds) {
+      const ids = new Set(performanceIds)
+      return [...inventory.values()].filter((r) => ids.has(r.performanceId)).map(copy)
+    },
+    async takenSeatsOf(performanceIds) {
+      const ids = new Set(performanceIds)
+      return [...seats.values()]
+        .filter((s) => ids.has(s.performanceId) && s.status !== 'free')
+        .map((s) => ({ performanceId: s.performanceId, seatId: s.seatId }))
+    },
     async order(id) {
       const row = orders.find((o) => o.id === id)
       return row ? copy(row) : null
+    },
+    async hasLiveOrder(customerId, exceptOrderId) {
+      return orders.some(
+        (o) =>
+          o.customerId === customerId &&
+          o.id !== exceptOrderId &&
+          (o.status === 'PAID' || o.status === 'PARTIALLY_REFUNDED'),
+      )
     },
     async overdueOrders(now, limit) {
       return orders

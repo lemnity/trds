@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import { useId, useState, useSyncExternalStore } from 'react'
 
 import { formatRub } from '@/lib/money'
+import { plural } from '@/lib/plural'
 import {
   MAX_TICKETS_PER_ORDER,
   quoteOrder,
@@ -48,13 +49,6 @@ const groupByDay = (items: SalePerformance[]): Day[] => {
   }
   return [...days.values()]
 }
-
-const daysWord = (n: number) =>
-  n % 10 === 1 && n % 100 !== 11
-    ? 'дата'
-    : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)
-      ? 'даты'
-      : 'дат'
 
 /** Остаток дня: сумма по сеансам с открытой продажей; нет таких — неизвестен. */
 const dayAvailability = (items: SalePerformance[]): Availability | null => {
@@ -175,12 +169,7 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
     )
   }
 
-  const ticketsWord = (n: number) =>
-    n % 10 === 1 && n % 100 !== 11
-      ? 'билет'
-      : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)
-        ? 'билета'
-        : 'билетов'
+  const ticketsWord = (n: number) => plural(n, 'билет', 'билета', 'билетов')
 
   const orderBar = (
     <div className={`${styles.orderBar} on-dark`} role="status">
@@ -231,7 +220,9 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
           <h2 className={styles.title}>Когда пойдёте?</h2>
         </div>
         <p className={styles.hint}>
-          {days.length > 1 ? `${days.length} ${daysWord(days.length)} впереди` : 'Один показ'}
+          {days.length > 1
+            ? `${days.length} ${plural(days.length, 'дата', 'даты', 'дат')} впереди`
+            : 'Один показ'}
         </p>
       </div>
 

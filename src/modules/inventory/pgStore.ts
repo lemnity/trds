@@ -389,9 +389,45 @@ export function pgCommerceStore(db: Db): CommerceStore {
         .where(eq(commerceSeats.performanceId, performanceId))
       return rows as SeatRow[]
     },
+    async inventoryOf(performanceIds) {
+      if (!performanceIds.length) return []
+      const rows = await db
+        .select()
+        .from(commerceInventory)
+        .where(inArray(commerceInventory.performanceId, performanceIds))
+      return rows as InventoryRow[]
+    },
+    async takenSeatsOf(performanceIds) {
+      if (!performanceIds.length) return []
+      // Только занятые: свободных мест на схеме большинство, их витрине знать не нужно.
+      return db
+        .select({ performanceId: commerceSeats.performanceId, seatId: commerceSeats.seatId })
+        .from(commerceSeats)
+        .where(
+          and(
+            inArray(commerceSeats.performanceId, performanceIds),
+            sql`${commerceSeats.status} <> 'free'`,
+          ),
+        )
+    },
     async order(id) {
       const [row] = await db.select().from(commerceOrders).where(eq(commerceOrders.id, id))
       return (row as OrderRow | undefined) ?? null
+    },
+    async hasLiveOrder(customerId, exceptOrderId) {
+      // Индекс commerce_orders_customer_idx (customer_id, created_at).
+      const rows = await db
+        .select({ id: commerceOrders.id })
+        .from(commerceOrders)
+        .where(
+          and(
+            eq(commerceOrders.customerId, customerId),
+            inArray(commerceOrders.status, ['PAID', 'PARTIALLY_REFUNDED']),
+            exceptOrderId ? sql`${commerceOrders.id} <> ${exceptOrderId}` : undefined,
+          ),
+        )
+        .limit(1)
+      return rows.length > 0
     },
     async overdueOrders(now, limit) {
       const rows = await db

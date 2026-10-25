@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 
 import { rows, sql, withDb } from './support/db'
-import { LAST_CAPACITY, PERF_LAST, PERF_MAIN, TICKET_TYPE } from './support/env'
+import { LAST_CAPACITY, PERF_LAST, PERF_MAIN, SHOW_SLUG, TICKET_TYPE } from './support/env'
 import { apiHeaders, expect, randomIp, test, uniqueEmail } from './support/fixtures'
 
 /**
@@ -9,6 +9,8 @@ import { apiHeaders, expect, randomIp, test, uniqueEmail } from './support/fixtu
  * Каждый запрос — «отдельный зритель» (свой адрес за прокси и ключ попытки). Ожидание:
  * бронь получают ровно столько, сколько осталось мест, остальные — понятный 409 `unavailable`;
  * после оплаты всех броней в учебном банке оплаченных билетов не больше вместимости.
+ * Витрина (T-042/T-033) показывает остаток ядра продаж: до гонки — «Осталось 3 билета»,
+ * после распродажи — «Билетов нет» на странице спектакля и отказ на странице оформления.
  */
 
 const PARALLEL = 16
@@ -38,13 +40,22 @@ const checkoutBody = (key: string, performanceId = PERF_LAST) => ({
   bonusKopecks: 0,
 })
 
+// Без #якоря: повторный переход на тот же адрес с якорем браузер не перезагружает.
+const showPage = `/shows/${SHOW_SLUG}?date=${PERF_LAST}`
+
 test('параллельный checkout на последние билеты не продаёт сверх вместимости', async ({
   playwright,
+  page,
 }) => {
   const before = await stock()
   expect(before.capacity).toBe(LAST_CAPACITY)
   const remaining = before.capacity - before.sold - before.held
   expect(remaining, 'на показе должны оставаться места (свежая база)').toBeGreaterThan(0)
+
+  // До гонки витрина показывает остаток ядра продаж (вместимость урезана до LAST_CAPACITY).
+  await page.goto(showPage)
+  const session = page.getByLabel('Выбранный показ')
+  await expect(session).toContainText(`Осталось ${remaining} билет`)
 
   // Свой контекст на запрос: разные IP за прокси, без общей cookie-сессии (гости).
   const clients = await Promise.all(
@@ -124,6 +135,15 @@ test('параллельный checkout на последние билеты н�
         .map((client) => client.post('/api/checkout', { data: checkoutBody(randomUUID()) })),
     )
     for (const res of late) expect(res.status()).toBe(409)
+
+    // Сайт больше не обещает билеты: страница рендерится по запросу с остатком из ядра продаж.
+    await page.goto(showPage)
+    await expect(session).toContainText('Билетов нет')
+    await expect(page.getByText('На этот показ все билеты проданы')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Оформить заказ' })).toHaveCount(0)
+    // Старая ссылка на оформление — отказ до формы, а не 409 после ввода почты.
+    await page.goto(`/checkout/${PERF_LAST}?tickets=${TICKET_TYPE}:1`)
+    await expect(page.getByText('Не удалось восстановить выбор')).toBeVisible()
   } finally {
     await Promise.all(clients.map((c) => c.dispose()))
   }

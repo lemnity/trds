@@ -47,7 +47,9 @@ import { isFinalRefund, publicRefundStatus, refundTransition, type RefundEvent }
  *      FAILED → доли аннулируются, билеты снова ISSUED; неизвестный исход — статус прежний,
  *      сверка (`reconcile`, worker) повторяет с тем же ключом, после лимита — MANUAL_REVIEW;
  *   4. бонусы (после успеха, идемпотентно): сторно начисления и возврат потраченных
- *      (`wallet.compensateRefund`), отметка `bonus_settled_at`; не дошло — доделает сверка.
+ *      (`wallet.compensateRefund`); заказ возвращён целиком — друг по «Приведи 3 друга» снимается
+ *      со счётчика, если награда за его тройку ещё не выдана (T-062); отметка `bonus_settled_at`;
+ *      не дошло — доделает сверка.
  */
 
 /** Сколько раз спрашивать банк при неизвестном исходе, прежде чем отдать возврат человеку. */
@@ -137,7 +139,7 @@ type Deps = {
   store: CommerceStore
   /** null — банк не подключён: деньги вернуть нельзя, возврат не создаётся. */
   provider: PaymentProvider | null
-  wallet: Pick<WalletService, 'compensateRefund'>
+  wallet: Pick<WalletService, 'compensateRefund' | 'unqualifyReferral'>
   /** Начало показа для старых позиций без снимка (источник афиши). */
   performanceStart?: (performanceId: string) => Promise<Date | null>
   log: Logger
@@ -780,6 +782,16 @@ export function createRefundService({
       note = `returned=${result.returnedKopecks} reversed=${result.reversedKopecks} covered=${result.coveredKopecks} debt=${result.debtKopecks}${result.accrualMissing ? ' accrual=none' : ''}`
       if (result.returnedKopecks < refund.bonusKopecks && !result.duplicate)
         log.alert(ALERTS.paymentReview, { refundId, reason: 'REFUND_BONUS_SHORTFALL' })
+      // T-062: покупка друга возвращена целиком — он больше не засчитан (если нет другой
+      // действующей покупки и награда за его тройку не выдана; выданную не отбираем).
+      if (order.status === 'REFUNDED') {
+        const customerId = order.customerId
+        const referral = await wallet.unqualifyReferral(customerId, {
+          stillQualifies: () => store.hasLiveOrder(customerId, order.id),
+        })
+        note += ` referral=${referral.unqualified ? 'unqualified' : referral.reason}`
+        if (referral.unqualified) log.info('wallet.referral_unqualified', { orderId: order.id })
+      }
     }
     return run(async (tx) => {
       const r = await tx.lockRefund(refund.id)

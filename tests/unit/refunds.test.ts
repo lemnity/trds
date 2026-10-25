@@ -59,11 +59,24 @@ const setup = (policy: Partial<RefundPolicy> = { customerRefundsEnabled: true })
   const bankState = fakeBankState()
   const fake = createFakeProvider({ secret: 'fake-bank-secret', state: bankState, now })
   const call = { sleep: async () => {}, timeoutMs: 1_000 }
+  // «Начисление не успело»: шаг после оплаты (3% и засчёт друга) можно придержать (T-064).
+  const paused = { afterPaid: false }
+  const purchaseWallet: typeof wallet = {
+    ...wallet,
+    accrue: (...args: Parameters<typeof wallet.accrue>) =>
+      paused.afterPaid
+        ? Promise.resolve({ amountKopecks: 0, duplicate: true })
+        : wallet.accrue(...args),
+    qualifyReferral: (...args: Parameters<typeof wallet.qualifyReferral>) =>
+      paused.afterPaid
+        ? Promise.resolve({ qualified: false as const, rewarded: false })
+        : wallet.qualifyReferral(...args),
+  }
   const purchase = createPurchaseService({
     orders,
     inventory: createInventoryService({ store }),
     stock: store,
-    wallet,
+    wallet: purchaseWallet,
     provider: fake.provider,
     statusSecret: 'status-secret',
     log,
@@ -136,6 +149,7 @@ const setup = (policy: Partial<RefundPolicy> = { customerRefundsEnabled: true })
     store,
     wallet,
     walletStore,
+    paused,
     fake,
     bankState,
     purchase,
@@ -622,6 +636,181 @@ describe('bonuses on refund (PRD §5.6 debt rule)', () => {
     })
     expect(r).toMatchObject({ ok: true, refund: { status: 'SUCCEEDED' } })
     expect(s.store.dump().refunds[0]!.bonusSettledAt).not.toBeNull()
+  })
+})
+
+// T-064: заказ частично вернули раньше, чем прошло начисление 3% (webhook обработан, а шаг после
+// оплаты упал/не успел) — начисление всё равно приходит, но только за оставшиеся билеты.
+describe('accrual for an order refunded before the accrual ran (T-064)', () => {
+  const kinds = (s: ReturnType<typeof setup>) =>
+    s.walletStore
+      .dump()
+      .ledger.filter((e) => e.customerId === 'alice')
+      .map((e) => [e.kind, e.amountKopecks])
+
+  it('partially refunded first: reconcile accrues 3% of the remaining tickets only, once', async () => {
+    const s = setup()
+    await s.ready
+    s.paused.afterPaid = true
+    // 2 × 1500 ₽ деньгами; начисления ещё нет.
+    const { orderId, tickets } = await s.buyPaid({ quantity: 2 })
+    expect(await s.wallet.balance('alice', s.now())).toBe(0)
+    const first = await s.customerRefund([tickets[0]!.number])
+    expect(first).toMatchObject({ ok: true, refund: { status: 'SUCCEEDED' } })
+    expect(s.order(orderId).status).toBe('PARTIALLY_REFUNDED')
+    expect(s.audit('refund.bonus_settled').at(-1)!.result).toContain('accrual=none')
+
+    // Сверка подбирает и частично возвращённые: 3% от 3000 ₽ = 90 ₽, минус доля вернувшегося
+    // билета (45 ₽) — итог 45 ₽ = 3% от денег за оставшийся билет.
+    s.paused.afterPaid = false
+    await s.purchase.reconcile()
+    expect(await s.wallet.balance('alice', s.now())).toBe(4_500)
+    expect(kinds(s)).toEqual([
+      ['purchase', 9_000],
+      ['reversal', -4_500],
+    ])
+    // Повторы (сверка, webhook, повторное урегулирование первого возврата) ничего не меняют.
+    await s.purchase.reconcile()
+    await s.purchase.afterPaid(orderId)
+    if (first.ok) await s.refunds.settleBonuses(first.refund.id)
+    expect(await s.wallet.balance('alice', s.now())).toBe(4_500)
+    expect(kinds(s)).toHaveLength(2)
+
+    // Второй билет вернули — сторнируется ровно его доля: начисление сходится в ноль.
+    await s.customerRefund([tickets[1]!.number])
+    expect(s.order(orderId).status).toBe('REFUNDED')
+    expect(await s.wallet.balance('alice', s.now())).toBe(0)
+    expect(await s.wallet.debt('alice')).toBe(0)
+    expect(kinds(s).reduce((n, [, k]) => n + Number(k), 0)).toBe(0)
+  })
+
+  it('a refund that succeeded but has not settled bonuses yet: reversed once, by whichever runs first', async () => {
+    const s = setup()
+    await s.ready
+    s.paused.afterPaid = true
+    const { orderId, tickets } = await s.buyPaid({ quantity: 2 })
+    const first = await s.customerRefund([tickets[0]!.number])
+    if (!first.ok) throw new Error(first.error)
+    s.paused.afterPaid = false
+    // Начисление со сторно доли уже возвращённого билета…
+    await s.purchase.afterPaid(orderId)
+    // …а урегулирование того же возврата (повтор сверки) видит то же сторно — не второе.
+    const again = await s.wallet.compensateRefund(
+      {
+        customerId: 'alice',
+        orderId,
+        refundId: first.refund.id,
+        returnSpentKopecks: 0,
+        reversalShare: (accrued) => reversalShare(accrued, tickets, new Set([tickets[0]!.id])),
+      },
+      s.now(),
+    )
+    expect(again).toMatchObject({ duplicate: true, reversedKopecks: 4_500, accrualMissing: false })
+    expect(await s.wallet.balance('alice', s.now())).toBe(4_500)
+  })
+
+  it('fully refunded before the accrual: no accrual at all', async () => {
+    const s = setup()
+    await s.ready
+    s.paused.afterPaid = true
+    const { orderNumber } = await s.buyPaid({ quantity: 2 })
+    await s.refunds.requestStaffRefund({
+      staff: STAFF,
+      orderNumber,
+      ticketNumbers: [],
+      reason: 'Отмена',
+      includeFee: false,
+      clientKey: key(),
+    })
+    s.paused.afterPaid = false
+    await s.purchase.reconcile()
+    expect(kinds(s)).toEqual([])
+  })
+})
+
+// T-062: друг засчитан первой покупкой; вернул её целиком до награды за его тройку — снимается
+// со счётчика; после выданной награды — не снимается и награда не отбирается.
+describe('referral and refunds (T-062)', () => {
+  const qualified = async (s: ReturnType<typeof setup>) =>
+    (await s.wallet.summary('ref', s.now())).referral.qualified
+
+  it('full refund before the reward un-qualifies the friend; partial refund and rewarded groups keep it', async () => {
+    const s = setup()
+    await s.ready
+    const code = await s.wallet.ensureReferralCode('ref', s.now())
+    for (const friend of ['f1', 'f2', 'f3', 'f4'])
+      expect(await s.wallet.attachReferral(friend, code, s.now())).toEqual({ ok: true })
+    const perf = performance(50)
+    const refundAll = (friend: string, tickets: { number: string }[]) =>
+      s.customerRefund(
+        tickets.map((t) => t.number),
+        key(),
+        friend,
+      )
+    const lastNote = () => s.audit('refund.bonus_settled').at(-1)!.result
+
+    // Частичный возврат: покупка ещё действует — друг засчитан.
+    const f2 = await s.buyPaid({ customerId: 'f2', perf })
+    await refundAll('f2', [f2.tickets[0]!])
+    expect(await qualified(s)).toBe(1)
+
+    // Полный возврат до награды — друга сняли; следующая покупка засчитывает снова.
+    const f1 = await s.buyPaid({ customerId: 'f1', perf })
+    expect(await qualified(s)).toBe(2)
+    await refundAll('f1', f1.tickets)
+    expect(lastNote()).toContain('referral=unqualified')
+    expect(await qualified(s)).toBe(1)
+    await refundAll('f1', f1.tickets) // повтор — ничего не меняет
+    expect(await qualified(s)).toBe(1)
+    await s.buyPaid({ customerId: 'f1', perf })
+    expect(await qualified(s)).toBe(2)
+
+    // Третий друг замыкает тройку — награда 1000 ₽; его полный возврат её не отбирает.
+    const f3 = await s.buyPaid({ customerId: 'f3', perf })
+    expect(await qualified(s)).toBe(3)
+    expect(await s.wallet.balance('ref', s.now())).toBe(100_000)
+    await refundAll('f3', f3.tickets)
+    expect(lastNote()).toContain('referral=REWARDED')
+    expect(await qualified(s)).toBe(3)
+    expect(await s.wallet.balance('ref', s.now())).toBe(100_000)
+    // Остаток покупки f2 (тоже в награждённой тройке) — тоже без снятия.
+    await refundAll('f2', [f2.tickets[1]!])
+    expect(lastNote()).toContain('referral=REWARDED')
+
+    // У друга есть другая действующая покупка — возврат одной из них его не снимает.
+    const f4a = await s.buyPaid({ customerId: 'f4', perf })
+    await s.buyPaid({ customerId: 'f4', perf })
+    await refundAll('f4', f4a.tickets)
+    expect(lastNote()).toContain('referral=STILL_QUALIFIES')
+    expect(await qualified(s)).toBe(4)
+    // Покупатель без пригласившего — ничего не происходит.
+    const alice = await s.buyPaid({ customerId: 'alice', perf })
+    await refundAll('alice', alice.tickets)
+    expect(lastNote()).toContain('referral=NOT_REFERRED')
+    expect(s.walletStore.dump().ledger.filter((e) => e.kind === 'referral')).toHaveLength(1)
+  })
+
+  it('a late qualify for an order already refunded in full does not count the friend again', async () => {
+    const s = setup()
+    await s.ready
+    const code = await s.wallet.ensureReferralCode('ref', s.now())
+    await s.wallet.attachReferral('f1', code, s.now())
+    s.paused.afterPaid = true
+    const f1 = await s.buyPaid({ customerId: 'f1' })
+    await s.customerRefund(
+      f1.tickets.map((t) => t.number),
+      key(),
+      'f1',
+    )
+    s.paused.afterPaid = false
+    // Запоздалый шаг после оплаты (заказ уже REFUNDED) — без засчёта.
+    await s.purchase.afterPaid(f1.orderId)
+    expect(await qualified(s)).toBe(0)
+    // Проверка под блокировкой: вызов, прочитавший заказ ещё оплаченным, тоже не засчитает.
+    expect(await s.wallet.qualifyReferral('f1', s.now(), { stillPaid: async () => false })).toEqual(
+      { qualified: false, rewarded: false },
+    )
+    expect(await qualified(s)).toBe(0)
   })
 })
 

@@ -1,3 +1,4 @@
+import { plural } from '@/lib/plural'
 import type { SalePerformance } from '@/modules/shows'
 
 // Общие части шапки спектакля (иконки, минимальная цена).
@@ -34,12 +35,7 @@ export const PinIcon = () => (
   </svg>
 )
 
-export const datesWord = (n: number) =>
-  n % 10 === 1 && n % 100 !== 11
-    ? 'дата'
-    : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)
-      ? 'даты'
-      : 'дат'
+export const datesWord = (n: number) => plural(n, 'дата', 'даты', 'дат')
 
 /** Минимальная цена среди показов с открытой продажей; null — на сайте продажи нет. */
 export const minPrice = (performances: SalePerformance[]) => {

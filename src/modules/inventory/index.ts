@@ -17,6 +17,7 @@ export {
   type CapacitySpec,
   type InventoryLine,
   type InventoryService,
+  type PerformanceStock,
   type SyncResult,
   type Unavailable,
   type UnavailableReason,

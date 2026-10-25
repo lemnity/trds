@@ -38,7 +38,8 @@
 // @/modules/inventory
 getInventory(): Promise<InventoryService>
   syncCapacity(spec: CapacitySpec, now?): Promise<SyncResult> // ниже sold+held — BELOW_COMMITTED, ничего не меняется
-  availability(performanceId): Promise<{ categories: {ticketTypeId, capacity, sold, held, remaining}[]; unavailableSeatIds: string[] }>
+  availability(performanceId): Promise<PerformanceStock> // { categories: {ticketTypeId, capacity, sold, held, remaining}[]; unavailableSeatIds }
+  availabilityOf(performanceIds[]): Promise<Map<id, PerformanceStock>> // витрина: 2 запроса на любой список показов
 capacityFromPerformance(performance: Performance): CapacitySpec // показ CMS/демо → категории и места схемы зала
 // примитивы внутри транзакции заказа:
 acquire(tx, lines, { kind: 'hold', holdId, orderId } | { kind: 'sell', orderId }, at) // всё или ничего
@@ -60,6 +61,12 @@ getOrders(): Promise<OrderService>
   ticketToken(ticket): string // QR-токен = HMAC(id, версия); в БД только SHA-256
 ```
 
+Витрина (T-042/T-033): `@/modules/site-data` `loadSiteShows()` накладывает `availabilityOf` всех будущих
+показов на данные CMS (`applyStock` в `@/modules/shows`): у категории занято = `sold + held`, занятые места —
+к закрытым. Страницы берут её через `getSiteShows()` (`cache` — один пакетный запрос на рендер). Оформление
+(`POST /api/checkout`) читает показ без наложения (`loadShowsData()`), окончательно решает `acquire`.
+Демо-набор (превью, нет базы) остаётся как есть.
+
 Суммы в `placeOrder` считает вызывающий по данным сервера (`quoteOrder`/`quoteSeats` + `applyBonus`);
 сервис проверяет целостность (`cash = gross − bonus + fee`, бонусы ≤ билеты) и раскладывает бонусы
 по позициям и билетам (`allocate`). Конкурентность на PostgreSQL: `tests/unit/commerce-pg.test.ts`
@@ -80,8 +87,17 @@ checkout({ clientKey, performance, selection, email, customerId, requestedBonusK
 orderStatus(orderId, { token | customerId }) // подписанная ссылка возврата; ожидающий — сверка с банком (≤ 1/5 с)
 handleNotification(provider, { headers, rawBody }) // подпись → recordPaymentEvent → getPayment → confirmPayment
 reconcile() // worker payments.reconcile: ожидающие с платежом, expireHolds({ verify }),
-            // releaseSpend истёкших/отменённых, afterPaid оплаченных (accrue 3%, qualifyReferral)
+            // releaseSpend истёкших/отменённых, afterPaid оплаченных и частично возвращённых
+            // (accrue 3%, qualifyReferral)
 ```
+
+Возврат раньше начисления (T-064): `afterPaid` для PARTIALLY_REFUNDED начисляет 3% от всего заказа и в той же
+транзакции кошелька (под блокировкой покупателя) сторнирует доли уже успешных возвратов (`reversal:<refundId>`,
+тот же ключ, что у `compensateRefund`) — итог равен 3% от оставшихся билетов, следующий возврат сторнирует ровно
+свою долю. Возвращённый целиком — без начисления. «Приведи 3 друга» (T-062): полный возврат покупки друга
+(`refunds.settleBonuses`) снимает его со счётчика (`wallet.unqualifyReferral`), если у друга нет другой
+действующей покупки и награда за его тройку не выдана (`reward_entry_id` ставится всем трём друзьям тройки);
+выданную награду не отбираем. Запоздалый `qualifyReferral` перепроверяет заказ под блокировкой пригласившего.
 
 Несостоявшийся заказ возвращает бонусы лотами `release` (срок исходного лота); поздняя оплата после
 компенсации списывает их заново (`spend:<orderId>:late`), не хватает — `ALERT_PAYMENT_REVIEW`.
