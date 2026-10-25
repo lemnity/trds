@@ -36,3 +36,9 @@
   margin-top: 0.75rem;
   color: var(--color-muted);
 }
+
+/* Страница результата оплаты: сообщение под заголовком, ширина — как у строки чтения. */
+.result {
+  max-width: 44rem;
+  margin-top: clamp(1.25rem, 3vw, 2rem);
+}

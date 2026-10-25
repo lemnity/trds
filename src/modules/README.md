@@ -64,3 +64,25 @@ getOrders(): Promise<OrderService>
 сервис проверяет целостность (`cash = gross − bonus + fee`, бонусы ≤ билеты) и раскладывает бонусы
 по позициям и билетам (`allocate`). Конкурентность на PostgreSQL: `tests/unit/commerce-pg.test.ts`
 (запуск с `COMMERCE_PG_URL` на одноразовой базе).
+
+## Покупка и оплата: `payments` + `orders/purchase` (T-043…T-045, T-061, T-062)
+
+`payments` — контракт `PaymentProvider` (доменные типы, копейки), `callProvider` (таймаут 10 с,
+3 попытки с backoff; повторяются только `timeout`/`unavailable`) и выбор по `PAYMENT_PROVIDER`
+(пусто — оплаты нет; `fake` — учебный банк, не в production). Маршруты к `payments` не обращаются —
+use-case `getPurchase()` из `@/modules/orders`:
+
+```ts
+checkout({ clientKey, performance, selection, email, customerId, requestedBonusKopecks, method, siteOrigin })
+  // цены показа → applyBonus по балансу из базы → placeOrder (ключ checkout:<customer|guest>:<clientKey>)
+  // → wallet.spend(spend:<orderId>) → createPayment(payment:<orderId>) вне транзакций → attachPayment
+  // → { redirectUrl } | PAYMENT_UNAVAILABLE | UNAVAILABLE | BONUS_CHANGED | ORDER_CLOSED | PAYMENT_FAILED | PAYMENT_RETRY …
+orderStatus(orderId, { token | customerId }) // подписанная ссылка возврата; ожидающий — сверка с банком (≤ 1/5 с)
+handleNotification(provider, { headers, rawBody }) // подпись → recordPaymentEvent → getPayment → confirmPayment
+reconcile() // worker payments.reconcile: ожидающие с платежом, expireHolds({ verify }),
+            // releaseSpend истёкших/отменённых, afterPaid оплаченных (accrue 3%, qualifyReferral)
+```
+
+Несостоявшийся заказ возвращает бонусы лотами `release` (срок исходного лота); поздняя оплата после
+компенсации списывает их заново (`spend:<orderId>:late`), не хватает — `ALERT_PAYMENT_REVIEW`.
+Тесты: `tests/unit/purchase.test.ts`, на PostgreSQL — `tests/unit/purchase-pg.test.ts` (`PURCHASE_PG_URL`).

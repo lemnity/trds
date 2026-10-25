@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, lte, sql } from '@payloadcms/db-postgres/drizzle'
+import { and, asc, eq, gte, inArray, lte, sql } from '@payloadcms/db-postgres/drizzle'
 import type { NodePgDatabase } from '@payloadcms/db-postgres/drizzle/node-postgres'
 
 import {
@@ -290,6 +290,21 @@ export function pgCommerceStore(db: Db): CommerceStore {
           and(eq(commerceOrders.status, 'PENDING_PAYMENT'), lte(commerceOrders.holdUntil, now)),
         )
         .orderBy(asc(commerceOrders.holdUntil), asc(commerceOrders.id))
+        .limit(limit)
+      return rows as OrderRow[]
+    },
+    async ordersInStatus(statuses, updatedSince, limit) {
+      if (!statuses.length) return []
+      const rows = await db
+        .select()
+        .from(commerceOrders)
+        .where(
+          and(
+            inArray(commerceOrders.status, statuses),
+            gte(commerceOrders.updatedAt, updatedSince),
+          ),
+        )
+        .orderBy(asc(commerceOrders.updatedAt), asc(commerceOrders.id))
         .limit(limit)
       return rows as OrderRow[]
     },

@@ -3,30 +3,47 @@ import { notFound } from 'next/navigation'
 
 import { PageCrumbs } from '@/components/ui/PageCrumbs'
 import { cardClass } from '@/components/ui/card'
-import { legalDocuments } from '@/modules/content'
+import { getSiteContent, staticSiteContent } from '@/app/(frontend)/site-data'
 
 import head from '../../page-head.module.css'
 import styles from '../documents.module.css'
 
 type Params = { slug: string }
 
-export const dynamicParams = false
-
+// Статическая сборка — документы демо-набора; на сервере — по запросу, из CMS.
 export function generateStaticParams(): Params[] {
-  return legalDocuments.map(({ slug }) => ({ slug }))
+  return (staticSiteContent()?.legalDocuments ?? []).map(({ slug }) => ({ slug }))
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params
-  const doc = legalDocuments.find((d) => d.slug === slug)
-  return doc ? { title: doc.title, robots: { index: false, follow: true } } : {}
+  const doc = (await getSiteContent()).legalDocuments.find((d) => d.slug === slug)
+  if (!doc) notFound()
+  return { title: doc.title, robots: { index: false, follow: true } }
 }
 
-/** Документ ещё не утверждён театром — честная страница-заглушка, без выдуманного текста. */
+/**
+ * Текст документа — из CMS (только переданный театром). Пока его нет — честная страница-заглушка,
+ * без выдуманного текста.
+ */
 export default async function DocumentPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params
-  const doc = legalDocuments.find((d) => d.slug === slug)
+  const doc = (await getSiteContent()).legalDocuments.find((d) => d.slug === slug)
   if (!doc) notFound()
+  if (doc.paragraphs?.length)
+    return (
+      <div className="container">
+        <header className={head.head}>
+          <PageCrumbs items={[{ label: 'Главная', href: '/' }, { label: doc.title }]} />
+          <h1 className={head.title}>{doc.title}</h1>
+        </header>
+        <div className={cardClass(styles.card)}>
+          {doc.paragraphs.map((p, i) => (
+            <p key={i}>{p}</p>
+          ))}
+        </div>
+      </div>
+    )
 
   return (
     <div className="container">

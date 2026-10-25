@@ -25,6 +25,11 @@ export const ALERTS = {
   backupFailed: 'ALERT_BACKUP_FAILED',
   /** Фоновая задача упала (повторится на следующем такте). */
   jobFailed: 'ALERT_JOB_FAILED',
+  /**
+   * Платёж требует ручного разбора: оплата без остатка, неверная сумма/валюта, второй платёж
+   * за заказ, нехватка бонусов при поздней оплате (`@/modules/orders`, purchase).
+   */
+  paymentReview: 'ALERT_PAYMENT_REVIEW',
 } as const
 
 export type AlertCode = (typeof ALERTS)[keyof typeof ALERTS]
@@ -58,6 +63,7 @@ const DIGIT_CODE = /^\s*\d{4,8}\s*$/
 const EMAIL = /[\p{L}\p{N}._%+-]+@[\p{L}\p{N}.-]+\.\p{L}{2,}/gu
 // Российские и международные номера: +7 900 000-00-00, 8(900)0000000, +79000000000.
 const PHONE = /(?<!\w)(\+?\d[\s()-]*){10,15}(?!\w)/g
+const ISO_DATE = /\d{4}-\d{2}-\d{2}/
 // Код из письма рядом со словом «код»/code/otp: «код 123456», "code: 1234".
 const CODE_IN_TEXT = /((?:код|code|otp|pin)\D{0,12})\d{4,8}/giu
 const BEARER = /\b(Bearer|Basic)\s+[\w.~+/=-]+/gi
@@ -78,7 +84,8 @@ export const redactString = (value: string): string =>
     .replace(CODE_IN_TEXT, `$1${REDACTED}`)
     // UUID (id заказа, correlationId) — не токен.
     .replace(LONG_TOKEN, (m) => (UUID.test(m) ? m : REDACTED))
-    .replace(PHONE, '[phone]')
+    // Дата и время (2026-10-25 12:01:00+00) — не телефон.
+    .replace(PHONE, (m) => (ISO_DATE.test(m) ? m : '[phone]'))
 
 /** Ошибка в логе — только тип и машинный код (без message и stack: там бывают ПД и секреты). */
 export const errorInfo = (error: unknown): { name: string; code?: string } => {

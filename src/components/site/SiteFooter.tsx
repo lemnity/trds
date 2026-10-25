@@ -2,7 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import logo from '@/assets/logo.webp'
-import { contacts, legalDocuments } from '@/modules/content'
+import { getSiteContent } from '@/app/(frontend)/site-data'
 
 import { CookieSettingsButton } from './CookieConsent'
 import { LogoBird } from './LogoBird'
@@ -48,7 +48,8 @@ function DevCredit() {
 }
 
 // Контакты — из modules/content (общие с /contacts).
-export function SiteFooter() {
+export async function SiteFooter() {
+  const { contacts, legalDocuments } = await getSiteContent()
   return (
     <footer id="contacts" tabIndex={-1} className={styles.footer}>
       <div className={`container ${styles.top}`}>

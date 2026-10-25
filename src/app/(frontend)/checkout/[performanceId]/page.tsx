@@ -5,24 +5,24 @@ import { Suspense } from 'react'
 import { CheckoutView } from '@/components/checkout/CheckoutView'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { cardClass } from '@/components/ui/card'
-import { findPerformance, formatPerformanceDate, getShowsData } from '@/modules/shows'
+import { getSiteShows, staticShowsData } from '@/app/(frontend)/site-data'
+import { findPerformance, formatPerformanceDate } from '@/modules/shows'
 
 import styles from './checkout.module.css'
 
 type Params = { performanceId: string }
-
-export const dynamicParams = false
 
 export const metadata: Metadata = {
   title: 'Билетная касса',
   robots: { index: false, follow: false },
 }
 
-// Все показы с ценами (не только будущие): пустой список ломает static export, прошедший
-// на момент сборки показ отдаёт 404. После сборки начало показа проверяет CheckoutView.
+// Статическая сборка: все показы с ценами (не только будущие): пустой список ломает static
+// export, прошедший на момент сборки показ отдаёт 404. После сборки начало показа проверяет
+// CheckoutView. На сервере — по запросу, показы из CMS (@/modules/site-data).
 export function generateStaticParams(): Params[] {
-  return getShowsData()
-    .performances.filter(
+  return (staticShowsData()?.performances ?? [])
+    .filter(
       (p) => p.ticketTypes.length > 0 || Object.keys(p.seating?.pricesKopecks ?? {}).length > 0,
     )
     .map((p) => ({ performanceId: p.id }))
@@ -37,7 +37,7 @@ const CloseIcon = () => (
 /** Оформление по референсу заказчика: панель «Шаг 2 из 2», форма слева, «Ваши места» справа. */
 export default async function CheckoutPage({ params }: { params: Promise<Params> }) {
   const { performanceId } = await params
-  const performance = findPerformance(getShowsData(), performanceId, new Date())
+  const performance = findPerformance(await getSiteShows(), performanceId, new Date())
   if (!performance) notFound()
   const backHref = `/shows/${performance.show.slug}?date=${performance.id}#tickets`
   const date = formatPerformanceDate(performance.startsAt)

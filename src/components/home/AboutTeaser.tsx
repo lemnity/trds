@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
-import { aboutTheatre } from '@/modules/content'
-import { VENUE_KIND_LABELS, getShowsData, type VenueKind } from '@/modules/shows'
+import { getSiteContent, getSiteShows } from '@/app/(frontend)/site-data'
+import { VENUE_KIND_LABELS, type VenueKind } from '@/modules/shows'
 
 import { ButtonLink } from '../ui/ButtonLink'
 import styles from './AboutTeaser.module.css'
@@ -14,11 +14,12 @@ const VENUES: VenueKind[] = ['stage', 'bar', 'restaurant', 'loft', 'apartment', 
  * «О театре» на главной: крупная фраза и абзац на 12-колоночной сетке, бесконечная лента фото,
  * строка «Где мы играем» — площадки ведут в афишу с фильтром. Тексты — с сайта театра.
  */
-export function AboutTeaser() {
+export async function AboutTeaser() {
+  const [data, { aboutTheatre }] = await Promise.all([getSiteShows(), getSiteContent()])
   // Фото театра и по одному кадру из галереи каждого спектакля — длинная лента.
   const photos: MarqueePhoto[] = [
     ...aboutTheatre.photos.map((src) => ({ src, alt: 'Модный театр TURDUS на сцене' })),
-    ...getShowsData().shows.flatMap((show) =>
+    ...data.shows.flatMap((show) =>
       show.gallery[0] ? [{ src: show.gallery[0], alt: `Сцена из спектакля «${show.title}»` }] : [],
     ),
   ]

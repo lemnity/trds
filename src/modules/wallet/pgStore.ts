@@ -63,6 +63,19 @@ function pgTx(db: Db): WalletTx {
     async insertAllocations(rows) {
       if (rows.length) await db.insert(walletSpendAllocations).values(rows)
     },
+    async spendAllocations(spendEntryId) {
+      const rows = await db
+        .select({
+          lotEntryId: walletSpendAllocations.lotEntryId,
+          kopecks: sql<number>`${walletSpendAllocations.kopecks}`.mapWith(Number),
+          expiresAt: walletLedger.expiresAt,
+        })
+        .from(walletSpendAllocations)
+        .innerJoin(walletLedger, eq(walletLedger.id, walletSpendAllocations.lotEntryId))
+        .where(eq(walletSpendAllocations.spendEntryId, spendEntryId))
+        .orderBy(asc(walletSpendAllocations.lotEntryId))
+      return rows.map((r) => ({ ...r, expiresAt: r.expiresAt! }))
+    },
     async lockExpiredLots(now, limit) {
       return db
         .select({

@@ -4,13 +4,17 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { pageOpenGraph } from '@/lib/site'
-import { personBios } from '@/modules/content'
 import { getPersonProfile, listPeople, type PersonRole } from '@/modules/people'
-import { formatPerformanceDate, getShowsData, plural } from '@/modules/shows'
+import {
+  getPersonPhotos,
+  getSiteContent,
+  getSiteShows,
+  staticShowsData,
+} from '@/app/(frontend)/site-data'
+import { formatPerformanceDate, plural } from '@/modules/shows'
 
 import { reveal } from '@/components/ui/reveal'
 import styles from './person.module.css'
-import { personPhotos } from '@/components/people/personPhotos'
 import { Gallery } from '@/components/show/Gallery'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { PageCrumbs } from '@/components/ui/PageCrumbs'
@@ -19,21 +23,21 @@ import { TicketIcon } from '@/components/ui/TicketIcon'
 
 type Params = { slug: string }
 
-export const dynamicParams = false
-
+// Статическая сборка — люди демо-набора; на сервере — по запросу, из CMS.
 export function generateStaticParams(): Params[] {
-  return listPeople(getShowsData()).map((p) => ({ slug: p.slug }))
+  const data = staticShowsData()
+  return data ? listPeople(data).map((p) => ({ slug: p.slug })) : []
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params
-  const profile = getPersonProfile(getShowsData(), slug, new Date())
-  if (!profile) return {}
+  const profile = getPersonProfile(await getSiteShows(), slug, new Date())
+  if (!profile) notFound()
   const titles = [...profile.shows, ...profile.archive].map((s) => `«${s.title}»`)
   const description = titles.length
     ? `${profile.person.name} в спектаклях модного театра TURDUS: ${titles.join(', ')}.`
     : `${profile.person.name} — модный театр TURDUS.`
-  const photo = personPhotos[profile.person.slug]
+  const photo = (await getPersonPhotos())[profile.person.slug]
   return {
     title: profile.person.name,
     description,
@@ -86,7 +90,12 @@ const aboutTitle = (fields: string[]) =>
  */
 export default async function PersonPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params
-  const profile = getPersonProfile(getShowsData(), slug, new Date())
+  const [data, { personBios }, personPhotos] = await Promise.all([
+    getSiteShows(),
+    getSiteContent(),
+    getPersonPhotos(),
+  ])
+  const profile = getPersonProfile(data, slug, new Date())
   if (!profile) notFound()
   const { person, fields, shows, archive, gallery, stats } = profile
   const bio = personBios[person.slug]

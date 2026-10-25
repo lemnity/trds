@@ -67,15 +67,50 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    shows: Show;
+    performances: Performance;
+    venues: Venue;
+    archive: Archive;
+    'ticket-types': TicketType;
+    people: Person;
+    news: News;
+    reviews: Review;
+    partners: Partner;
+    pages: Page;
+    documents: Document;
+    media: Media;
     'admin-users': AdminUser;
+    'admin-mfa': AdminMfa;
+    'admin-mfa-recovery-codes': AdminMfaRecoveryCode;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    shows: {
+      performances: 'performances';
+    };
+    performances: {
+      ticketTypes: 'ticket-types';
+    };
+  };
   collectionsSelect: {
+    shows: ShowsSelect<false> | ShowsSelect<true>;
+    performances: PerformancesSelect<false> | PerformancesSelect<true>;
+    venues: VenuesSelect<false> | VenuesSelect<true>;
+    archive: ArchiveSelect<false> | ArchiveSelect<true>;
+    'ticket-types': TicketTypesSelect<false> | TicketTypesSelect<true>;
+    people: PeopleSelect<false> | PeopleSelect<true>;
+    news: NewsSelect<false> | NewsSelect<true>;
+    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    partners: PartnersSelect<false> | PartnersSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
+    documents: DocumentsSelect<false> | DocumentsSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
     'admin-users': AdminUsersSelect<false> | AdminUsersSelect<true>;
+    'admin-mfa': AdminMfaSelect<false> | AdminMfaSelect<true>;
+    'admin-mfa-recovery-codes': AdminMfaRecoveryCodesSelect<false> | AdminMfaRecoveryCodesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -85,8 +120,12 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'site-settings': SiteSetting;
+  };
+  globalsSelect: {
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -117,10 +156,500 @@ export interface AdminUserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shows".
+ */
+export interface Show {
+  id: number;
+  /**
+   * Часть адреса: /shows/<адрес>. Пусто — заполнится из названия.
+   */
+  slug?: string | null;
+  title: string;
+  eventType: 'spectacle' | 'immersive' | 'performance' | 'concert' | 'promenade';
+  genre?: string | null;
+  ageLimit?: number | null;
+  durationMinutes?: number | null;
+  premiere?: boolean | null;
+  pushkinCard?: boolean | null;
+  studentOffer?: boolean | null;
+  /**
+   * Новее — раньше в слайдере главной. Пусто — дата создания записи.
+   */
+  announcedAt?: string | null;
+  lead: string;
+  /**
+   * Новый абзац — через пустую строку.
+   */
+  description?: string | null;
+  credits?:
+    | {
+        role: string;
+        entries?:
+          | {
+              character?: string | null;
+              /**
+               * Несколько человек — состав в очередь.
+               */
+              people: (number | Person)[];
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  poster?: (number | null) | Media;
+  /**
+   * Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…
+   */
+  posterUrl?: string | null;
+  /**
+   * Нет — первое фото галереи, иначе афиша.
+   */
+  cover?: (number | null) | Media;
+  /**
+   * Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…
+   */
+  coverUrl?: string | null;
+  /**
+   * Например «50% 85%». Пусто — точка фокуса из «Медиа».
+   */
+  coverFocus?: string | null;
+  /**
+   * Нет — карточка берёт афишу.
+   */
+  preview?: (number | null) | Media;
+  /**
+   * Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…
+   */
+  previewUrl?: string | null;
+  gallery?:
+    | {
+        image?: (number | null) | Media;
+        /**
+         * Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…
+         */
+        imageUrl?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  performances?: {
+    docs?: (number | Performance)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "people".
+ */
+export interface Person {
+  id: number;
+  name: string;
+  /**
+   * Часть адреса: /shows/<адрес>. Пусто — заполнится из названия.
+   */
+  slug?: string | null;
+  /**
+   * 600×800, лицо в верхней трети кадра.
+   */
+  portrait?: (number | null) | Media;
+  position?: string | null;
+  /**
+   * Пусто — должность.
+   */
+  bioTitle?: string | null;
+  /**
+   * Новый абзац — через пустую строку.
+   */
+  bio?: string | null;
+  works?:
+    | {
+        title: string;
+        id?: string | null;
+      }[]
+    | null;
+  quote?: {
+    text?: string | null;
+    about?: string | null;
+  };
+  slide?: (number | null) | Media;
+  /**
+   * Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…
+   */
+  slideUrl?: string | null;
+  /**
+   * Показывать на странице «Руководство».
+   */
+  leadership?: boolean | null;
+  /**
+   * Меньше — выше в списке.
+   */
+  sortOrder?: number | null;
+  /**
+   * Где театр опубликовал биографию.
+   */
+  source?: string | null;
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  /**
+   * Что на картинке: «Сцена из спектакля „Гости“».
+   */
+  alt: string;
+  credit?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+  sizes?: {
+    card?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    cover?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "performances".
+ */
+export interface Performance {
+  id: number;
+  /**
+   * Не меняется: на него ссылаются заказы и билеты. Пусто — заполнится сам.
+   */
+  code?: string | null;
+  show: number | Show;
+  venue: number | Venue;
+  /**
+   * Время — екатеринбургское (часовой пояс браузера должен совпадать).
+   */
+  startsAt: string;
+  salesStartAt?: string | null;
+  /**
+   * Пусто — до начала показа.
+   */
+  salesEndAt?: string | null;
+  seating?: {
+    /**
+     * Пусто — продажа по категориям без мест.
+     */
+    planId?: ('dom-aktera' | 'dom-kultury') | null;
+    /**
+     * В копейках: 1 000 ₽ = 100000. Категория без цены не продаётся.
+     */
+    prices?:
+      | {
+          categoryId: string;
+          priceKopecks: number;
+          id?: string | null;
+        }[]
+      | null;
+    pricesPlaceholder?: boolean | null;
+    /**
+     * Технические и снятые с продажи места, например «p-1-5».
+     */
+    unavailableSeatIds?: string[] | null;
+  };
+  ticketTypes?: {
+    docs?: (number | TicketType)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "venues".
+ */
+export interface Venue {
+  id: number;
+  /**
+   * Латиницей, не меняется после первых продаж: «dk», «dom-aktera».
+   */
+  code: string;
+  title: string;
+  kind: 'bar' | 'restaurant' | 'loft' | 'apartment' | 'stage' | 'city';
+  address: string;
+  lat?: number | null;
+  lon?: number | null;
+  directions?: string | null;
+  accessibilityNotes?: string | null;
+  /**
+   * Меньше — выше в списке.
+   */
+  sortOrder?: number | null;
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Цены в копейках. Вместимость нельзя поставить ниже уже проданного и забронированного.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ticket-types".
+ */
+export interface TicketType {
+  id: number;
+  performance: number | Performance;
+  /**
+   * Не меняется после создания: на него ссылаются заказы.
+   */
+  code: string;
+  title: string;
+  /**
+   * 1 000 ₽ = 100000
+   */
+  priceKopecks: number;
+  /**
+   * Не ниже проданного и забронированного.
+   */
+  capacity: number;
+  placeholder?: boolean | null;
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "archive".
+ */
+export interface Archive {
+  id: number;
+  title: string;
+  /**
+   * Часть адреса: /shows/<адрес>. Пусто — заполнится из названия.
+   */
+  slug?: string | null;
+  genre?: string | null;
+  poster?: (number | null) | Media;
+  /**
+   * Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…
+   */
+  posterUrl?: string | null;
+  credits?:
+    | {
+        role: string;
+        entries?:
+          | {
+              character?: string | null;
+              /**
+               * Несколько человек — состав в очередь.
+               */
+              people: (number | Person)[];
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Меньше — выше в списке.
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "news".
+ */
+export interface News {
+  id: number;
+  title: string;
+  /**
+   * Часть адреса: /shows/<адрес>. Пусто — заполнится из названия.
+   */
+  slug?: string | null;
+  tag: 'Премьера' | 'Анонс';
+  summary: string;
+  /**
+   * Новый абзац — через пустую строку.
+   */
+  body?: string | null;
+  cover?: (number | null) | Media;
+  /**
+   * Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…
+   */
+  coverUrl?: string | null;
+  /**
+   * Куда ведёт карточка: «/shows/guests», «/afisha?kind=bar».
+   */
+  href: string;
+  publishedAt: string;
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews".
+ */
+export interface Review {
+  id: number;
+  author: string;
+  /**
+   * Часть адреса: /shows/<адрес>. Пусто — заполнится из названия.
+   */
+  slug?: string | null;
+  role: string;
+  /**
+   * Дословная часть полного текста.
+   */
+  lead: string;
+  quote: string;
+  /**
+   * Меньше — выше в списке.
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "partners".
+ */
+export interface Partner {
+  id: number;
+  name: string;
+  role: string;
+  logo?: (number | null) | Media;
+  url?: string | null;
+  /**
+   * Меньше — выше в списке.
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  /**
+   * Часть адреса: /shows/<адрес>. Пусто — заполнится из названия.
+   */
+  slug?: string | null;
+  lead?: string | null;
+  /**
+   * Новый абзац — через пустую строку.
+   */
+  body?: string | null;
+  photos?:
+    | {
+        image?: (number | null) | Media;
+        /**
+         * Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…
+         */
+        imageUrl?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "documents".
+ */
+export interface Document {
+  id: number;
+  title: string;
+  /**
+   * Часть адреса: /shows/<адрес>. Пусто — заполнится из названия.
+   */
+  slug?: string | null;
+  /**
+   * Новый абзац — через пустую строку.
+   */
+  body?: string | null;
+  file?: (number | null) | Media;
+  /**
+   * Меньше — выше в списке.
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "admin-users".
  */
 export interface AdminUser {
   id: number;
+  name?: string | null;
+  /**
+   * Кассир — только просмотр; редактор — контент без цен и настроек; администратор — всё, кроме назначения администраторов.
+   */
+  role: 'admin' | 'editor' | 'cashier';
+  systemAdmin?: boolean | null;
+  /**
+   * Меняется только на экране «Второй фактор» (/admin/mfa).
+   */
+  mfaEnabled?: boolean | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -140,6 +669,34 @@ export interface AdminUser {
     | null;
   password?: string | null;
   collection: 'admin-users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "admin-mfa".
+ */
+export interface AdminMfa {
+  id: number;
+  user: number | AdminUser;
+  secret?: string | null;
+  pendingSecret?: string | null;
+  lastStep?: number | null;
+  failedAttempts?: number | null;
+  lockedUntil?: string | null;
+  enabledAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "admin-mfa-recovery-codes".
+ */
+export interface AdminMfaRecoveryCode {
+  id: number;
+  user: number | AdminUser;
+  hash: string;
+  usedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -164,10 +721,67 @@ export interface PayloadKv {
  */
 export interface PayloadLockedDocument {
   id: number;
-  document?: {
-    relationTo: 'admin-users';
-    value: number | AdminUser;
-  } | null;
+  document?:
+    | ({
+        relationTo: 'shows';
+        value: number | Show;
+      } | null)
+    | ({
+        relationTo: 'performances';
+        value: number | Performance;
+      } | null)
+    | ({
+        relationTo: 'venues';
+        value: number | Venue;
+      } | null)
+    | ({
+        relationTo: 'archive';
+        value: number | Archive;
+      } | null)
+    | ({
+        relationTo: 'ticket-types';
+        value: number | TicketType;
+      } | null)
+    | ({
+        relationTo: 'people';
+        value: number | Person;
+      } | null)
+    | ({
+        relationTo: 'news';
+        value: number | News;
+      } | null)
+    | ({
+        relationTo: 'reviews';
+        value: number | Review;
+      } | null)
+    | ({
+        relationTo: 'partners';
+        value: number | Partner;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'documents';
+        value: number | Document;
+      } | null)
+    | ({
+        relationTo: 'media';
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'admin-users';
+        value: number | AdminUser;
+      } | null)
+    | ({
+        relationTo: 'admin-mfa';
+        value: number | AdminMfa;
+      } | null)
+    | ({
+        relationTo: 'admin-mfa-recovery-codes';
+        value: number | AdminMfaRecoveryCode;
+      } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'admin-users';
@@ -212,9 +826,344 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shows_select".
+ */
+export interface ShowsSelect<T extends boolean = true> {
+  slug?: T;
+  title?: T;
+  eventType?: T;
+  genre?: T;
+  ageLimit?: T;
+  durationMinutes?: T;
+  premiere?: T;
+  pushkinCard?: T;
+  studentOffer?: T;
+  announcedAt?: T;
+  lead?: T;
+  description?: T;
+  credits?:
+    | T
+    | {
+        role?: T;
+        entries?:
+          | T
+          | {
+              character?: T;
+              people?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  poster?: T;
+  posterUrl?: T;
+  cover?: T;
+  coverUrl?: T;
+  coverFocus?: T;
+  preview?: T;
+  previewUrl?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        imageUrl?: T;
+        id?: T;
+      };
+  performances?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "performances_select".
+ */
+export interface PerformancesSelect<T extends boolean = true> {
+  code?: T;
+  show?: T;
+  venue?: T;
+  startsAt?: T;
+  salesStartAt?: T;
+  salesEndAt?: T;
+  seating?:
+    | T
+    | {
+        planId?: T;
+        prices?:
+          | T
+          | {
+              categoryId?: T;
+              priceKopecks?: T;
+              id?: T;
+            };
+        pricesPlaceholder?: T;
+        unavailableSeatIds?: T;
+      };
+  ticketTypes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "venues_select".
+ */
+export interface VenuesSelect<T extends boolean = true> {
+  code?: T;
+  title?: T;
+  kind?: T;
+  address?: T;
+  lat?: T;
+  lon?: T;
+  directions?: T;
+  accessibilityNotes?: T;
+  sortOrder?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "archive_select".
+ */
+export interface ArchiveSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  genre?: T;
+  poster?: T;
+  posterUrl?: T;
+  credits?:
+    | T
+    | {
+        role?: T;
+        entries?:
+          | T
+          | {
+              character?: T;
+              people?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ticket-types_select".
+ */
+export interface TicketTypesSelect<T extends boolean = true> {
+  performance?: T;
+  code?: T;
+  title?: T;
+  priceKopecks?: T;
+  capacity?: T;
+  placeholder?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "people_select".
+ */
+export interface PeopleSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  portrait?: T;
+  position?: T;
+  bioTitle?: T;
+  bio?: T;
+  works?:
+    | T
+    | {
+        title?: T;
+        id?: T;
+      };
+  quote?:
+    | T
+    | {
+        text?: T;
+        about?: T;
+      };
+  slide?: T;
+  slideUrl?: T;
+  leadership?: T;
+  sortOrder?: T;
+  source?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "news_select".
+ */
+export interface NewsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  tag?: T;
+  summary?: T;
+  body?: T;
+  cover?: T;
+  coverUrl?: T;
+  href?: T;
+  publishedAt?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews_select".
+ */
+export interface ReviewsSelect<T extends boolean = true> {
+  author?: T;
+  slug?: T;
+  role?: T;
+  lead?: T;
+  quote?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "partners_select".
+ */
+export interface PartnersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
+  logo?: T;
+  url?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  lead?: T;
+  body?: T;
+  photos?:
+    | T
+    | {
+        image?: T;
+        imageUrl?: T;
+        id?: T;
+      };
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "documents_select".
+ */
+export interface DocumentsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  body?: T;
+  file?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media_select".
+ */
+export interface MediaSelect<T extends boolean = true> {
+  alt?: T;
+  credit?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+  sizes?:
+    | T
+    | {
+        card?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        cover?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "admin-users_select".
  */
 export interface AdminUsersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
+  systemAdmin?: T;
+  mfaEnabled?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -232,6 +1181,32 @@ export interface AdminUsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "admin-mfa_select".
+ */
+export interface AdminMfaSelect<T extends boolean = true> {
+  user?: T;
+  secret?: T;
+  pendingSecret?: T;
+  lastStep?: T;
+  failedAttempts?: T;
+  lockedUntil?: T;
+  enabledAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "admin-mfa-recovery-codes_select".
+ */
+export interface AdminMfaRecoveryCodesSelect<T extends boolean = true> {
+  user?: T;
+  hash?: T;
+  usedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -272,6 +1247,74 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  theatreName: string;
+  slogan?: string | null;
+  contacts: {
+    phone: string;
+    email: string;
+    officeAddress: string;
+    officeShort: string;
+    hours: string;
+    mapUrl?: string | null;
+  };
+  social?:
+    | {
+        name: string;
+        handle: string;
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  theatreName?: T;
+  slogan?: T;
+  contacts?:
+    | T
+    | {
+        phone?: T;
+        email?: T;
+        officeAddress?: T;
+        officeShort?: T;
+        hours?: T;
+        mapUrl?: T;
+      };
+  social?:
+    | T
+    | {
+        name?: T;
+        handle?: T;
+        href?: T;
+        id?: T;
+      };
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

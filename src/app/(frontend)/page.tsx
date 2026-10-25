@@ -7,8 +7,8 @@ import { HeroSlider } from '@/components/home/HeroSlider'
 import { NewsList } from '@/components/home/NewsCard'
 import { ReviewsShowcase } from '@/components/home/ReviewsShowcase'
 import { UpcomingRail } from '@/components/home/UpcomingRail'
-import { news, partners, reviews } from '@/modules/content'
-import { getShowsData, heroSlides, listUpcoming } from '@/modules/shows'
+import { getSiteContent, getSiteShows } from '@/app/(frontend)/site-data'
+import { heroSlides, listUpcoming } from '@/modules/shows'
 
 import styles from './home.module.css'
 import { buttonVariants } from '@heroui/styles'
@@ -21,8 +21,8 @@ const HERO_NEAREST = 4
 /** На главной — последние новости, остальные в архиве /news. */
 const HOME_NEWS = 4
 
-export default function HomePage() {
-  const data = getShowsData()
+export default async function HomePage() {
+  const [data, { news, partners, reviews }] = await Promise.all([getSiteShows(), getSiteContent()])
   const upcoming = listUpcoming(data, new Date())
   const posters = new Map(data.shows.map((s) => [s.slug, s.previewUrl ?? s.posterUrl]))
   // Слайд — превью спектакля (368×250, если театр его передал), иначе обложка.

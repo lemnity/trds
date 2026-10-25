@@ -19,7 +19,16 @@ import { customers } from './accounts'
  * как таблицы кабинета. Это не коллекции CMS: сотрудники не правят суммы руками (rules.md §2).
  */
 
-const LEDGER_KINDS = ['purchase', 'referral', 'certificate', 'spend', 'expire', 'manual'] as const
+// `release` — компенсация списания по несостоявшемуся заказу (text без CHECK — миграция не нужна).
+const LEDGER_KINDS = [
+  'purchase',
+  'referral',
+  'certificate',
+  'spend',
+  'release',
+  'expire',
+  'manual',
+] as const
 
 /**
  * Журнал бонусов — только добавление. Положительная строка — «лот» начисления со своим сроком;

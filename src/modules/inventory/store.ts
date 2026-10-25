@@ -232,6 +232,11 @@ export interface CommerceStore {
   order(id: string): Promise<OrderRow | null>
   /** Заказы PENDING_PAYMENT с истёкшей бронью, без блокировки (сверка с провайдером до истечения). */
   overdueOrders(now: Date, limit: number): Promise<OrderRow[]>
+  /**
+   * Заказы в статусах `statuses`, изменённые не раньше `updatedSince`, старые первыми, без
+   * блокировки — для сверки платежей и компенсаций (`@/modules/payments`, повторы идемпотентны).
+   */
+  ordersInStatus(statuses: OrderStatus[], updatedSince: Date, limit: number): Promise<OrderRow[]>
   items(orderId: string): Promise<OrderItemRow[]>
   tickets(orderId: string): Promise<TicketRow[]>
 }

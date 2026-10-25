@@ -2,7 +2,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import logo from '@/assets/logo.webp'
-import { formatPerformanceDate, getShowsData, groupByMonth, listUpcoming } from '@/modules/shows'
+import { getSiteShows } from '@/app/(frontend)/site-data'
+import { formatPerformanceDate, groupByMonth, listUpcoming } from '@/modules/shows'
 
 import styles from './SiteHeader.module.css'
 import { ButtonLink } from '../ui/ButtonLink'
@@ -20,8 +21,8 @@ import { SCHOOL_LINK } from './navigation'
 /** Сколько ближайших показов отдать меню: начавшиеся отсеиваются в браузере. */
 const MEGA_UPCOMING = 8
 
-export function SiteHeader() {
-  const data = getShowsData()
+export async function SiteHeader() {
+  const data = await getSiteShows()
   const upcoming = listUpcoming(data, new Date())
   const posters = new Map(data.shows.map((s) => [s.slug, s.previewUrl ?? s.posterUrl]))
   const months = groupByMonth(upcoming).map((g) => ({

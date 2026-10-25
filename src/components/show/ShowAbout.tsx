@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import Image, { type StaticImageData } from 'next/image'
 import Link from 'next/link'
 import { Fragment } from 'react'
 
@@ -117,9 +117,11 @@ type AboutProps = {
   show: Show
   /** Цена и кнопка покупки — внизу карточки «О спектакле». */
   buy?: React.ReactNode
+  /** Портреты (CMS или src/assets/people). */
+  photos?: Record<string, StaticImageData>
 }
 
-export function ShowAbout({ show, buy }: AboutProps) {
+export function ShowAbout({ show, buy, photos = personPhotos }: AboutProps) {
   const directors = uniqueNames(show.credits.filter(isDirector))
   const duration = formatDuration(show.durationMinutes)
   const age = formatAge(show.ageLimit)
@@ -177,7 +179,7 @@ export function ShowAbout({ show, buy }: AboutProps) {
                   {/* Портрет, если театр его передал, иначе инициалы. */}
                   <PersonAvatar
                     name={a.name}
-                    photo={personPhotos[personSlug(a.name)]}
+                    photo={photos[personSlug(a.name)]}
                     className={styles.avatar}
                   />
                   <span className={styles.actorText}>

@@ -4,11 +4,10 @@ import Link from 'next/link'
 
 import { formatRub } from '@/lib/money'
 import { pageOpenGraph } from '@/lib/site'
-import { contacts, school } from '@/modules/content'
+import { school, type Contacts } from '@/modules/content'
 import { listPeople } from '@/modules/people'
-import { getShowsData } from '@/modules/shows'
+import { getPersonPhotos, getSiteContent, getSiteShows } from '@/app/(frontend)/site-data'
 
-import { personPhotos } from '@/components/people/personPhotos'
 import { ShowsGallery } from '@/components/school/ShowsGallery'
 import { Gallery } from '@/components/show/Gallery'
 import { ButtonLink } from '@/components/ui/ButtonLink'
@@ -39,7 +38,7 @@ function SignupLink() {
   )
 }
 
-function Actions() {
+function Actions({ contacts }: { contacts: Contacts }) {
   return (
     <div className={styles.actions}>
       <SignupLink />
@@ -55,8 +54,13 @@ function Actions() {
  * фото — с teatrturdus.ru/theatre-school и /school (`school` в modules/content). Детские
  * программы и курс речи пока живут на старом сайте — ведём туда.
  */
-export default function SchoolPage() {
-  const pages = new Set(listPeople(getShowsData()).map((p) => p.slug))
+export default async function SchoolPage() {
+  const [data, { contacts }, personPhotos] = await Promise.all([
+    getSiteShows(),
+    getSiteContent(),
+    getPersonPhotos(),
+  ])
+  const pages = new Set(listPeople(data).map((p) => p.slug))
   const facts = [
     { value: school.age, label: 'возраст участников' },
     { value: school.duration[0]!.value, label: 'проектный курс, есть круглогодичный' },
@@ -74,7 +78,7 @@ export default function SchoolPage() {
           <h1 className={styles.title}>{school.title}</h1>
           <p className={styles.lead}>{school.lead}</p>
           <p className={styles.promise}>{school.promise}</p>
-          <Actions />
+          <Actions contacts={contacts} />
         </div>
         <div className={styles.heroPhoto} {...reveal(1)}>
           <Image
@@ -279,7 +283,7 @@ export default function SchoolPage() {
         <h2 id="final-title" className={styles.finalTitle}>
           {school.promise}
         </h2>
-        <Actions />
+        <Actions contacts={contacts} />
       </section>
     </div>
   )

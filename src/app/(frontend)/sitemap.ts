@@ -2,7 +2,8 @@ import type { MetadataRoute } from 'next'
 
 import { SITE_URL } from '@/lib/site'
 import { listPeople } from '@/modules/people'
-import { getShowsData, listPublishedShows } from '@/modules/shows'
+import { getSiteShows } from '@/app/(frontend)/site-data'
+import { listPublishedShows } from '@/modules/shows'
 
 export const dynamic = 'force-static'
 
@@ -25,8 +26,12 @@ const SECTIONS: { path: string; priority: number }[] = [
   { path: '/site-map', priority: 0.2 },
 ]
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const data = getShowsData()
+// На сервере sitemap — route handler: connection() его пререндер не останавливает, поэтому при
+// сборке он строится из демо-набора и обновляется из CMS раз в час. В статической сборке — как есть.
+export const revalidate = 3600
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const data = await getSiteShows()
   const url = (path: string) => `${SITE_URL}${path}`
   return [
     ...SECTIONS.map(({ path, priority }) => ({ url: url(path), priority })),

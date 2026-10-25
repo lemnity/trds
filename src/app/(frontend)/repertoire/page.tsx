@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { PageTabs } from '@/components/ui/PageTabs'
 import { reveal } from '@/components/ui/reveal'
 import { personSlug } from '@/modules/people'
-import { formatAge, formatPerformanceDate, getShowsData, listUpcoming } from '@/modules/shows'
+import { getSiteShows } from '@/app/(frontend)/site-data'
+import { formatAge, formatPerformanceDate, listUpcoming } from '@/modules/shows'
 
 import head from '../page-head.module.css'
 import styles from '../theatre.module.css'
@@ -20,8 +21,8 @@ export const metadata: Metadata = {
  * Репертуар: вкладки «Действующие» (опубликованные спектакли с ближайшим показом) и «Архив»
  * (прошедшие постановки с сайта театра; состав — где он указан, имена ведут на страницы людей).
  */
-export default function RepertoirePage() {
-  const data = getShowsData()
+export default async function RepertoirePage() {
+  const data = await getSiteShows()
   const upcoming = listUpcoming(data, new Date())
   const shows = data.shows
     .filter((s) => s.status === 'published')

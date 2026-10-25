@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { CorporateForm } from '@/components/corporate/CorporateForm'
 import { Gallery } from '@/components/show/Gallery'
 import { reveal } from '@/components/ui/reveal'
-import { contacts, corporate } from '@/modules/content'
+import { getSiteContent } from '@/app/(frontend)/site-data'
 
 import styles from './corporate.module.css'
 
@@ -18,7 +18,8 @@ export const metadata: Metadata = {
  * Корпоративы: тексты и ссылки с сайта театра, форма заявки (T-034), фото с прошедших событий.
  * Заявка уходит в `POST /api/leads`; на статическом превью — письмом театру (CorporateForm).
  */
-export default function CorporatePage() {
+export default async function CorporatePage() {
+  const { contacts, corporate } = await getSiteContent()
   return (
     <div className={`container ${styles.page}`}>
       <header className={styles.head} {...reveal()}>

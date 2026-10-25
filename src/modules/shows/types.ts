@@ -62,6 +62,8 @@ export type Show = {
   coverFocus?: string
   /** Превью для карточек (368×250); нет — карточка берёт афишу `posterUrl`. */
   previewUrl?: string
+  /** SEO из CMS; нет — заголовок и анонс спектакля. */
+  seo?: { title?: string; description?: string; imageUrl?: string }
   status: 'published' | 'draft'
 }
 
@@ -81,6 +83,9 @@ export type Performance = {
     pricesPlaceholder?: boolean
     unavailableSeatIds: string[]
   }
+  /** Окно продаж (CMS): до начала окна и после конца — продажи на сайте закрыты. */
+  salesStartsAt?: string
+  salesEndsAt?: string
 }
 
 /** Прошедшая постановка (архив сайта театра): без показов и продаж, только состав. */

@@ -2,12 +2,11 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { personPhotos } from '@/components/people/personPhotos'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { reveal } from '@/components/ui/reveal'
-import { leadership } from '@/modules/content'
+import { getPersonPhotos, getSiteContent, getSiteShows } from '@/app/(frontend)/site-data'
 import { getPersonProfile, personSlug } from '@/modules/people'
-import { getShowsData, plural } from '@/modules/shows'
+import { plural } from '@/modules/shows'
 
 import styles from './leadership.module.css'
 
@@ -28,8 +27,12 @@ const initials = (name: string) =>
  * должность, имя, прямая речь с сайта театра, цифры и спектакли в репертуаре.
  * Должности и цитаты — дословно (источники в modules/content).
  */
-export default function LeadershipPage() {
-  const data = getShowsData()
+export default async function LeadershipPage() {
+  const [data, { leadership }, personPhotos] = await Promise.all([
+    getSiteShows(),
+    getSiteContent(),
+    getPersonPhotos(),
+  ])
   const now = new Date()
   return (
     <div className={styles.page}>

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-import { getShowsData, listUpcoming, plural, VENUE_KIND_LABELS } from '@/modules/shows'
+import { getSiteShows } from '@/app/(frontend)/site-data'
+import { listUpcoming, plural, VENUE_KIND_LABELS } from '@/modules/shows'
 
 import head from '../page-head.module.css'
 import { reveal } from '@/components/ui/reveal'
@@ -14,8 +15,8 @@ export const metadata: Metadata = {
 }
 
 /** Площадки театра — из афиши: тип, адрес, сколько показов впереди, ссылка на фильтр. */
-export default function VenuesPage() {
-  const data = getShowsData()
+export default async function VenuesPage() {
+  const data = await getSiteShows()
   const upcoming = listUpcoming(data, new Date())
   return (
     <div className="container">

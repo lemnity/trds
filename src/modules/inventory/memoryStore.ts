@@ -359,6 +359,13 @@ export function memoryCommerceStore(
         .slice(0, limit)
         .map(copy)
     },
+    async ordersInStatus(statuses, updatedSince, limit) {
+      return orders
+        .filter((o) => statuses.includes(o.status) && o.updatedAt >= updatedSince)
+        .sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime() || cmp(a.id, b.id))
+        .slice(0, limit)
+        .map(copy)
+    },
     async items(orderId) {
       return items.filter((i) => i.orderId === orderId).map(copy)
     },

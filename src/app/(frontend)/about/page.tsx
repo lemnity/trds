@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 
 import { ButtonLink } from '@/components/ui/ButtonLink'
-import { aboutTheatre, partners } from '@/modules/content'
+import { getSiteContent } from '@/app/(frontend)/site-data'
 
 import head from '../page-head.module.css'
 import styles from './about.module.css'
@@ -13,7 +13,8 @@ export const metadata: Metadata = {
   description: 'Модный театр TURDUS: спектакли на неординарных площадках Екатеринбурга.',
 }
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const { aboutTheatre, partners } = await getSiteContent()
   return (
     <div className="container">
       <header className={head.head}>

@@ -48,12 +48,18 @@ const availabilityOf = (p: Performance, salesOpen: boolean): Availability | null
   return { available, capacity, level: availabilityLevel(available, capacity) }
 }
 
-const toView = (data: ShowsData, p: Performance): PerformanceView | null => {
+/** Окно продаж из CMS: пусто — с момента публикации до начала показа. */
+const inSalesWindow = (p: Performance, now: Date) =>
+  (!p.salesStartsAt || Date.parse(p.salesStartsAt) <= now.getTime()) &&
+  (!p.salesEndsAt || Date.parse(p.salesEndsAt) > now.getTime())
+
+const toView = (data: ShowsData, p: Performance, now: Date): PerformanceView | null => {
   const show = data.shows.find((s) => s.slug === p.showSlug)
   const venue = data.venues.find((v) => v.id === p.venueId)
   if (!isPublished(show) || !venue) return null
   const seatPrices = p.seating ? Object.values(p.seating.pricesKopecks) : []
   const prices = [...p.ticketTypes.map((t) => t.priceKopecks), ...seatPrices]
+  const salesOpen = prices.length > 0 && inSalesWindow(p, now)
   return {
     id: p.id,
     startsAt: p.startsAt,
@@ -73,8 +79,8 @@ const toView = (data: ShowsData, p: Performance): PerformanceView | null => {
     minPriceKopecks: prices.length > 0 ? Math.min(...prices) : null,
     pricePlaceholder:
       p.ticketTypes.some((t) => t.placeholder === true) || p.seating?.pricesPlaceholder === true,
-    salesOpen: prices.length > 0,
-    availability: availabilityOf(p, prices.length > 0),
+    salesOpen,
+    availability: availabilityOf(p, salesOpen),
   }
 }
 
@@ -88,7 +94,7 @@ const byStart = (a: { startsAt: string }, b: { startsAt: string }) =>
 export const listUpcoming = (data: ShowsData, now: Date): PerformanceView[] =>
   data.performances
     .filter((p) => isUpcoming(p, now))
-    .map((p) => toView(data, p))
+    .map((p) => toView(data, p, now))
     .filter((v): v is PerformanceView => v !== null)
     .sort(byStart)
 
@@ -121,7 +127,7 @@ export const getShowPage = (data: ShowsData, slug: string, now: Date) => {
 export const findPerformance = (data: ShowsData, id: string, now: Date): SalePerformance | null => {
   const p = data.performances.find((x) => x.id === id)
   if (!p || !isUpcoming(p, now)) return null
-  const view = toView(data, p)
+  const view = toView(data, p, now)
   if (!view?.salesOpen) return null
   return { ...view, ticketTypes: p.ticketTypes, seating: resolveSeating(p) }
 }

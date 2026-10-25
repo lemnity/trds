@@ -3,7 +3,8 @@ import { Suspense } from 'react'
 
 import { AfishaBoard } from '@/components/afisha/AfishaBoard'
 import { Board } from '@/components/board/Board'
-import { getShowsData, listUpcoming } from '@/modules/shows'
+import { getSiteShows } from '@/app/(frontend)/site-data'
+import { listUpcoming } from '@/modules/shows'
 
 import styles from '../page-head.module.css'
 
@@ -13,8 +14,8 @@ export const metadata: Metadata = {
   description: 'Ближайшие спектакли модного театра TURDUS: даты, площадки и билеты.',
 }
 
-export default function AfishaPage() {
-  const upcoming = listUpcoming(getShowsData(), new Date())
+export default async function AfishaPage() {
+  const upcoming = listUpcoming(await getSiteShows(), new Date())
   return (
     <div className="container">
       <header className={styles.head}>

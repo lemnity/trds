@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-import { personPhotos } from '@/components/people/personPhotos'
 import { PersonAvatar } from '@/components/ui/PersonAvatar'
 import { getPersonProfile, listPeople } from '@/modules/people'
-import { getShowsData } from '@/modules/shows'
+import { getPersonPhotos, getSiteShows } from '@/app/(frontend)/site-data'
 
 import head from '../page-head.module.css'
 import { reveal } from '@/components/ui/reveal'
@@ -32,8 +31,8 @@ const GROUP_TITLES: Record<string, string> = { 'Актёрские работы'
  * Труппа и создатели — все люди из составов (репертуар и архив), сгруппированы по
  * направлению. Человек в нескольких направлениях — в каждой группе.
  */
-export default function TroupePage() {
-  const data = getShowsData()
+export default async function TroupePage() {
+  const [data, personPhotos] = await Promise.all([getSiteShows(), getPersonPhotos()])
   const now = new Date()
   const groups = new Map<string, { slug: string; name: string }[]>()
   for (const person of listPeople(data)) {

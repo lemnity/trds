@@ -3,15 +3,21 @@ import Link from 'next/link'
 
 import { SocialIcon } from '@/components/site/SocialIcon'
 import { reveal } from '@/components/ui/reveal'
-import { contacts, mailTo } from '@/modules/content'
+import { getSiteContent } from '@/app/(frontend)/site-data'
 
 import styles from './contacts.module.css'
 
-export const metadata: Metadata = {
-  alternates: { canonical: '/contacts' },
-  title: 'Контакты',
-  description: `Модный театр TURDUS: ${contacts.phone.display}, ${contacts.email}, ${contacts.office.short}.`,
+export async function generateMetadata(): Promise<Metadata> {
+  const { contacts } = await getSiteContent()
+  return {
+    alternates: { canonical: '/contacts' },
+    title: 'Контакты',
+    description: `Модный театр TURDUS: ${contacts.phone.display}, ${contacts.email}, ${contacts.office.short}.`,
+  }
 }
+
+const mailTo = (email: string, subject: string) =>
+  `mailto:${email}?subject=${encodeURIComponent(subject)}`
 
 const Arrow = () => (
   <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" className={styles.arrow}>
@@ -27,7 +33,7 @@ const Arrow = () => (
 )
 
 /** По какому вопросу: куда идти или о чём написать (тема письма подставляется). */
-const TOPICS = [
+const topics = (email: string) => [
   {
     title: 'Купить билеты',
     text: 'Даты, площадки и билеты — в афише.',
@@ -36,17 +42,17 @@ const TOPICS = [
   {
     title: 'Заказать спектакль',
     text: 'Корпоратив, день рождения, частное событие.',
-    href: mailTo('Корпоратив'),
+    href: mailTo(email, 'Корпоратив'),
   },
   {
     title: 'Оставить отзыв',
     text: 'Расскажите, как прошёл вечер.',
-    href: mailTo('Отзыв о театре TURDUS'),
+    href: mailTo(email, 'Отзыв о театре TURDUS'),
   },
   {
     title: 'Партнёрство и пресса',
     text: 'Площадки, коллаборации, публикации.',
-    href: mailTo('Партнёрство'),
+    href: mailTo(email, 'Партнёрство'),
   },
 ]
 
@@ -54,7 +60,9 @@ const TOPICS = [
  * Контакты: телефон и почта крупно, офис (адрес, часы, карта), соцсети и «по какому вопросу».
  * Данные — modules/content `contacts` (общие с подвалом). Карту не встраиваем — ссылка.
  */
-export default function ContactsPage() {
+export default async function ContactsPage() {
+  const { contacts } = await getSiteContent()
+  const TOPICS = topics(contacts.email)
   return (
     <div className={`container ${styles.page}`}>
       <header className={styles.head} {...reveal()}>

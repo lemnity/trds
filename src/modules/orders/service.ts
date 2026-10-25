@@ -684,6 +684,51 @@ export function createOrderService({ store, ticketSecret, randomInt, retry }: De
     return { duplicate: !inserted }
   }
 
+  /**
+   * Запомнить созданный у провайдера платёж за ожидающим заказом (после ответа провайдера,
+   * вне его вызова). Статус не меняется; условие `PENDING_PAYMENT` — заказ, успевший истечь
+   * или оплатиться, не трогаем. Другой платёж поверх уже записанного — false (второй платёж
+   * за заказ создаваться не должен: ключ идемпотентности у провайдера один на заказ).
+   */
+  async function attachPayment(
+    orderId: string,
+    payment: { provider: string; providerPaymentId: string },
+    now = new Date(),
+  ) {
+    if (!payment.provider || !payment.providerPaymentId)
+      throw new RangeError('payment id is required')
+    return run(async (tx) => {
+      const order = await tx.lockOrder(orderId)
+      if (!order || order.status !== 'PENDING_PAYMENT') return false
+      if (order.providerPaymentId)
+        return (
+          order.paymentProvider === payment.provider &&
+          order.providerPaymentId === payment.providerPaymentId
+        )
+      return tx.updateOrder(
+        orderId,
+        'PENDING_PAYMENT',
+        {
+          status: 'PENDING_PAYMENT',
+          paymentProvider: payment.provider,
+          providerPaymentId: payment.providerPaymentId,
+        },
+        now,
+      )
+    })
+  }
+
+  /** Заказ по ключу идемпотентности оформления (повтор того же оформления). */
+  async function findByIdempotencyKey(key: string): Promise<OrderRow | null> {
+    if (!key) return null
+    return run((tx) => tx.findOrderByKey(key))
+  }
+
+  /** Заказы в статусах, изменённые с `since` (сверка платежей и компенсации, без блокировок). */
+  async function ordersInStatus(statuses: OrderStatus[], since: Date, limit = EXPIRE_BATCH) {
+    return store.ordersInStatus(statuses, since, limit)
+  }
+
   /** Заказ с позициями и билетами (без блокировок; доступ проверяет вызывающий). */
   async function getOrder(id: string): Promise<OrderView | null> {
     const order = await store.order(id)
@@ -698,6 +743,9 @@ export function createOrderService({ store, ticketSecret, randomInt, retry }: De
     cancelOrder,
     expireHolds,
     recordPaymentEvent,
+    attachPayment,
+    findByIdempotencyKey,
+    ordersInStatus,
     getOrder,
     ticketToken,
   }

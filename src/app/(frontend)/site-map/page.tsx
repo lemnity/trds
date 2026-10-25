@@ -2,8 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { PageCrumbs } from '@/components/ui/PageCrumbs'
-import { legalDocuments } from '@/modules/content'
-import { getShowsData } from '@/modules/shows'
+import { getSiteContent, getSiteShows } from '@/app/(frontend)/site-data'
 
 import head from '../page-head.module.css'
 import styles from './site-map.module.css'
@@ -30,8 +29,9 @@ const MAIN = [
 ]
 
 /** Все разделы, спектакли и документы сайта — из тех же данных, что и страницы. */
-export default function SiteMapPage() {
-  const shows = [...getShowsData().shows].sort((a, b) => a.title.localeCompare(b.title, 'ru'))
+export default async function SiteMapPage() {
+  const [data, { legalDocuments }] = await Promise.all([getSiteShows(), getSiteContent()])
+  const shows = [...data.shows].sort((a, b) => a.title.localeCompare(b.title, 'ru'))
   const sections = [
     { title: 'Разделы', links: MAIN },
     { title: 'Спектакли', links: shows.map((s) => ({ href: `/shows/${s.slug}`, title: s.title })) },

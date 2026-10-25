@@ -592,7 +592,12 @@ export const school = {
  * честно говорят, что документ готовится (никаких выдуманных формулировок).
  * Обязательны до запуска продаж: ПД, политика, оферта, возвраты, реквизиты (T-001/T-002).
  */
-export type LegalDocument = { slug: string; title: string }
+export type LegalDocument = {
+  slug: string
+  title: string
+  /** Текст от театра (CMS). Нет — страница честно говорит, что документ готовится. */
+  paragraphs?: string[]
+}
 
 export const legalDocuments: LegalDocument[] = [
   { slug: 'personal-data', title: 'Персональные данные' },
@@ -636,3 +641,45 @@ export const reviews: Review[] = [
     role: 'PR-менеджер и куратор событий дизайн-центра BOMOND',
   },
 ]
+
+export type Contacts = typeof contacts
+export type AboutPage = typeof aboutTheatre
+export type CorporatePage = typeof corporate
+
+/** Портрет человека: тот же набор полей, что у статического импорта картинки в Next.js. */
+export type Portrait = { src: string; width: number; height: number }
+
+/** SEO сайта по умолчанию (настройки CMS); пусто — тексты из кода. */
+export type SiteSeo = { title?: string; description?: string; imageUrl?: string }
+
+/**
+ * Редакционный контент сайта — один тип для CMS и демо-набора (T-022, T-025).
+ * `portraits: null` — портреты из src/assets/people (статическая сборка без CMS).
+ */
+export type SiteContent = {
+  news: NewsItem[]
+  reviews: Review[]
+  partners: Partner[]
+  legalDocuments: LegalDocument[]
+  contacts: Contacts
+  aboutTheatre: AboutPage
+  corporate: CorporatePage
+  personBios: Record<string, PersonBio>
+  leadership: Leader[]
+  portraits: Record<string, Portrait> | null
+  seo: SiteSeo
+}
+
+export const demoSiteContent: SiteContent = {
+  news,
+  reviews,
+  partners,
+  legalDocuments,
+  contacts,
+  aboutTheatre,
+  corporate,
+  personBios,
+  leadership,
+  portraits: null,
+  seo: {},
+}

@@ -28,7 +28,15 @@ import {
  * `WalletStore` (PostgreSQL или память в тестах и dev).
  */
 
-export type LedgerKind = 'purchase' | 'referral' | 'certificate' | 'spend' | 'expire' | 'manual'
+export type LedgerKind =
+  | 'purchase'
+  | 'referral'
+  | 'certificate'
+  | 'spend'
+  /** Компенсация списания по несостоявшемуся заказу: лот со сроком исходного лота. */
+  | 'release'
+  | 'expire'
+  | 'manual'
 
 export type LedgerEntry = {
   id: string
@@ -99,6 +107,10 @@ export interface WalletTx {
   /** Уменьшить остаток лота, только если его хватает. true — уменьшили. */
   takeFromLot(lotId: string, kopecks: number): Promise<boolean>
   insertAllocations(rows: SpendAllocation[]): Promise<void>
+  /** Из каких лотов сделано списание — со сроком каждого лота (для компенсации). */
+  spendAllocations(
+    spendEntryId: string,
+  ): Promise<{ lotEntryId: string; kopecks: number; expiresAt: Date }[]>
   /** Сгоревшие лоты с остатком; занятые другой транзакцией пропускаются (SKIP LOCKED). */
   lockExpiredLots(
     now: Date,
@@ -372,8 +384,8 @@ export function createWalletService({
   }
 
   /**
-   * Списание бонусов по заказу (после подтверждённой оплаты или при резерве — решит T-040/T-061).
-   * Сначала из лотов, которые сгорят раньше. Лоты блокируются в детерминированном порядке,
+   * Списание бонусов по заказу — при оформлении, до создания платежа (T-061); если заказ
+   * не состоится, списание компенсирует `releaseSpend`. Сначала из лотов, которые сгорят раньше. Лоты блокируются в детерминированном порядке,
    * остаток уменьшается условно; повтор с тем же `orderRef` возвращает уже сделанное списание.
    */
   async function spend(
@@ -428,16 +440,68 @@ export function createWalletService({
     }
   }
 
+  const releaseKey = (orderRef: string, lotEntryId: string) => `release:${orderRef}:${lotEntryId}`
+
   /**
-   * Начисление 3% за оплаченные деньгами билеты — только по подтверждённому платежу (вызов из
-   * заказов, T-040). Часть, оплаченная бонусами и сертификатом, в базу не входит. Повтор — no-op.
+   * Компенсация списания по заказу, который не состоялся (истёк, отменён, платёж отклонён).
+   * Исходные строки не меняются: на каждую долю списания — новый лот `release` с той же суммой
+   * и сроком исходного лота (бонусы не «молодеют»; уже сгоревшие сгорят при следующем проходе).
+   * Ключ `release:<orderRef>:<lotId>` — повтор и параллельный вызов ничего не удваивают.
    */
+  async function releaseSpend(orderRef: string, now: Date) {
+    if (!orderRef) throw new RangeError('orderRef is required')
+    return store.transaction(async (tx) => {
+      const spent = await tx.findEntryByKey(`spend:${orderRef}`)
+      if (!spent) return { releasedKopecks: 0, duplicate: false }
+      const parts = await tx.spendAllocations(spent.id)
+      let releasedKopecks = 0
+      let duplicate = false
+      for (const part of parts) {
+        const inserted = await tx.insertEntry({
+          id: randomUUID(),
+          customerId: spent.customerId,
+          kind: 'release',
+          amountKopecks: part.kopecks,
+          lotRemainingKopecks: part.kopecks,
+          expiresAt: part.expiresAt,
+          sourceRef: orderRef,
+          idempotencyKey: releaseKey(orderRef, part.lotEntryId),
+          relatedEntryId: part.lotEntryId,
+          createdAt: now,
+        })
+        // Все доли пишутся одной транзакцией: первая уже есть — значит, есть и остальные.
+        if (!inserted) duplicate = true
+        else releasedKopecks += part.kopecks
+      }
+      if (duplicate && releasedKopecks > 0) throw new Error('wallet release partially applied')
+      return { releasedKopecks, duplicate }
+    })
+  }
+
+  /** Состояние списания по заказу: не было, действует или компенсировано. */
+  async function spendStatus(orderRef: string): Promise<'none' | 'spent' | 'released'> {
+    return store.transaction(async (tx) => {
+      const spent = await tx.findEntryByKey(`spend:${orderRef}`)
+      if (!spent) return 'none'
+      const [first] = await tx.spendAllocations(spent.id)
+      if (!first) return 'spent'
+      return (await tx.findEntryByKey(releaseKey(orderRef, first.lotEntryId)))
+        ? 'released'
+        : 'spent'
+    })
+  }
+
   /** Аннулировать невыданный/утерянный сертификат по порядковому номеру (до активации). */
   async function annulCertificate(serial: number) {
     if (!Number.isSafeInteger(serial) || serial < 1) return false
     return store.transaction((tx) => tx.annulCertificate(serial))
   }
 
+  /**
+   * Начисление 3% за оплаченные деньгами билеты — только по подтверждённому платежу (вызов из
+   * обработки оплаты, `@/modules/payments`). Часть, оплаченная бонусами и сертификатом, в базу
+   * не входит. Повтор — no-op.
+   */
   async function accrue(
     customerId: string,
     cashForTicketsKopecks: number,
@@ -546,6 +610,8 @@ export function createWalletService({
     activateCertificate,
     issueCertificates,
     spend,
+    releaseSpend,
+    spendStatus,
     accrue,
     attachReferral,
     qualifyReferral,
@@ -672,6 +738,17 @@ export function memoryWalletStore(): WalletStore & {
           undo.push(() => {
             for (const row of added) allocations.splice(allocations.indexOf(row), 1)
           })
+        },
+        async spendAllocations(spendEntryId) {
+          await pause()
+          return allocations
+            .filter((a) => a.spendEntryId === spendEntryId)
+            .sort((a, b) => a.lotEntryId.localeCompare(b.lotEntryId))
+            .map((a) => ({
+              lotEntryId: a.lotEntryId,
+              kopecks: a.kopecks,
+              expiresAt: ledger.find((e) => e.id === a.lotEntryId)!.expiresAt!,
+            }))
         },
         async lockExpiredLots(now, limit) {
           await pause()

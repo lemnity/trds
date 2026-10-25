@@ -10,5 +10,7 @@ if [[ "${CI:-}" != "true" && "${ALLOW_DESTRUCTIVE_PAGES_BUILD:-}" != "1" ]]; the
 fi
 
 rm -rf "src/app/(payload)" src/app/api
+# Тесты серверных маршрутов импортируют удалённые файлы — без них не пройдёт проверка типов.
+{ grep -rlE "app/api/" tests || true; } | xargs -r rm -f
 PAGES_EXPORT=1 PAGES_BASE_PATH="${PAGES_BASE_PATH:-}" NEXT_TELEMETRY_DISABLED=1 pnpm build
 touch out/.nojekyll

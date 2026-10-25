@@ -23,6 +23,11 @@ describe('redactString', () => {
     expect(out).toContain('[phone]')
   })
 
+  it('keeps ISO timestamps intact', () => {
+    expect(redactString('oldest 2026-10-25 12:01:00+00')).toBe('oldest 2026-10-25 12:01:00+00')
+    expect(redactString('at 2026-10-25T12:01:00.000Z')).toBe('at 2026-10-25T12:01:00.000Z')
+  })
+
   it('masks one-time codes next to the word code', () => {
     expect(redactString('ваш код: 482913')).not.toContain('482913')
     expect(redactString('OTP 1234 sent')).not.toContain('1234')

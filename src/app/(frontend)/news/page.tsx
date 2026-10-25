@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 import { NewsList } from '@/components/home/NewsCard'
 import { PageCrumbs } from '@/components/ui/PageCrumbs'
-import { news } from '@/modules/content'
+import { getSiteContent } from '@/app/(frontend)/site-data'
 
 import head from '../page-head.module.css'
 
@@ -13,7 +13,8 @@ export const metadata: Metadata = {
 }
 
 /** Архив новостей: все опубликованные анонсы театра (до CMS — из modules/content). */
-export default function NewsArchivePage() {
+export default async function NewsArchivePage() {
+  const { news } = await getSiteContent()
   return (
     <div className="container">
       <header className={head.head}>

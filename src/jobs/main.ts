@@ -8,7 +8,9 @@ import { writeStatusFile } from '../lib/status-file'
 import { pgWalletStore } from '../modules/wallet/pgStore'
 import { createWalletService } from '../modules/wallet/service'
 import { accountsCleanupJob } from './tasks/accounts-cleanup'
+import { emailOutboxJobs } from './tasks/outbox-email'
 import { outboxMonitorJob } from './tasks/outbox-monitor'
+import { paymentsReconcileJob, workerPurchase } from './tasks/payments-reconcile'
 import { walletExpireJob } from './tasks/wallet-expire'
 import { runWorker, type Job } from './worker'
 
@@ -41,6 +43,13 @@ const jobs: Job[] = [
   walletExpireJob({ wallet: async () => wallet, log }),
   accountsCleanupJob({ db: async () => db, log }),
   outboxMonitorJob({ db: async () => db, log }),
+  // Сверка платежей, истечение броней, компенсация/начисление бонусов (T-045, T-048).
+  paymentsReconcileJob({
+    purchase: workerPurchase({ db, wallet, secret: env.PAYLOAD_SECRET, log }),
+    log,
+  }),
+  // Письма из outbox (T-047): только при настроенной почте (EMAIL_PROVIDER=smtp).
+  ...emailOutboxJobs({ db, log }),
 ]
 
 const DEFAULT_TICK_MS = 5 * 60 * 1000

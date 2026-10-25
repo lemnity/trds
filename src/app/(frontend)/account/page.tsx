@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import type { ReactNode } from 'react'
 
 import { IS_PREVIEW } from '@/lib/site'
 
@@ -9,10 +8,9 @@ import { AccountStats } from '@/components/account/AccountStats'
 import { BonusSection } from '@/components/account/BonusSection'
 import { CertificateSection } from '@/components/account/CertificateSection'
 import { ProfileSecurity } from '@/components/account/ProfileSecurity'
+import { TicketsSection } from '@/components/account/TicketsSection'
 import { ButtonLink } from '@/components/ui/ButtonLink'
-import { PageTabs } from '@/components/ui/PageTabs'
 import { reveal } from '@/components/ui/reveal'
-import { TicketIcon } from '@/components/ui/TicketIcon'
 import { contacts } from '@/modules/content'
 
 import head from '../page-head.module.css'
@@ -25,17 +23,6 @@ export const metadata: Metadata = {
 
 /** `hasPassword` — для блока «Пароль и сеансы» (сам хеш со страницы не уходит). */
 type Customer = { name: string | null; email: string; hasPassword: boolean }
-
-/**
- * Билеты в кабинете. ЗАГЛУШКА до T-051: продаж на этом сайте ещё нет, поэтому у любого
- * покупателя честные нули. Когда появятся заказы — считать из БД. Бонусы, друзья и сертификаты
- * приходят в браузере из /api/loyalty/summary (useLoyalty), на превью — демо.
- */
-const getSummary = () => ({
-  upcoming: 0,
-  past: 0,
-  refunded: 0,
-})
 
 /**
  * Кабинет (T-050/T-051). На сервере — только для вошедших: без сессии — на вход с возвратом сюда.
@@ -64,19 +51,6 @@ async function currentCustomer(): Promise<Customer | null | 'unavailable'> {
 
 const Soon = () => <span className={styles.soon}>Скоро</span>
 
-function Empty({ title, text, action }: { title: string; text: string; action?: ReactNode }) {
-  return (
-    <div className={styles.empty}>
-      <span className={styles.emptyIcon} aria-hidden="true">
-        <TicketIcon />
-      </span>
-      <p className={styles.emptyTitle}>{title}</p>
-      <p className={styles.emptyText}>{text}</p>
-      {action}
-    </div>
-  )
-}
-
 export default async function AccountPage() {
   const current = await currentCustomer()
   if (current === 'unavailable')
@@ -93,7 +67,6 @@ export default async function AccountPage() {
       </div>
     )
   const customer = current
-  const s = getSummary()
 
   return (
     <div className={`container ${styles.page}`}>
@@ -109,52 +82,15 @@ export default async function AccountPage() {
         </p>
       </header>
 
-      {/* Билеты — заглушки до продаж на сайте (getSummary), бонусы — из useLoyalty. */}
-      <AccountStats upcoming={s.upcoming} past={s.past} />
+      {/* Билеты — из useAccountTickets (/api/account/tickets), бонусы — из useLoyalty. */}
+      <AccountStats />
 
       <section id="tickets" className={styles.section} aria-labelledby="tickets-title">
         <h2 id="tickets-title" className={styles.sectionTitle} {...reveal()}>
           Мои билеты
         </h2>
-        <PageTabs
-          label="Мои билеты"
-          tabs={[
-            {
-              id: 'upcoming',
-              label: 'Будущие',
-              count: s.upcoming,
-              panel: (
-                <Empty
-                  title="Билетов пока нет"
-                  text="Здесь появятся билеты, купленные на этом сайте: QR-код для входа, дата, площадка и статус."
-                  action={<ButtonLink href="/afisha">Выбрать спектакль</ButtonLink>}
-                />
-              ),
-            },
-            {
-              id: 'past',
-              label: 'Прошедшие',
-              count: s.past,
-              panel: (
-                <Empty
-                  title="Пока пусто"
-                  text="После спектакля билет переедет сюда — с датой и площадкой, чтобы вспомнить вечер."
-                />
-              ),
-            },
-            {
-              id: 'refunded',
-              label: 'Возвраты',
-              count: s.refunded,
-              panel: (
-                <Empty
-                  title="Возвратов нет"
-                  text="Если вернёте билет, здесь будет его статус: «в обработке» или «деньги возвращены»."
-                />
-              ),
-            },
-          ]}
-        />
+        {/* Билеты покупателя из сессии (T-051); на превью — демо. */}
+        <TicketsSection />
         <p className={styles.note}>
           Купили билет на текущем сайте театра? Он приходит на почту, указанную при покупке. Не
           нашли письмо — проверьте «Спам» или напишите театру:{' '}

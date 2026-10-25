@@ -5,7 +5,8 @@ import { CERTIFICATE_ALPHABET, LOYALTY_RULES, parseCertificateCode } from '@/mod
  * Бонусы в кабинете: типы ответа `/api/loyalty/summary` и чистые помощники вывода
  * (подписи, суммы, даты, маска номера сертификата, тексты ошибок). Без React — покрыто тестами.
  */
-export type LoyaltyKind = 'purchase' | 'referral' | 'certificate' | 'spend' | 'expire' | 'manual'
+export type LoyaltyKind =
+  'purchase' | 'referral' | 'certificate' | 'spend' | 'release' | 'expire' | 'manual'
 
 export type LoyaltyHistoryEntry = {
   id: string
@@ -42,6 +43,7 @@ export const HISTORY_LABELS: Record<LoyaltyKind, string> = {
   referral: 'Приведи друзей',
   certificate: 'Сертификат',
   spend: 'Оплата заказа',
+  release: 'Возврат за неоплаченный заказ',
   expire: 'Сгорели',
   manual: 'Корректировка',
 }

@@ -30,10 +30,12 @@ import { formatRub } from '@/lib/money'
 import { applyBonus } from '@/modules/loyalty'
 import type { SalePerformance } from '@/modules/shows'
 
+import { IS_STATIC_PREVIEW } from '../auth/session'
 import { InlineNotice } from '../ui/InlineNotice'
 import styles from './Checkout.module.css'
 import { CheckoutBonus, useBonusAccount } from './CheckoutBonus'
 import { CheckoutSummary, type OrderLine } from './CheckoutSummary'
+import { newCheckoutKey, submitCheckout } from './checkout-api'
 
 type Props = {
   performance: SalePerformance
@@ -83,6 +85,14 @@ const PAYMENT_OPTIONS: Record<PaymentMethod, { title: string; caption: string; i
 
 type Order = { lines: OrderLine[]; count: number; total: number; seats: boolean }
 
+/** Что видит зритель после нажатия «Оплатить». */
+type Submission =
+  | { state: 'idle' }
+  | { state: 'sending' }
+  /** Оплата на сайте не подключена (сервер ответил так или это превью без сервера). */
+  | { state: 'unavailable'; boxoffice: boolean }
+  | { state: 'error'; message: string }
+
 /**
  * Оформление: выбор приходит из адреса, но суммы и доступность пересчитываются заново
  * по данным показа — параметрам ссылки не доверяем (rules.md §3).
@@ -102,7 +112,9 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
   const [rulesAccepted, setRulesAccepted] = useState(false)
   const [consent, setConsent] = useState(false)
   const [errors, setErrors] = useState<ContactErrors>({})
-  const [paymentUnavailable, setPaymentUnavailable] = useState(false)
+  const [submission, setSubmission] = useState<Submission>({ state: 'idle' })
+  // Ключ попытки живёт, пока не изменился заказ: повтор после сбоя — тот же заказ и платёж.
+  const attempt = useRef<{ fingerprint: string; key: string } | null>(null)
   const bonusAccount = useBonusAccount()
   const [bonusText, setBonusText] = useState('')
   const started = useSyncExternalStore(
@@ -190,10 +202,36 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
     if (nextErrors.phone) return phoneRef.current?.focus()
     if (nextErrors.rulesAccepted) return rulesRef.current?.querySelector('input')?.focus()
     if (nextErrors.consent) return consentRef.current?.querySelector('input')?.focus()
-    // Когда появится оплата, в запрос пойдёт только bonus.spentKopecks как желаемое списание.
-    // Банк и параметры чека ещё не подтверждены (T-001/T-002): платёж не создаём,
-    // ничего не бронируем и не показываем «оплачено» (rules.md §7, §9).
-    setPaymentUnavailable(true)
+    if (!contact.ok || !selection || submission.state === 'sending') return
+    // Превью без сервера и «оплата в кассе» (не подключена): ничего не бронируем и не
+    // показываем «оплачено» (rules.md §7, §9).
+    if (IS_STATIC_PREVIEW || contact.contact.payment === 'boxoffice') {
+      setSubmission({ state: 'unavailable', boxoffice: contact.contact.payment === 'boxoffice' })
+      return
+    }
+    // В запрос — только выбор, контакты и желаемое списание; суммы сервер считает сам.
+    const request = {
+      performanceId: performance.id,
+      selection,
+      contact: { ...contact.contact, consent: true as const, rulesAccepted: true as const },
+      bonusKopecks: bonus.spentKopecks,
+    }
+    const fingerprint = JSON.stringify(request)
+    if (attempt.current?.fingerprint !== fingerprint)
+      attempt.current = { fingerprint, key: newCheckoutKey() }
+    setSubmission({ state: 'sending' })
+    void submitCheckout({ ...request, idempotencyKey: attempt.current.key }).then((outcome) => {
+      if (outcome.kind === 'redirect') {
+        // Страница банка (или результата). Факт оплаты сайт узнает от банка, не из адреса.
+        window.location.assign(outcome.url)
+        return
+      }
+      if (outcome.kind === 'unavailable')
+        return setSubmission({ state: 'unavailable', boxoffice: false })
+      // Ошибка, требующая нового заказа (бронь истекла, места заняты), — новый ключ.
+      if (outcome.kind === 'error') attempt.current = null
+      setSubmission({ state: 'error', message: outcome.message })
+    })
   }
 
   return (
@@ -319,15 +357,26 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
           <FieldError>{errors.consent}</FieldError>
         </Checkbox>
 
-        <Button type="submit" fullWidth className={styles.pay}>
-          Оплатить&nbsp; {formatRub(bonus.cashKopecks)}
+        <Button
+          type="submit"
+          fullWidth
+          className={styles.pay}
+          isPending={submission.state === 'sending'}
+        >
+          {submission.state === 'sending'
+            ? 'Бронируем места…'
+            : `Оплатить\u00a0 ${formatRub(bonus.cashKopecks)}`}
         </Button>
 
         {/* Живой регион есть всегда — сообщения появляются внутри (WCAG 4.1.3). */}
         <div role="status">
-          {paymentUnavailable && (
+          {submission.state === 'unavailable' && (
             <div className={styles.notice}>
-              <p className={styles.noticeTitle}>Оплата на сайте ещё не подключена</p>
+              <p className={styles.noticeTitle}>
+                {submission.boxoffice
+                  ? 'Бронь с оплатой в кассе пока не подключена'
+                  : 'Оплата на сайте ещё не подключена'}
+              </p>
               <p>
                 Мы подключаем банк театра. Места не забронированы, деньги не списаны. Купить билет
                 сейчас можно на{' '}
@@ -336,6 +385,12 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
                 </a>
                 .
               </p>
+            </div>
+          )}
+          {submission.state === 'error' && (
+            <div className={styles.notice}>
+              <p className={styles.noticeTitle}>Заказ не оформлен</p>
+              <p>{submission.message}</p>
             </div>
           )}
         </div>
