@@ -5,7 +5,7 @@ import { Suspense } from 'react'
 import { CheckoutView } from '@/components/checkout/CheckoutView'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { cardClass } from '@/components/ui/card'
-import { getSiteShows, staticShowsData } from '@/app/(frontend)/site-data'
+import { getSiteShows, staticExportOnly, staticShowsData } from '@/app/(frontend)/site-data'
 import { findPerformance, formatPerformanceDate } from '@/modules/shows'
 
 import styles from './checkout.module.css'
@@ -20,13 +20,13 @@ export const metadata: Metadata = {
 // Статическая сборка: все показы с ценами (не только будущие): пустой список ломает static
 // export, прошедший на момент сборки показ отдаёт 404. После сборки начало показа проверяет
 // CheckoutView. На сервере — по запросу, показы из CMS (@/modules/site-data).
-export function generateStaticParams(): Params[] {
+export const generateStaticParams = staticExportOnly((): Params[] => {
   return (staticShowsData()?.performances ?? [])
     .filter(
       (p) => p.ticketTypes.length > 0 || Object.keys(p.seating?.pricesKopecks ?? {}).length > 0,
     )
     .map((p) => ({ performanceId: p.id }))
-}
+})
 
 const CloseIcon = () => (
   <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">

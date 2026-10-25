@@ -49,5 +49,13 @@ export const getPersonPhotos = cache(
  * Для generateStaticParams: статическая сборка перечисляет страницы демо-набора; на сервере —
  * ничего заранее (страницы рендерятся по запросу, адреса из CMS появляются без пересборки).
  */
+/**
+ * `generateStaticParams` только для статического экспорта превью. На сервере экспорт — undefined:
+ * иначе Next считает маршрут статическим (ISR, даже при пустом массиве), и `connection()`
+ * в странице падает с DYNAMIC_SERVER_USAGE (500 в production; в dev не видно).
+ */
+export const staticExportOnly = <T>(fn: () => T): (() => T) | undefined =>
+  isStaticExport() ? fn : undefined
+
 export const staticShowsData = () => (isStaticExport() ? demoShowsData : null)
 export const staticSiteContent = () => (isStaticExport() ? demoSiteContent : null)

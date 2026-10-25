@@ -12,7 +12,12 @@ import { Gallery, showGalleryItems } from '@/components/show/Gallery'
 import { ShowAbout } from '@/components/show/ShowAbout'
 import { ShowBuy, ShowCover } from '@/components/show/ShowHeaderCompact'
 import { ShowHero } from '@/components/show/ShowHero'
-import { getPersonPhotos, getSiteShows, staticShowsData } from '@/app/(frontend)/site-data'
+import {
+  getPersonPhotos,
+  getSiteShows,
+  staticExportOnly,
+  staticShowsData,
+} from '@/app/(frontend)/site-data'
 import { getShowPage, listPublishedShows, listUpcoming } from '@/modules/shows'
 
 import styles from './show.module.css'
@@ -20,10 +25,10 @@ import styles from './show.module.css'
 type Params = { slug: string }
 
 // Статическая сборка — спектакли демо-набора; на сервере — по запросу, из CMS.
-export function generateStaticParams(): Params[] {
+export const generateStaticParams = staticExportOnly((): Params[] => {
   const data = staticShowsData()
   return data ? listPublishedShows(data).map((s) => ({ slug: s.slug })) : []
-}
+})
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params

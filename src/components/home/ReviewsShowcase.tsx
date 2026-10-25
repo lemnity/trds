@@ -39,7 +39,8 @@ export function ReviewsShowcase({ reviews }: { reviews: Review[] }) {
     setCurrent((next + reviews.length) % reviews.length)
     setExpanded(false)
   }
-  const active = reviews[current]!
+  const active = reviews[current]
+  if (!active) return null
 
   return (
     <div className={styles.band}>

@@ -122,13 +122,16 @@ export default async function HomePage() {
         </ul>
       </section>
 
-      <section
-        id="reviews"
-        className={`container ${styles.section}`}
-        aria-labelledby="reviews-title"
-      >
-        <ReviewsShowcase reviews={reviews} />
-      </section>
+      {/* Пустая CMS (ещё нет опубликованных отзывов) — блок не показываем. */}
+      {reviews.length > 0 && (
+        <section
+          id="reviews"
+          className={`container ${styles.section}`}
+          aria-labelledby="reviews-title"
+        >
+          <ReviewsShowcase reviews={reviews} />
+        </section>
+      )}
     </>
   )
 }

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 
 import { PageCrumbs } from '@/components/ui/PageCrumbs'
 import { cardClass } from '@/components/ui/card'
-import { getSiteContent, staticSiteContent } from '@/app/(frontend)/site-data'
+import { getSiteContent, staticExportOnly, staticSiteContent } from '@/app/(frontend)/site-data'
 
 import head from '../../page-head.module.css'
 import styles from '../documents.module.css'
@@ -11,9 +11,9 @@ import styles from '../documents.module.css'
 type Params = { slug: string }
 
 // Статическая сборка — документы демо-набора; на сервере — по запросу, из CMS.
-export function generateStaticParams(): Params[] {
+export const generateStaticParams = staticExportOnly((): Params[] => {
   return (staticSiteContent()?.legalDocuments ?? []).map(({ slug }) => ({ slug }))
-}
+})
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params

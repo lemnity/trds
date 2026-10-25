@@ -100,10 +100,12 @@ describe('stack version pins', () => {
   })
 
   it('starts the app through the env-checking entrypoint', () => {
+    // Последняя стадия — образ приложения (runner); раньше неё — одноразовые миграции (migrator).
     const cmd = read('Dockerfile')
       .split('\n')
       .filter((line) => line.startsWith('CMD '))
-    expect(cmd).toEqual(['CMD ["node", "start.mjs"]'])
+    expect(cmd.at(-1)).toBe('CMD ["node", "start.mjs"]')
+    expect(cmd.slice(0, -1)).toEqual(['CMD ["pnpm", "-s", "payload", "migrate"]'])
   })
 
   it('runs CI on the pinned Node.js version with a frozen lockfile', () => {

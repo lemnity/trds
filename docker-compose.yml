@@ -9,6 +9,33 @@ x-app-env: &app-env
   # Файлы состояния на общем томе ops-state: heartbeat worker и итог бэкапа (/api/health, T-015).
   WORKER_HEARTBEAT_FILE: /app/state/worker-heartbeat.json
   BACKUP_STATUS_FILE: /app/state/backup-status.json
+  # Адрес сайта — ссылки в письмах, возврат с оплаты, OAuth (docs/handover.md).
+  NEXT_PUBLIC_SITE_URL: https://${SITE_DOMAIN:?задайте SITE_DOMAIN в .env}
+  PUBLIC_SITE_URL: https://${SITE_DOMAIN:?задайте SITE_DOMAIN в .env}
+  CMS_SYSTEM_ADMIN_EMAILS: ${CMS_SYSTEM_ADMIN_EMAILS:-}
+  # Медиа админки — на томе media (входит в бэкап).
+  MEDIA_DIR: /app/media
+  # Необязательные интеграции: пустое значение = выключено (оплата, почта, Яндекс ID).
+  PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-}
+  EMAIL_PROVIDER: ${EMAIL_PROVIDER:-}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_SECURE: ${SMTP_SECURE:-false}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  EMAIL_FROM: ${EMAIL_FROM:-}
+  EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+  THEATRE_NOTIFY_EMAIL: ${THEATRE_NOTIFY_EMAIL:-}
+  YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID:-}
+  YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET:-}
+  YANDEX_REDIRECT_URI: ${YANDEX_REDIRECT_URI:-}
+
+# NEXT_PUBLIC_* попадают в клиентский код при сборке образа, а не при запуске.
+x-app-build: &app-build
+  context: .
+  args:
+    NEXT_PUBLIC_SITE_URL: https://${SITE_DOMAIN:?задайте SITE_DOMAIN в .env}
+    NEXT_PUBLIC_YM_ID: ${NEXT_PUBLIC_YM_ID:-}
 
 services:
   postgres:
@@ -28,17 +55,35 @@ services:
       timeout: 5s
       retries: 6
 
+  # Миграции БД перед запуском app и worker: одноразовый контейнер со стадии migrator Dockerfile.
+  migrate:
+    image: trds-migrate:local
+    build:
+      <<: *app-build
+      target: migrator
+    restart: 'no'
+    environment:
+      <<: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+
   app:
     image: trds-app:local
-    build: .
+    build: *app-build
     restart: unless-stopped
     environment:
       <<: *app-env
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     volumes:
       - ops-state:/app/state:ro
+      - media:/app/media
     # edge — исходящий доступ к API банка/почты и вход от caddy.
     networks:
       - backend
@@ -56,7 +101,7 @@ services:
 
   worker:
     image: trds-app:local
-    build: .
+    build: *app-build
     restart: unless-stopped
     command: ['node', 'worker.mjs']
     environment:
@@ -65,6 +110,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     volumes:
       - ops-state:/app/state
     networks:
@@ -88,10 +135,12 @@ services:
       BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
       BACKUP_STATUS_FILE: /app/state/backup-status.json
       BACKUP_OFFSITE_TARGET: ${BACKUP_OFFSITE_TARGET:-}
+      MEDIA_DIR: /media
     volumes:
       - ./scripts:/scripts:ro
       - backups:/backups
       - ops-state:/app/state
+      - media:/media:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -133,3 +182,5 @@ volumes:
   # Локальные копии БД; хранить на другом диске/хосте — см. docs/runbook.md.
   backups:
   ops-state:
+  # Загрузки админки (обложки, портреты) до подключения S3 (src/payload/storage.ts).
+  media:

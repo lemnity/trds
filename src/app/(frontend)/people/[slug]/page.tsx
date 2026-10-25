@@ -9,6 +9,7 @@ import {
   getPersonPhotos,
   getSiteContent,
   getSiteShows,
+  staticExportOnly,
   staticShowsData,
 } from '@/app/(frontend)/site-data'
 import { formatPerformanceDate, plural } from '@/modules/shows'
@@ -24,10 +25,10 @@ import { TicketIcon } from '@/components/ui/TicketIcon'
 type Params = { slug: string }
 
 // Статическая сборка — люди демо-набора; на сервере — по запросу, из CMS.
-export function generateStaticParams(): Params[] {
+export const generateStaticParams = staticExportOnly((): Params[] => {
   const data = staticShowsData()
   return data ? listPeople(data).map((p) => ({ slug: p.slug })) : []
-}
+})
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params

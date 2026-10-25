@@ -33,14 +33,37 @@ const service = (name: string) => {
 }
 
 describe('docker-compose.yml', () => {
-  it('defines app, worker, postgres, caddy and backup', () => {
+  it('defines app, worker, migrate, postgres, caddy and backup', () => {
     expect(Object.keys(compose.services).sort()).toEqual([
       'app',
       'backup',
       'caddy',
+      'migrate',
       'postgres',
       'worker',
     ])
+  })
+
+  it('applies migrations before app and worker start', () => {
+    const migrate = service('migrate')
+    expect(migrate.networks).toEqual(['backend'])
+    expect(migrate.depends_on?.postgres?.condition).toBe('service_healthy')
+    for (const name of ['app', 'worker']) {
+      expect(service(name).depends_on?.migrate?.condition).toBe('service_completed_successfully')
+    }
+  })
+
+  it('passes integrations to app and worker and keeps media on a backed-up volume', () => {
+    for (const name of ['app', 'worker']) {
+      const env = service(name).environment ?? {}
+      for (const key of ['EMAIL_PROVIDER', 'SMTP_HOST', 'PAYMENT_PROVIDER', 'YANDEX_CLIENT_ID']) {
+        expect(env, `${name}.${key}`).toHaveProperty(key)
+      }
+      expect(env.MEDIA_DIR).toBe('/app/media')
+    }
+    expect(service('app').volumes).toContain('media:/app/media')
+    expect(service('backup').volumes).toContain('media:/media:ro')
+    expect(service('backup').environment?.MEDIA_DIR).toBe('/media')
   })
 
   it('keeps PostgreSQL unreachable from outside', () => {
@@ -80,8 +103,9 @@ describe('docker-compose.yml', () => {
   it('takes secrets only from the environment, never inline', () => {
     for (const [name, s] of Object.entries(compose.services)) {
       for (const [key, value] of Object.entries(s.environment ?? {})) {
+        // Обязательные — с проверкой `:?`; необязательные интеграции — пустые по умолчанию `:-}`.
         if (/PASSWORD|SECRET|DATABASE_URL/.test(key)) {
-          expect(value, `${name}.${key}`).toMatch(/\$\{[A-Z_]+:\?/)
+          expect(value, `${name}.${key}`).toMatch(/\$\{[A-Z_]+(:\?|:-\})/)
         }
       }
     }
