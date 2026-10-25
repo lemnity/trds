@@ -3,7 +3,7 @@ import { getPayload } from 'payload'
 
 import { getCommerceStore, isMemoryCommerce } from '@/modules/inventory'
 import type { MemoryCommerceStore } from '@/modules/inventory/memoryStore'
-import { getShowsData } from '@/modules/shows'
+import { loadShowsData } from '@/modules/site-data'
 
 import { memoryTicketsStore } from './memoryStore'
 import { performanceLookupFrom } from './performances'
@@ -13,8 +13,12 @@ import { ticketSecretFrom } from './token'
 
 export {
   DEFAULT_DURATION_MINUTES,
+  noPerformanceLookup,
+  performanceInfoFor,
   performanceLookupFrom,
   seatLabel,
+  snapshotFromColumns,
+  type ShowSnapshot,
   type PerformanceInfo,
   type PerformanceLookup,
 } from './performances'
@@ -67,8 +71,9 @@ export function getTickets() {
     return createTicketsService({
       store,
       secret: secret(),
-      // Источник афиши читается на каждый запрос: после перехода на CMS (T-021) данные свежие.
-      performances: async () => performanceLookupFrom(await getShowsData()),
+      // Основное — снимок показа в позиции заказа; афиша (CMS) — для длительности и старых
+      // заказов без снимка. Читается на каждый запрос, чтобы данные были свежими.
+      performances: async () => performanceLookupFrom(await loadShowsData()),
     })
   })()
   service.catch(() => {

@@ -1,11 +1,13 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 
 import logo from '@/assets/logo.webp'
 import { getShowsData } from '@/modules/shows'
 
 import { AuthForm } from './AuthForm'
 import { AuthSlideshow } from './AuthSlideshow'
+import { YandexButton } from './YandexButton'
 import styles from './Auth.module.css'
 
 const COPY = {
@@ -20,6 +22,12 @@ const COPY = {
     lead: 'Кабинет на почту: билеты, возвраты и бонусы в одном месте.',
     switchText: 'Уже есть кабинет?',
     switchLink: { href: '/login', label: 'Войти' },
+  },
+  yandex: {
+    title: 'Регистрация через Яндекс ID',
+    lead: 'Проверьте данные из Яндекса — создадим кабинет на эту почту.',
+    switchText: 'Передумали?',
+    switchLink: { href: '/login', label: 'Войти по почте' },
   },
 } as const
 
@@ -46,9 +54,16 @@ const PERKS = [
 
 /**
  * Страница входа/регистрации: слева — тёмная панель с кадром спектакля и тем, что даёт кабинет,
- * справа — форма по одноразовому коду (AuthForm). Обе страницы не индексируются.
+ * справа — «Войти с Яндекс ID» (если включён) и форма по одноразовому коду (AuthForm).
+ * `children` заменяет форму (подтверждение регистрации через Яндекс). Страницы не индексируются.
  */
-export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
+export function AuthPage({
+  mode,
+  children,
+}: {
+  mode: 'login' | 'register' | 'yandex'
+  children?: ReactNode
+}) {
   const copy = COPY[mode]
   const shows = new Map(getShowsData().shows.map((s) => [s.slug, s]))
   const photos = STAGE_SHOTS.flatMap(({ slug, index }) => {
@@ -92,7 +107,14 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
             {copy.title}
           </h1>
           <p className={styles.lead}>{copy.lead}</p>
-          <AuthForm mode={mode} />
+          {mode === 'yandex' ? (
+            children
+          ) : (
+            <>
+              <YandexButton mode={mode} />
+              <AuthForm mode={mode} />
+            </>
+          )}
           <p className={styles.switch}>
             {copy.switchText} <Link href={copy.switchLink.href}>{copy.switchLink.label}</Link>
           </p>

@@ -8,9 +8,13 @@ import { fileURLToPath } from 'url'
 import { accountsTables } from './db/schema/accounts'
 import { commerceTables } from './db/schema/commerce'
 import { leadsTables } from './db/schema/leads'
+import { opsTables } from './db/schema/ops'
 import { walletTables } from './db/schema/wallet'
 import { collections } from './payload/collections'
 import { AdminUsers } from './payload/collections/AdminUsers'
+import { refundEndpoints } from './payload/components/refunds/endpoints'
+import { certificateEndpoints } from './payload/endpoints/certificates'
+import { leadEndpoints } from './payload/endpoints/leads'
 import { SiteSettings } from './payload/globals/SiteSettings'
 import { storagePlugins } from './payload/storage'
 
@@ -26,14 +30,31 @@ export default buildConfig({
     },
     meta: { titleSuffix: ' — TURDUS CMS' },
     // Второй фактор (T-023): экран /admin/mfa и перенаправление на него до прохождения MFA.
+    // Канбан корпоративов (T-065) и сертификаты (T-066) — свои разделы в стандартном шаблоне.
     components: {
       providers: ['/payload/components/MfaGate#MfaGate'],
-      afterNavLinks: ['/payload/components/MfaNavLink#MfaNavLink'],
+      afterNavLinks: [
+        '/payload/components/AdminNavLinks#AdminNavLinks',
+        '/payload/components/refunds/RefundsNavLink#RefundsNavLink',
+        '/payload/components/MfaNavLink#MfaNavLink',
+      ],
       views: {
         mfa: { Component: '/payload/components/MfaView#MfaView', path: '/mfa' },
+        leads: { Component: '/payload/components/leads/LeadsView#LeadsView', path: '/leads' },
+        certificates: {
+          Component: '/payload/components/certificates/CertificatesView#CertificatesView',
+          path: '/certificates',
+        },
+        // Возвраты (T-053): кассир и администратор.
+        refunds: {
+          Component: '/payload/components/refunds/RefundsView#RefundsView',
+          path: '/refunds',
+        },
       },
     },
   },
+  // REST своих разделов админки: /api/cms/leads…, /api/cms/certificates… (права — внутри).
+  endpoints: [...leadEndpoints(), ...certificateEndpoints(), ...refundEndpoints()],
   // Коллекции и настройки CMS — src/payload (роли и доступы — src/payload/access/roles.ts).
   collections,
   globals: [SiteSettings],
@@ -62,6 +83,7 @@ export default buildConfig({
           ...walletTables,
           ...leadsTables,
           ...commerceTables,
+          ...opsTables,
         },
       }),
     ],

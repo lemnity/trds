@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server'
 
 import { apiError, withCorrelation } from '@/lib/correlation'
-import { createRateLimiter } from '@/lib/rate-limit'
+import { sharedRateLimiter } from '@/lib/rate-limit'
 import { getPurchase } from '@/modules/orders'
 
 import { clientIp } from '../../../auth/http'
@@ -10,7 +10,7 @@ import { noStore, sessionCustomerId } from '../../http'
 export const dynamic = 'force-dynamic'
 
 // Страница результата опрашивает статус раз в несколько секунд; запас — на несколько вкладок.
-const byIp = createRateLimiter({ limit: 120, windowMs: 10 * 60_000 })
+const byIp = sharedRateLimiter({ name: 'checkout.status.ip', limit: 120, windowMs: 10 * 60_000 })
 
 type Params = { params: Promise<{ orderId: string }> }
 
@@ -25,7 +25,7 @@ type Params = { params: Promise<{ orderId: string }> }
 export async function GET(req: NextRequest, { params }: Params) {
   const { orderId } = await params
   return withCorrelation('checkout.status', async (request: NextRequest, ctx) => {
-    if (!byIp.hit(clientIp(request)))
+    if (!(await byIp.hit(clientIp(request))))
       return apiError(429, 'too_many', 'Слишком много запросов.', ctx.correlationId)
     const purchase = await getPurchase()
     const view = await purchase.orderStatus(orderId, {

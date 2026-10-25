@@ -1,15 +1,16 @@
 import type { NextRequest } from 'next/server'
 import { z } from 'zod'
 
-import { createRateLimiter } from '@/lib/rate-limit'
+import { apiError } from '@/lib/correlation'
+import { sharedRateLimiter } from '@/lib/rate-limit'
 import { getAccounts } from '@/modules/accounts'
 import { PASSWORD_MIN } from '@/modules/auth'
 
-import { clientIp, json, sameOrigin, guarded } from '../../http'
+import { clientIp, fail, guarded, json, sameOrigin } from '../../http'
 
 export const dynamic = 'force-dynamic'
 
-const byIp = createRateLimiter({ limit: 20, windowMs: 10 * 60_000 })
+const byIp = sharedRateLimiter({ name: 'auth.code_request.ip', limit: 20, windowMs: 10 * 60_000 })
 
 const body = z.discriminatedUnion('purpose', [
   z.object({ purpose: z.literal('login'), email: z.email() }),
@@ -22,12 +23,16 @@ const body = z.discriminatedUnion('purpose', [
   }),
 ])
 
-/** POST /api/auth/email-code/request — выслать код. Ответ одинаков для любой почты. */
-export const POST = guarded(async (req: NextRequest) => {
-  if (!sameOrigin(req)) return json({ error: 'forbidden' }, 403)
-  if (!byIp.hit(clientIp(req))) return json({ error: 'too_many' }, 429)
+/**
+ * POST /api/auth/email-code/request — выслать код. Ответ одинаков для любой почты.
+ * 200 `{ ok }`; ошибки `{ code, message, correlationId }`: 400 invalid; 403; 429 `too_many`
+ * или `cooldown` (+ `retryAfter`); 503 `unavailable | email_unavailable`.
+ */
+export const POST = guarded('auth.code_request', async (req: NextRequest, ctx) => {
+  if (!sameOrigin(req)) return fail.forbidden(ctx)
+  if (!(await byIp.hit(clientIp(req)))) return fail.tooMany(ctx)
   const parsed = body.safeParse(await req.json().catch(() => null))
-  if (!parsed.success) return json({ error: 'invalid' }, 400)
+  if (!parsed.success) return fail.invalid(ctx)
   const input = parsed.data
   const { auth, consent } = await getAccounts()
   const result = await auth.requestCode({
@@ -35,7 +40,15 @@ export const POST = guarded(async (req: NextRequest) => {
     purpose: input.purpose,
     ...(input.purpose === 'register' && { name: input.name, password: input.password }),
   })
-  if (!result.ok) return json(result, 429, { 'Retry-After': String(result.retryAfter) })
+  if (!result.ok)
+    return apiError(
+      429,
+      result.error,
+      result.error === 'cooldown' ? 'Код уже отправлен.' : 'Слишком много писем.',
+      ctx.correlationId,
+      { 'Retry-After': String(result.retryAfter) },
+      { retryAfter: result.retryAfter },
+    )
   if (input.purpose === 'register') await consent(input.email, 'register')
   return json({ ok: true })
 })

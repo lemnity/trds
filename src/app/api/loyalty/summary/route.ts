@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { getAccounts, SESSION_COOKIE } from '@/modules/accounts'
 import { getWallet } from '@/modules/wallet'
 
-import { guarded, json } from '../../auth/http'
+import { fail, guarded, json } from '../../auth/http'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,11 +11,14 @@ export const dynamic = 'force-dynamic'
 const siteOrigin = (req: NextRequest) =>
   (process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin).replace(/\/$/, '')
 
-/** GET /api/loyalty/summary — баланс, сгорание, история, приглашения и сертификаты зрителя. */
-export const GET = guarded(async (req: NextRequest) => {
+/**
+ * GET /api/loyalty/summary — баланс, сгорание, история, приглашения и сертификаты зрителя.
+ * Ошибки — `{ code, message, correlationId }`: 401 unauthorized; 503 unavailable.
+ */
+export const GET = guarded('loyalty.summary', async (req: NextRequest, ctx) => {
   const { auth } = await getAccounts()
   const session = await auth.getSession(req.cookies.get(SESSION_COOKIE)?.value)
-  if (!session) return json({ error: 'unauthorized' }, 401)
+  if (!session) return fail.unauthorized(ctx)
   const wallet = await getWallet()
   // Только данные покупателя из серверной сессии — никакого customerId из запроса.
   const s = await wallet.summary(session.customer.id, new Date())

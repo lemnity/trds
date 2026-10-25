@@ -1,4 +1,4 @@
-import type { PerformanceLookup } from './performances'
+import { performanceInfoFor, type PerformanceLookup } from './performances'
 import type { TicketRecord, TicketsStore } from './store'
 import {
   TICKET_NUMBER_FORMAT,
@@ -143,7 +143,7 @@ export function createTicketsService({ store, secret, performances }: Deps) {
         performanceId: t.performanceId,
         ticketTypeId: t.ticketTypeId,
         seatId: t.seatId,
-        startsAt: lookup(t.performanceId)?.startsAt ?? null,
+        startsAt: performanceInfoFor(t.performanceId, t.snapshot, lookup)?.startsAt ?? null,
       },
     }
   }

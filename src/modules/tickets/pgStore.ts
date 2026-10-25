@@ -9,6 +9,7 @@ import {
   commerceTickets,
 } from '@/db/schema/commerce'
 
+import { snapshotFromColumns } from './performances'
 import {
   VISIBLE_ORDER_STATUSES,
   type OrderItemRecord,
@@ -30,6 +31,11 @@ const ticketColumns = {
   ticketTypeId: commerceTickets.ticketTypeId,
   seatId: commerceTickets.seatId,
   categoryTitle: commerceOrderItems.titleSnapshot,
+  showTitleSnapshot: commerceOrderItems.showTitleSnapshot,
+  showSlugSnapshot: commerceOrderItems.showSlugSnapshot,
+  startsAtSnapshot: commerceOrderItems.startsAtSnapshot,
+  venueTitleSnapshot: commerceOrderItems.venueTitleSnapshot,
+  venueAddressSnapshot: commerceOrderItems.venueAddressSnapshot,
   status: commerceTickets.status,
   tokenVersion: commerceTickets.tokenVersion,
   priceKopecks: commerceTickets.priceKopecks,
@@ -47,6 +53,11 @@ const itemColumns = {
   ticketTypeId: commerceOrderItems.ticketTypeId,
   seatId: commerceOrderItems.seatId,
   title: commerceOrderItems.titleSnapshot,
+  showTitleSnapshot: commerceOrderItems.showTitleSnapshot,
+  showSlugSnapshot: commerceOrderItems.showSlugSnapshot,
+  startsAtSnapshot: commerceOrderItems.startsAtSnapshot,
+  venueTitleSnapshot: commerceOrderItems.venueTitleSnapshot,
+  venueAddressSnapshot: commerceOrderItems.venueAddressSnapshot,
   unitPriceKopecks: commerceOrderItems.unitPriceKopecks,
   quantity: commerceOrderItems.quantity,
   lineGrossKopecks: commerceOrderItems.lineGrossKopecks,
@@ -56,14 +67,34 @@ const itemColumns = {
 
 /** Билеты кабинета, QR и писем на PostgreSQL. Только SELECT — без блокировок и записи. */
 export function pgTicketsStore(db: Db): TicketsStore {
-  const tickets = (where: ReturnType<typeof eq>) =>
-    db
+  const tickets = async (where: ReturnType<typeof eq>): Promise<TicketRecord[]> => {
+    const rows = await db
       .select(ticketColumns)
       .from(commerceTickets)
       .innerJoin(commerceOrders, eq(commerceOrders.id, commerceTickets.orderId))
       .innerJoin(commerceOrderItems, eq(commerceOrderItems.id, commerceTickets.orderItemId))
       .where(where)
-      .orderBy(asc(commerceTickets.number)) as Promise<TicketRecord[]>
+      .orderBy(asc(commerceTickets.number))
+    return rows.map(
+      ({
+        showTitleSnapshot,
+        showSlugSnapshot,
+        startsAtSnapshot,
+        venueTitleSnapshot,
+        venueAddressSnapshot,
+        ...t
+      }) => ({
+        ...(t as Omit<TicketRecord, 'snapshot'>),
+        snapshot: snapshotFromColumns({
+          showTitleSnapshot,
+          showSlugSnapshot,
+          startsAtSnapshot,
+          venueTitleSnapshot,
+          venueAddressSnapshot,
+        }),
+      }),
+    )
+  }
 
   const itemsOf = async (orderIds: string[]) => {
     const map = new Map<string, OrderItemRecord[]>()
@@ -73,9 +104,26 @@ export function pgTicketsStore(db: Db): TicketsStore {
       .from(commerceOrderItems)
       .where(inArray(commerceOrderItems.orderId, orderIds))
       .orderBy(asc(commerceOrderItems.id))
-    for (const { orderId, ...item } of rows) {
+    for (const {
+      orderId,
+      showTitleSnapshot,
+      showSlugSnapshot,
+      startsAtSnapshot,
+      venueTitleSnapshot,
+      venueAddressSnapshot,
+      ...item
+    } of rows) {
       const list = map.get(orderId) ?? []
-      list.push(item)
+      list.push({
+        ...item,
+        snapshot: snapshotFromColumns({
+          showTitleSnapshot,
+          showSlugSnapshot,
+          startsAtSnapshot,
+          venueTitleSnapshot,
+          venueAddressSnapshot,
+        }),
+      })
       map.set(orderId, list)
     }
     return map

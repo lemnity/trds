@@ -56,6 +56,26 @@ export type SessionRow = {
   createdAt: Date
 }
 
+/** Внешний способ входа (T-056). */
+export type IdentityProvider = 'yandex'
+
+export type IdentityRow = {
+  id: string
+  customerId: string
+  provider: IdentityProvider
+  /** Постоянный id пользователя у провайдера. */
+  subject: string
+  createdAt: Date
+}
+
+/** Профиль от провайдера после проверки на сервере: почта — только подтверждённая. */
+export type ExternalProfile = {
+  provider: IdentityProvider
+  subject: string
+  email: string
+  name: string | null
+}
+
 export interface AuthStore {
   insertCode(row: CodeRow): Promise<void>
   /** Коды почты, созданные не раньше `since`, новые первыми. */
@@ -77,6 +97,11 @@ export interface AuthStore {
   revokeSession(tokenHash: string, at: Date): Promise<void>
   /** Отозвать все живые сессии покупателя, кроме `exceptTokenHash` (если задан). */
   revokeCustomerSessions(customerId: string, at: Date, exceptTokenHash?: string): Promise<void>
+  findIdentity(provider: IdentityProvider, subject: string): Promise<IdentityRow | null>
+  identitiesOf(customerId: string): Promise<IdentityRow[]>
+  /** Привязать; false — этот аккаунт провайдера или этот провайдер у покупателя уже заняты. */
+  insertIdentity(row: IdentityRow): Promise<boolean>
+  deleteIdentity(customerId: string, provider: IdentityProvider): Promise<void>
 }
 
 export type SentCode = { email: string; code: string; purpose: CodePurpose }
@@ -104,6 +129,11 @@ export type VerifyResult =
       created: boolean
     }
   | { ok: false; error: 'invalid' }
+
+/** Вход через провайдера: покупателя с такой почтой нет — нужна регистрация с согласием. */
+export type ExternalSignInResult = VerifyResult | { ok: false; error: 'signup_required' }
+
+export type LinkResult = { ok: true } | { ok: false; error: 'taken' | 'already_linked' | 'unknown' }
 
 export type PasswordChangeResult =
   | { ok: true }
@@ -356,10 +386,111 @@ export function createAuthService({
     await store.revokeCustomerSessions(customerId, now())
   }
 
+  const publicCustomer = (r: CustomerRecord): Customer => ({
+    id: r.id,
+    email: r.email,
+    name: r.name,
+  })
+
+  /**
+   * Вход через провайдера (T-056). Уже привязан — в того же покупателя. Иначе — по почте,
+   * подтверждённой провайдером: покупатель с этой почтой есть — привязываем и входим (как вход
+   * кодом на ту же почту), нет — `signup_required`: создать аккаунт можно только после согласия
+   * на обработку ПД (`externalSignUp`).
+   */
+  async function externalSignIn(profile: ExternalProfile): Promise<ExternalSignInResult> {
+    const at = now()
+    const linked = await store.findIdentity(profile.provider, profile.subject)
+    if (linked) {
+      const record = await store.findCustomerById(linked.customerId)
+      if (record) return openSession(publicCustomer(record), at)
+    }
+    let record = await store.findCustomer(normalizeEmail(profile.email))
+    if (!record) return { ok: false, error: 'signup_required' }
+    // У покупателя уже другой аккаунт провайдера — входим без перепривязки (почта подтверждена).
+    await store.insertIdentity({
+      id: randomUUID(),
+      customerId: record.id,
+      provider: profile.provider,
+      subject: profile.subject,
+      createdAt: at,
+    })
+    if (!record.name && profile.name) {
+      await store.setCustomerName(record.id, profile.name)
+      record = { ...record, name: profile.name }
+    }
+    return openSession(publicCustomer(record), at)
+  }
+
+  /** Регистрация через провайдера — после согласия на обработку ПД (его пишет вызывающий). */
+  async function externalSignUp(profile: ExternalProfile): Promise<VerifyResult> {
+    // Пока зритель читал согласие, аккаунт мог появиться (вход кодом в другой вкладке).
+    const existing = await externalSignIn(profile)
+    if (existing.ok) return existing
+    const at = now()
+    const id = randomUUID()
+    const record = await store.insertCustomer({
+      id,
+      email: normalizeEmail(profile.email),
+      name: profile.name,
+      passwordHash: null,
+      createdAt: at,
+    })
+    await store.insertIdentity({
+      id: randomUUID(),
+      customerId: record.id,
+      provider: profile.provider,
+      subject: profile.subject,
+      createdAt: at,
+    })
+    // Гонка двух первых входов: insertCustomer вернул уже созданного — «создан» только у одного.
+    return openSession(publicCustomer(record), at, record.id === id)
+  }
+
+  /** Привязать аккаунт провайдера к вошедшему покупателю (профиль). Почта может отличаться. */
+  async function linkIdentity(customerId: string, profile: ExternalProfile): Promise<LinkResult> {
+    if (!(await store.findCustomerById(customerId))) return { ok: false, error: 'unknown' }
+    const owner = async () =>
+      (await store.findIdentity(profile.provider, profile.subject))?.customerId
+    const current = await owner()
+    if (current) return current === customerId ? { ok: true } : { ok: false, error: 'taken' }
+    const own = await store.identitiesOf(customerId)
+    if (own.some((i) => i.provider === profile.provider))
+      return { ok: false, error: 'already_linked' }
+    const inserted = await store.insertIdentity({
+      id: randomUUID(),
+      customerId,
+      provider: profile.provider,
+      subject: profile.subject,
+      createdAt: now(),
+    })
+    if (inserted) return { ok: true }
+    // Параллельная привязка: смотрим, кто успел.
+    return (await owner()) === customerId ? { ok: true } : { ok: false, error: 'taken' }
+  }
+
+  /**
+   * Отвязать провайдера. Разрешено, даже если пароля нет: вход кодом на почту кабинета остаётся
+   * всегда, так что доступ к аккаунту не теряется.
+   */
+  async function unlinkIdentity(customerId: string, provider: IdentityProvider) {
+    await store.deleteIdentity(customerId, provider)
+  }
+
+  /** Какие провайдеры привязаны — для профиля. */
+  async function linkedProviders(customerId: string): Promise<IdentityProvider[]> {
+    return (await store.identitiesOf(customerId)).map((i) => i.provider)
+  }
+
   return {
     requestCode,
     verifyCode,
     passwordLogin,
+    externalSignIn,
+    externalSignUp,
+    linkIdentity,
+    unlinkIdentity,
+    linkedProviders,
     getSession,
     logout,
     hasPassword,
@@ -373,11 +504,17 @@ export type AuthService = ReturnType<typeof createAuthService>
 
 /** Хранилище в памяти — для тестов и превью без базы. Не для production. */
 export function memoryAuthStore(): AuthStore & {
-  dump: () => { codes: CodeRow[]; sessions: SessionRow[]; customers: CustomerRecord[] }
+  dump: () => {
+    codes: CodeRow[]
+    sessions: SessionRow[]
+    customers: CustomerRecord[]
+    identities: IdentityRow[]
+  }
 } {
   const codes: CodeRow[] = []
   const customers: CustomerRecord[] = []
   const sessions: SessionRow[] = []
+  const identities: IdentityRow[] = []
   return {
     async insertCode(row) {
       codes.push({ ...row })
@@ -439,10 +576,35 @@ export function memoryAuthStore(): AuthStore & {
         if (s.customerId === customerId && !s.revokedAt && s.tokenHash !== exceptTokenHash)
           s.revokedAt = at
     },
+    async findIdentity(provider, subject) {
+      const i = identities.find((x) => x.provider === provider && x.subject === subject)
+      return i ? { ...i } : null
+    },
+    async identitiesOf(customerId) {
+      return identities.filter((x) => x.customerId === customerId).map((i) => ({ ...i }))
+    },
+    async insertIdentity(row) {
+      // Те же уникальности, что в accounts_identities.
+      if (
+        identities.some(
+          (x) =>
+            x.provider === row.provider &&
+            (x.subject === row.subject || x.customerId === row.customerId),
+        )
+      )
+        return false
+      identities.push({ ...row })
+      return true
+    },
+    async deleteIdentity(customerId, provider) {
+      const at = identities.findIndex((x) => x.customerId === customerId && x.provider === provider)
+      if (at >= 0) identities.splice(at, 1)
+    },
     dump: () => ({
       codes: codes.map((c) => ({ ...c })),
       sessions: sessions.map((s) => ({ ...s })),
       customers,
+      identities: identities.map((i) => ({ ...i })),
     }),
   }
 }

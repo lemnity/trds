@@ -104,7 +104,16 @@ export interface PaymentProvider {
   createPayment(input: CreatePaymentInput, signal?: AbortSignal): Promise<CreatedPayment>
   /** null — провайдер такого платежа не знает. */
   getPayment(providerPaymentId: string, signal?: AbortSignal): Promise<ProviderPayment | null>
+  /**
+   * Возврат. Идемпотентен по `idempotencyKey` (`refund:<refundId>`): повтор с тем же ключом —
+   * тот же возврат и его текущий статус, второй раз деньги не уходят. Отказ банка — `rejected`.
+   */
   refund(input: RefundInput, signal?: AbortSignal): Promise<ProviderRefund>
+  /**
+   * Статус возврата по его id у банка (сверка зависших). Не у всех банков есть — тогда сверка
+   * повторяет `refund` с тем же ключом. null — банк такого возврата не знает.
+   */
+  getRefund?(providerRefundId: string, signal?: AbortSignal): Promise<ProviderRefund | null>
   parseNotification(request: NotificationRequest): Promise<ParsedNotification>
 }
 

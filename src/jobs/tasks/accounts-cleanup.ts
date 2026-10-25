@@ -1,6 +1,7 @@
 import { sql } from '@payloadcms/db-postgres/drizzle'
 
 import { authCodes, sessions } from '@/db/schema/accounts'
+import { rateLimits } from '@/db/schema/ops'
 import type { Logger } from '@/lib/log'
 
 import type { Job } from '../worker'
@@ -11,7 +12,8 @@ import type { SqlExecutor } from './types'
  * утверждена — значения консервативные и меняются здесь:
  * - коды входа: удаляются через сутки после истечения (TTL 10 минут, лимит отправок считается
  *   за последний час — суточный запас его не задевает);
- * - сессии: через 30 дней после истечения или отзыва.
+ * - сессии: через 30 дней после истечения или отзыва;
+ * - окна ограничения частоты (`ops_rate_limits`): сразу после окончания окна — они уже не считаются.
  */
 export const ACCOUNTS_RETENTION = {
   authCodesAfterExpiryMs: 24 * 60 * 60 * 1000,
@@ -74,11 +76,23 @@ export const accountsCleanupJob = ({
       )
       delete from ${sessions} where ${sessions.id} in (select id from doomed)`,
     )
-    if (codes > 0 || ended > 0)
+    const windows = await deleteBatch(
+      conn,
+      sql`with doomed as (
+        select ${rateLimits.keyHash} as key_hash, ${rateLimits.windowStart} as window_start
+        from ${rateLimits}
+        where ${rateLimits.expiresAt} < ${new Date(at).toISOString()}::timestamptz
+        limit ${CLEANUP_BATCH} for update skip locked
+      )
+      delete from ${rateLimits} where (${rateLimits.keyHash}, ${rateLimits.windowStart}) in
+        (select key_hash, window_start from doomed)`,
+    )
+    if (codes > 0 || ended > 0 || windows > 0)
       log.info('accounts.cleaned', {
         job: 'accounts.cleanup',
         codesDeleted: codes,
         sessionsDeleted: ended,
+        rateLimitWindowsDeleted: windows,
       })
   },
 })

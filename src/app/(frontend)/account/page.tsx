@@ -9,6 +9,7 @@ import { BonusSection } from '@/components/account/BonusSection'
 import { CertificateSection } from '@/components/account/CertificateSection'
 import { ProfileSecurity } from '@/components/account/ProfileSecurity'
 import { TicketsSection } from '@/components/account/TicketsSection'
+import { YandexLink } from '@/components/account/YandexLink'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { reveal } from '@/components/ui/reveal'
 import { contacts } from '@/modules/content'
@@ -21,8 +22,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-/** `hasPassword` — для блока «Пароль и сеансы» (сам хеш со страницы не уходит). */
-type Customer = { name: string | null; email: string; hasPassword: boolean }
+/**
+ * `hasPassword` — для блока «Пароль и сеансы» (сам хеш со страницы не уходит);
+ * `yandexLinked` — привязан ли Яндекс ID (T-056).
+ */
+type Customer = { name: string | null; email: string; hasPassword: boolean; yandexLinked: boolean }
 
 /**
  * Кабинет (T-050/T-051). На сервере — только для вошедших: без сессии — на вход с возвратом сюда.
@@ -41,12 +45,15 @@ async function currentCustomer(): Promise<Customer | null | 'unavailable'> {
   }
   if (!session) redirect('/login?next=/account')
   let hasPassword: boolean
+  let yandexLinked: boolean
   try {
-    hasPassword = await (await getAccounts()).auth.hasPassword(session.customer.id)
+    const { auth } = await getAccounts()
+    hasPassword = await auth.hasPassword(session.customer.id)
+    yandexLinked = (await auth.linkedProviders(session.customer.id)).includes('yandex')
   } catch {
     return 'unavailable'
   }
-  return { name: session.customer.name, email: session.customer.email, hasPassword }
+  return { name: session.customer.name, email: session.customer.email, hasPassword, yandexLinked }
 }
 
 const Soon = () => <span className={styles.soon}>Скоро</span>
@@ -133,12 +140,10 @@ export default async function AccountPage() {
             </dd>
           </div>
           <ProfileSecurity hasPassword={customer?.hasPassword ?? null} />
-          <div>
-            <dt>Яндекс ID</dt>
-            <dd className={styles.muted}>
-              Не привязан <Soon />
-            </dd>
-          </div>
+          <YandexLink
+            linked={customer?.yandexLinked ?? null}
+            hasPassword={customer?.hasPassword ?? false}
+          />
         </dl>
       </section>
 

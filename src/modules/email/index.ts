@@ -87,6 +87,7 @@ export {
   type RefundEmailInput,
   type TicketsEmailInput,
 } from './templates'
+export { leadCreatedEmail, type LeadCreatedEmailInput } from './leadTemplates'
 export {
   OUTBOX_RULES,
   PermanentOutboxError,

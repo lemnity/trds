@@ -7,6 +7,7 @@ import { formatRub } from '@/lib/money'
 
 import styles from './Tickets.module.css'
 import { downloadIcs, ticketIcs } from './ticket-calendar'
+import { TicketRefund } from './TicketRefund'
 import {
   TICKET_STATE_HINTS,
   TICKET_STATE_LABELS,
@@ -135,6 +136,11 @@ export function TicketDialog({
               )}
 
               {order && <OrderDetails order={order} />}
+
+              {/* Возврат — только у действующего билета на будущий показ; правила проверит сервер. */}
+              {!demo && ticket.state === 'valid' && ticket.qrUrl && (
+                <TicketRefund ticketNumber={ticket.number} />
+              )}
             </>
           )}
         </Dialog>

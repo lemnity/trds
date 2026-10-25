@@ -1,6 +1,5 @@
 import { sql } from '@payloadcms/db-postgres/drizzle'
 import {
-  boolean,
   check,
   date,
   index,
@@ -15,11 +14,12 @@ import {
 /**
  * Заявки на корпоративы (T-034, PRD §5.7, architecture.md `leads`) и журнал согласий (OPS-02).
  * Подключаются к схеме Payload через `beforeSchemaInit` (payload.config.ts), как таблицы кабинета.
- * Статусы — колонки будущего канбана (T-065): «Новые», «В работе», «Готово»; переходы — строками
- * истории, саму заявку не переписываем задним числом.
+ * Статусы — колонки канбана (T-065): «Новые», «В работе», «Готово» и «Архив»; переходы — строками
+ * истории, саму заявку не переписываем задним числом. Уведомление театра о новой заявке — событие
+ * `lead.created` в `commerce_outbox`, записанное в той же транзакции (lead-requests/service.ts).
  */
 
-export const LEAD_STATUSES = ['new', 'in_progress', 'done'] as const
+export const LEAD_STATUSES = ['new', 'in_progress', 'done', 'archived'] as const
 
 export const leadRequests = pgTable(
   'leads_requests',
@@ -47,8 +47,8 @@ export const leadRequests = pgTable(
     duplicateOf: uuid('duplicate_of').references((): AnyPgColumn => leadRequests.id, {
       onDelete: 'set null',
     }),
-    /** Уведомление театра ещё не отправлено (worker/outbox — TODO, см. lead-requests). */
-    notifyPending: boolean('notify_pending').notNull().default(true),
+    /** Ответственный сотрудник — id из `admin-users` (без FK: таблица Payload); пусто — никто. */
+    assignee: text('assignee'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
@@ -56,15 +56,12 @@ export const leadRequests = pgTable(
     index('leads_requests_status_created_idx').on(t.status, t.createdAt),
     index('leads_requests_email_idx').on(t.email),
     index('leads_requests_phone_idx').on(t.phone),
-    index('leads_requests_notify_idx')
-      .on(t.createdAt)
-      .where(sql`${t.notifyPending}`),
     check('leads_requests_contact', sql`${t.email} IS NOT NULL OR ${t.phone} IS NOT NULL`),
     check(
       'leads_requests_guests',
       sql`${t.guests} IS NULL OR (${t.guests} >= 1 AND ${t.guests} <= 1000)`,
     ),
-    check('leads_requests_status', sql`${t.status} IN ('new', 'in_progress', 'done')`),
+    check('leads_requests_status', sql`${t.status} IN ('new', 'in_progress', 'done', 'archived')`),
   ],
 )
 

@@ -22,7 +22,7 @@ import { quoteSeats } from '@/modules/seating'
 import type { Performance, SalePerformance } from '@/modules/shows'
 import type { WalletService } from '@/modules/wallet/service'
 
-import type { OrderService, PaymentCheck, PlaceOrderLine } from './service'
+import type { OrderLineSnapshot, OrderService, PaymentCheck, PlaceOrderLine } from './service'
 
 /**
  * Покупка и обработка оплаты (T-044, T-045, T-061, T-062; architecture.md §9). Только сервер.
@@ -153,6 +153,16 @@ type Lines = {
   placeholder: boolean
 }
 
+/** Снимок показа для позиций: название, время, площадка — на момент оформления. */
+const snapshotOf = (performance: SalePerformance): OrderLineSnapshot => ({
+  showTitle: performance.show.title,
+  showSlug: performance.show.slug,
+  startsAt: new Date(performance.startsAt),
+  venue: performance.venue
+    ? { title: performance.venue.title, address: performance.venue.address }
+    : null,
+})
+
 /**
  * Позиции заказа из выбора зрителя — цены только из данных показа (CMS), клиент присылает лишь
  * категории/количества или места. Подозрительный выбор — null, без «примерных» догадок.
@@ -163,6 +173,7 @@ export function orderLines(performance: SalePerformance, selection: Selection): 
     const quote = quoteOrder(performance.ticketTypes, selection.quantities)
     if (!quote.ok) return null
     const used = new Set(quote.quote.lines.map((l) => l.ticketTypeId))
+    const snapshot = snapshotOf(performance)
     return {
       lines: quote.quote.lines.map((l) => ({
         performanceId: performance.id,
@@ -170,6 +181,7 @@ export function orderLines(performance: SalePerformance, selection: Selection): 
         title: l.title,
         unitPriceKopecks: l.unitPriceKopecks,
         quantity: l.quantity,
+        snapshot,
       })),
       ticketsKopecks: quote.quote.totalKopecks,
       ticketCount: quote.quote.ticketCount,
@@ -181,6 +193,7 @@ export function orderLines(performance: SalePerformance, selection: Selection): 
   const quote = quoteSeats(plan, pricesKopecks, new Set(unavailableSeatIds), selection.seatIds)
   if (!quote.ok) return null
   const category = new Map(plan.categories.map((c) => [c.id, c.title]))
+  const snapshot = snapshotOf(performance)
   return {
     lines: quote.quote.seats.map((s) => ({
       performanceId: performance.id,
@@ -189,6 +202,7 @@ export function orderLines(performance: SalePerformance, selection: Selection): 
       title: `${category.get(s.categoryId) ?? s.categoryId} · ${SEAT_SECTIONS[s.section]}, ряд ${s.row}, место ${s.number}`,
       unitPriceKopecks: s.priceKopecks,
       quantity: 1,
+      snapshot,
     })),
     ticketsKopecks: quote.quote.totalKopecks,
     ticketCount: quote.quote.ticketCount,

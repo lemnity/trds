@@ -12,6 +12,7 @@ export {
   type ActivateResult,
   type AttachResult,
   type LedgerKind,
+  type RefundCompensation,
   type SpendResult,
   type WalletService,
   type WalletSummary,

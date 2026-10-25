@@ -19,7 +19,8 @@ import { customers } from './accounts'
  * как таблицы кабинета. Это не коллекции CMS: сотрудники не правят суммы руками (rules.md §2).
  */
 
-// `release` — компенсация списания по несостоявшемуся заказу (text без CHECK — миграция не нужна).
+// `release` — компенсация списания по несостоявшемуся заказу; `refund` — возврат потраченных
+// бонусов при возврате билета; `reversal` — сторно начисления 3% (text без CHECK — миграция не нужна).
 const LEDGER_KINDS = [
   'purchase',
   'referral',
@@ -28,6 +29,8 @@ const LEDGER_KINDS = [
   'release',
   'expire',
   'manual',
+  'refund',
+  'reversal',
 ] as const
 
 /**

@@ -74,6 +74,12 @@ export type OrderItemRow = {
   ticketTypeId: string
   seatId: string | null
   titleSnapshot: string
+  /** Снимок показа на момент оформления; у позиций до снимков — null (берётся из афиши). */
+  showTitleSnapshot: string | null
+  showSlugSnapshot: string | null
+  startsAtSnapshot: Date | null
+  venueTitleSnapshot: string | null
+  venueAddressSnapshot: string | null
   unitPriceKopecks: number
   quantity: number
   lineGrossKopecks: number
@@ -142,6 +148,64 @@ export type PaymentEventRow = {
   processedAt: Date | null
   result: string | null
 }
+
+export type RefundStatus = 'REQUESTED' | 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'MANUAL_REVIEW'
+
+export type RefundRow = {
+  id: string
+  orderId: string
+  status: RefundStatus
+  kind: 'customer' | 'staff'
+  /** Вся сумма на карту, включая возвращаемый сервисный сбор. */
+  cashKopecks: number
+  /** Потраченные бонусы, которые вернутся на счёт. */
+  bonusKopecks: number
+  /** Часть `cashKopecks`, приходящаяся на сервисный сбор. */
+  feeKopecks: number
+  /** Сторно начисленных бонусов (после компенсации). */
+  bonusReversalKopecks: number
+  idempotencyKey: string
+  provider: string | null
+  providerRefundId: string | null
+  providerStatus: string | null
+  attempts: number
+  nextAttemptAt: Date | null
+  lastError: string | null
+  reason: string
+  requestedBy: string
+  correlationId: string | null
+  completedAt: Date | null
+  bonusSettledAt: Date | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type RefundTicketRow = {
+  refundId: string
+  ticketId: string
+  cashKopecks: number
+  bonusKopecks: number
+  feeKopecks: number
+  voidedAt: Date | null
+}
+
+/** Изменяемые поля возврата (статус — только через state-machine `@/modules/refunds`). */
+export type RefundUpdate = Partial<
+  Pick<
+    RefundRow,
+    | 'status'
+    | 'providerRefundId'
+    | 'providerStatus'
+    | 'attempts'
+    | 'nextAttemptAt'
+    | 'lastError'
+    | 'completedAt'
+    | 'bonusReversalKopecks'
+    | 'bonusSettledAt'
+  >
+>
+
+export type SettingRow = { key: string; value: unknown; updatedBy: string; updatedAt: Date }
 
 /** Изменение заказа при переходе статуса (вычисляет `transition`). */
 export type OrderUpdate = OrderPatch & {
@@ -221,6 +285,36 @@ export interface CommerceTx {
   insertAudit(row: AuditRow): Promise<void>
   /** false — событие провайдера с таким `eventId` уже записано. */
   insertPaymentEvent(row: PaymentEventRow): Promise<boolean>
+
+  // --- Возвраты (T-052/T-053, `@/modules/refunds`). Порядок блокировок: заказ → возврат → билеты
+  // → остатки → места — тот же, что у оплаты (заказ первым).
+
+  /** Билеты заказа под блокировкой (FOR NO KEY UPDATE) в порядке id. */
+  lockTickets(orderId: string): Promise<TicketRow[]>
+  /** Условно сменить статус билетов: только строки в статусе `from`. Возвращает число изменённых. */
+  updateTickets(
+    ids: string[],
+    from: TicketStatus,
+    set: { status: TicketStatus; refundedAt: Date | null },
+  ): Promise<number>
+  /** false — возврат с таким ключом идемпотентности уже есть. */
+  insertRefund(row: RefundRow): Promise<boolean>
+  findRefundByKey(idempotencyKey: string): Promise<RefundRow | null>
+  lockRefund(id: string): Promise<RefundRow | null>
+  /** Условное изменение: только если статус всё ещё `from`. */
+  updateRefund(id: string, from: RefundStatus, set: RefundUpdate, at: Date): Promise<boolean>
+  /**
+   * Доли билетов возврата. false — у какого-то билета уже есть живой (не аннулированный) возврат:
+   * частичный уникальный индекс `commerce_refund_tickets_live_uq` (параллельная вставка того же
+   * билета ждёт чужую транзакцию). Вставка могла пройти частично — вызывающий откатывает транзакцию.
+   */
+  insertRefundTickets(rows: RefundTicketRow[]): Promise<boolean>
+  listRefundTickets(refundId: string): Promise<RefundTicketRow[]>
+  /** Аннулировать доли неудавшегося возврата — билеты снова можно вернуть. */
+  voidRefundTickets(refundId: string, at: Date): Promise<void>
+  /** Живой возврат, в который входит билет (для ответа на повторный запрос). */
+  liveRefundOfTicket(ticketId: string): Promise<RefundRow | null>
+  upsertSetting(row: SettingRow): Promise<void>
 }
 
 export interface CommerceStore {
@@ -239,4 +333,18 @@ export interface CommerceStore {
   ordersInStatus(statuses: OrderStatus[], updatedSince: Date, limit: number): Promise<OrderRow[]>
   items(orderId: string): Promise<OrderItemRow[]>
   tickets(orderId: string): Promise<TicketRow[]>
+  /** Заказ по номеру TRD-XXXXXXXX (касса ищет заказ для возврата). */
+  orderByNumber(number: string): Promise<OrderRow | null>
+  /** Билет по номеру (без блокировки) — поиск заказа для возврата. */
+  ticketByNumber(number: string): Promise<TicketRow | null>
+  refund(id: string): Promise<RefundRow | null>
+  refundsOfOrder(orderId: string): Promise<RefundRow[]>
+  refundTickets(refundId: string): Promise<RefundTicketRow[]>
+  /** Возвраты в статусах, которым пора к банку (`next_attempt_at <= now`), старые первыми. */
+  refundsDue(statuses: RefundStatus[], now: Date, limit: number): Promise<RefundRow[]>
+  /** Успешные возвраты без компенсации бонусов (шаг после успеха не дошёл). */
+  refundsUnsettled(limit: number): Promise<RefundRow[]>
+  /** Последние возвраты (админка), новые первыми. */
+  recentRefunds(limit: number): Promise<RefundRow[]>
+  setting(key: string): Promise<SettingRow | null>
 }

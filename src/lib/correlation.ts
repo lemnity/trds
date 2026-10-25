@@ -8,8 +8,8 @@ import { log as rootLog, type Logger } from './log'
  * заголовком и попадает в каждую строку лога и в тело ошибки — по нему находят запрос в логах.
  *
  * Как подключить маршрут: `export const POST = withCorrelation('auth.login', async (req, ctx) => …)`;
- * внутри — `ctx.log` и `apiError(…, ctx.correlationId)`. Маршруты auth/leads пока на своих обёртках —
- * переводятся их владельцами (docs/runbook.md, «Логи»).
+ * внутри — `ctx.log` и `apiError(…, ctx.correlationId)`. Маршруты кабинета и входа оборачивает
+ * `guarded` (src/app/api/auth/http.ts) — тот же withCorrelation плюс 503 при недоступной базе/почте.
  */
 
 export const REQUEST_ID_HEADER = 'x-request-id'
@@ -22,16 +22,20 @@ export const correlationIdFrom = (headers: Headers): string => {
   return incoming && VALID_ID.test(incoming) ? incoming : randomUUID()
 }
 
-/** Единый формат ошибки API: `{code, message, correlationId}` без stack trace и деталей БД. */
+/**
+ * Единый формат ошибки API: `{code, message, correlationId}` без stack trace и деталей БД.
+ * `extra` — безопасные поля для формы (`retryAfter`, `fields`); основные поля они не перекрывают.
+ */
 export const apiError = (
   status: number,
   code: string,
   message: string,
   correlationId: string,
   headers: Record<string, string> = {},
+  extra: Record<string, unknown> = {},
 ) =>
   Response.json(
-    { code, message, correlationId },
+    { ...extra, code, message, correlationId },
     {
       status,
       headers: { 'Cache-Control': 'no-store', [REQUEST_ID_HEADER]: correlationId, ...headers },

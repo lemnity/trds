@@ -1,7 +1,7 @@
 import { and, desc, eq, gte, gt, isNull, ne, sql } from '@payloadcms/db-postgres/drizzle'
 import type { NodePgDatabase } from '@payloadcms/db-postgres/drizzle/node-postgres'
 
-import { authCodes, consents, customers, sessions } from '@/db/schema/accounts'
+import { authCodes, consents, customers, identities, sessions } from '@/db/schema/accounts'
 
 import type { AuthStore, CodeRow } from './service'
 
@@ -124,6 +124,30 @@ export function pgAuthStore(db: Db): AuthStore {
             ...(exceptTokenHash ? [ne(sessions.tokenHash, exceptTokenHash)] : []),
           ),
         )
+    },
+    async findIdentity(provider, subject) {
+      const [row] = await db
+        .select()
+        .from(identities)
+        .where(and(eq(identities.provider, provider), eq(identities.subject, subject)))
+      return row ?? null
+    },
+    async identitiesOf(customerId) {
+      return db.select().from(identities).where(eq(identities.customerId, customerId))
+    },
+    async insertIdentity(row) {
+      // Обе уникальности (аккаунт провайдера; провайдер у покупателя) — без исключения при гонке.
+      const rows = await db
+        .insert(identities)
+        .values(row)
+        .onConflictDoNothing()
+        .returning({ id: identities.id })
+      return rows.length === 1
+    },
+    async deleteIdentity(customerId, provider) {
+      await db
+        .delete(identities)
+        .where(and(eq(identities.customerId, customerId), eq(identities.provider, provider)))
     },
   }
 }

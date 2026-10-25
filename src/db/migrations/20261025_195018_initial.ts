@@ -72,6 +72,14 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"given_at" timestamp with time zone NOT NULL
   );
   
+  CREATE TABLE "accounts_identities" (
+  	"id" uuid PRIMARY KEY NOT NULL,
+  	"customer_id" uuid NOT NULL,
+  	"provider" text NOT NULL,
+  	"subject" text NOT NULL,
+  	"created_at" timestamp with time zone NOT NULL
+  );
+  
   CREATE TABLE "wallet_ledger" (
   	"id" uuid PRIMARY KEY NOT NULL,
   	"customer_id" uuid NOT NULL,
@@ -149,13 +157,13 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"idempotency_key" text NOT NULL,
   	"payload_hash" text NOT NULL,
   	"duplicate_of" uuid,
-  	"notify_pending" boolean DEFAULT true NOT NULL,
+  	"assignee" text,
   	"created_at" timestamp with time zone NOT NULL,
   	"updated_at" timestamp with time zone NOT NULL,
   	CONSTRAINT "leads_requests_idempotency_key_unique" UNIQUE("idempotency_key"),
   	CONSTRAINT "leads_requests_contact" CHECK ("leads_requests"."email" IS NOT NULL OR "leads_requests"."phone" IS NOT NULL),
   	CONSTRAINT "leads_requests_guests" CHECK ("leads_requests"."guests" IS NULL OR ("leads_requests"."guests" >= 1 AND "leads_requests"."guests" <= 1000)),
-  	CONSTRAINT "leads_requests_status" CHECK ("leads_requests"."status" IN ('new', 'in_progress', 'done'))
+  	CONSTRAINT "leads_requests_status" CHECK ("leads_requests"."status" IN ('new', 'in_progress', 'done', 'archived'))
   );
   
   CREATE TABLE "leads_status_history" (
@@ -254,6 +262,11 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"ticket_type_id" text NOT NULL,
   	"seat_id" text,
   	"title_snapshot" text NOT NULL,
+  	"show_title_snapshot" text,
+  	"show_slug_snapshot" text,
+  	"starts_at_snapshot" timestamp with time zone,
+  	"venue_title_snapshot" text,
+  	"venue_address_snapshot" text,
   	"unit_price_kopecks" bigint NOT NULL,
   	"quantity" integer NOT NULL,
   	"line_gross_kopecks" bigint NOT NULL,
@@ -308,17 +321,29 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"id" uuid PRIMARY KEY NOT NULL,
   	"order_id" uuid NOT NULL,
   	"status" text NOT NULL,
+  	"kind" text DEFAULT 'customer' NOT NULL,
   	"cash_kopecks" bigint NOT NULL,
   	"bonus_kopecks" bigint NOT NULL,
   	"fee_kopecks" bigint NOT NULL,
+  	"bonus_reversal_kopecks" bigint DEFAULT 0 NOT NULL,
   	"idempotency_key" text NOT NULL,
+  	"provider" text,
   	"provider_refund_id" text,
+  	"provider_status" text,
+  	"attempts" integer DEFAULT 0 NOT NULL,
+  	"next_attempt_at" timestamp with time zone,
+  	"last_error" text,
   	"reason" text NOT NULL,
   	"requested_by" text NOT NULL,
+  	"correlation_id" text,
+  	"completed_at" timestamp with time zone,
+  	"bonus_settled_at" timestamp with time zone,
   	"created_at" timestamp with time zone NOT NULL,
   	"updated_at" timestamp with time zone NOT NULL,
   	CONSTRAINT "commerce_refunds_idempotency_key_unique" UNIQUE("idempotency_key"),
-  	CONSTRAINT "commerce_refunds_amounts" CHECK ("commerce_refunds"."cash_kopecks" >= 0 AND "commerce_refunds"."bonus_kopecks" >= 0 AND "commerce_refunds"."fee_kopecks" >= 0)
+  	CONSTRAINT "commerce_refunds_amounts" CHECK ("commerce_refunds"."cash_kopecks" >= 0 AND "commerce_refunds"."bonus_kopecks" >= 0 AND "commerce_refunds"."fee_kopecks" >= 0 AND "commerce_refunds"."fee_kopecks" <= "commerce_refunds"."cash_kopecks" AND "commerce_refunds"."bonus_reversal_kopecks" >= 0),
+  	CONSTRAINT "commerce_refunds_attempts_nonneg" CHECK ("commerce_refunds"."attempts" >= 0),
+  	CONSTRAINT "commerce_refunds_completed_shape" CHECK (("commerce_refunds"."status" IN ('SUCCEEDED', 'FAILED')) = ("commerce_refunds"."completed_at" IS NOT NULL))
   );
   
   CREATE TABLE "commerce_refund_tickets" (
@@ -348,6 +373,13 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	CONSTRAINT "commerce_outbox_attempts_nonneg" CHECK ("commerce_outbox"."attempts" >= 0)
   );
   
+  CREATE TABLE "commerce_settings" (
+  	"key" text PRIMARY KEY NOT NULL,
+  	"value" jsonb NOT NULL,
+  	"updated_by" text NOT NULL,
+  	"updated_at" timestamp with time zone NOT NULL
+  );
+  
   CREATE TABLE "commerce_audit_log" (
   	"id" uuid PRIMARY KEY NOT NULL,
   	"actor" text NOT NULL,
@@ -358,6 +390,15 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"result" text NOT NULL,
   	"correlation_id" text,
   	"at" timestamp with time zone NOT NULL
+  );
+  
+  CREATE TABLE "ops_rate_limits" (
+  	"key_hash" text NOT NULL,
+  	"window_start" timestamp with time zone NOT NULL,
+  	"bucket" text NOT NULL,
+  	"hits" integer NOT NULL,
+  	"expires_at" timestamp with time zone NOT NULL,
+  	CONSTRAINT "ops_rate_limits_key_hash_window_start_pk" PRIMARY KEY("key_hash","window_start")
   );
   
   CREATE TABLE "shows_credits_entries" (
@@ -1117,6 +1158,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   );
   
   ALTER TABLE "accounts_sessions" ADD CONSTRAINT "accounts_sessions_customer_id_accounts_customers_id_fk" FOREIGN KEY ("customer_id") REFERENCES "public"."accounts_customers"("id") ON DELETE cascade ON UPDATE no action;
+  ALTER TABLE "accounts_identities" ADD CONSTRAINT "accounts_identities_customer_id_accounts_customers_id_fk" FOREIGN KEY ("customer_id") REFERENCES "public"."accounts_customers"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "wallet_ledger" ADD CONSTRAINT "wallet_ledger_customer_id_accounts_customers_id_fk" FOREIGN KEY ("customer_id") REFERENCES "public"."accounts_customers"("id") ON DELETE restrict ON UPDATE no action;
   ALTER TABLE "wallet_ledger" ADD CONSTRAINT "wallet_ledger_related_entry_id_wallet_ledger_id_fk" FOREIGN KEY ("related_entry_id") REFERENCES "public"."wallet_ledger"("id") ON DELETE no action ON UPDATE no action;
   ALTER TABLE "wallet_spend_allocations" ADD CONSTRAINT "wallet_spend_allocations_spend_entry_id_wallet_ledger_id_fk" FOREIGN KEY ("spend_entry_id") REFERENCES "public"."wallet_ledger"("id") ON DELETE restrict ON UPDATE no action;
@@ -1241,6 +1283,8 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   ALTER TABLE "_site_settings_v" ADD CONSTRAINT "_site_settings_v_version_seo_image_id_media_id_fk" FOREIGN KEY ("version_seo_image_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;
   CREATE INDEX "accounts_auth_codes_email_created_idx" ON "accounts_auth_codes" USING btree ("email","created_at");
   CREATE INDEX "accounts_sessions_customer_idx" ON "accounts_sessions" USING btree ("customer_id");
+  CREATE UNIQUE INDEX "accounts_identities_provider_subject_uq" ON "accounts_identities" USING btree ("provider","subject");
+  CREATE UNIQUE INDEX "accounts_identities_customer_provider_uq" ON "accounts_identities" USING btree ("customer_id","provider");
   CREATE INDEX "wallet_ledger_customer_expires_idx" ON "wallet_ledger" USING btree ("customer_id","expires_at");
   CREATE INDEX "wallet_ledger_customer_created_idx" ON "wallet_ledger" USING btree ("customer_id","created_at");
   CREATE INDEX "wallet_spend_allocations_spend_idx" ON "wallet_spend_allocations" USING btree ("spend_entry_id");
@@ -1249,7 +1293,6 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX "leads_requests_status_created_idx" ON "leads_requests" USING btree ("status","created_at");
   CREATE INDEX "leads_requests_email_idx" ON "leads_requests" USING btree ("email");
   CREATE INDEX "leads_requests_phone_idx" ON "leads_requests" USING btree ("phone");
-  CREATE INDEX "leads_requests_notify_idx" ON "leads_requests" USING btree ("created_at") WHERE "leads_requests"."notify_pending";
   CREATE INDEX "leads_status_history_lead_idx" ON "leads_status_history" USING btree ("lead_id","created_at");
   CREATE INDEX "consent_journal_subject_idx" ON "consent_journal" USING btree ("subject_ref");
   CREATE INDEX "commerce_inventory_ticket_type_idx" ON "commerce_inventory" USING btree ("ticket_type_id");
@@ -1272,10 +1315,13 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX "commerce_payment_events_unprocessed_idx" ON "commerce_payment_events" USING btree ("received_at") WHERE "commerce_payment_events"."processed_at" IS NULL;
   CREATE INDEX "commerce_refunds_order_idx" ON "commerce_refunds" USING btree ("order_id");
   CREATE INDEX "commerce_refunds_status_idx" ON "commerce_refunds" USING btree ("status","updated_at");
+  CREATE INDEX "commerce_refunds_next_attempt_idx" ON "commerce_refunds" USING btree ("next_attempt_at") WHERE "commerce_refunds"."status" IN ('REQUESTED', 'PENDING');
+  CREATE UNIQUE INDEX "commerce_refunds_provider_refund_uq" ON "commerce_refunds" USING btree ("provider","provider_refund_id") WHERE "commerce_refunds"."provider_refund_id" IS NOT NULL;
   CREATE UNIQUE INDEX "commerce_refund_tickets_live_uq" ON "commerce_refund_tickets" USING btree ("ticket_id") WHERE "commerce_refund_tickets"."voided_at" IS NULL;
   CREATE INDEX "commerce_outbox_status_next_idx" ON "commerce_outbox" USING btree ("status","next_attempt_at");
   CREATE INDEX "commerce_audit_log_entity_idx" ON "commerce_audit_log" USING btree ("entity","entity_id","at");
   CREATE INDEX "commerce_audit_log_at_idx" ON "commerce_audit_log" USING btree ("at");
+  CREATE INDEX "ops_rate_limits_expires_idx" ON "ops_rate_limits" USING btree ("expires_at");
   CREATE INDEX "shows_credits_entries_order_idx" ON "shows_credits_entries" USING btree ("_order");
   CREATE INDEX "shows_credits_entries_parent_id_idx" ON "shows_credits_entries" USING btree ("_parent_id");
   CREATE INDEX "shows_credits_order_idx" ON "shows_credits" USING btree ("_order");
@@ -1549,6 +1595,7 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   DROP TABLE "accounts_auth_codes" CASCADE;
   DROP TABLE "accounts_sessions" CASCADE;
   DROP TABLE "accounts_consents" CASCADE;
+  DROP TABLE "accounts_identities" CASCADE;
   DROP TABLE "wallet_ledger" CASCADE;
   DROP TABLE "wallet_spend_allocations" CASCADE;
   DROP TABLE "wallet_certificates" CASCADE;
@@ -1567,7 +1614,9 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   DROP TABLE "commerce_refunds" CASCADE;
   DROP TABLE "commerce_refund_tickets" CASCADE;
   DROP TABLE "commerce_outbox" CASCADE;
+  DROP TABLE "commerce_settings" CASCADE;
   DROP TABLE "commerce_audit_log" CASCADE;
+  DROP TABLE "ops_rate_limits" CASCADE;
   DROP TABLE "shows_credits_entries" CASCADE;
   DROP TABLE "shows_credits" CASCADE;
   DROP TABLE "shows_gallery" CASCADE;

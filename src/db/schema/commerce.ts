@@ -46,6 +46,7 @@ export const REFUND_STATUSES = [
   'FAILED',
   'MANUAL_REVIEW',
 ] as const
+export const REFUND_KINDS = ['customer', 'staff'] as const
 export const OUTBOX_STATUSES = ['pending', 'processing', 'done', 'dead'] as const
 
 const createdAt = () => timestamp('created_at', { withTimezone: true }).notNull()
@@ -198,6 +199,15 @@ export const commerceOrderItems = pgTable(
     ticketTypeId: text('ticket_type_id').notNull(),
     seatId: text('seat_id'),
     titleSnapshot: text('title_snapshot').notNull(),
+    /**
+     * Снимок показа на момент оформления: билет, письмо и worker не зависят от CMS и демо-данных
+     * (у старых позиций — NULL, тогда данные берутся из афиши).
+     */
+    showTitleSnapshot: text('show_title_snapshot'),
+    showSlugSnapshot: text('show_slug_snapshot'),
+    startsAtSnapshot: timestamp('starts_at_snapshot', { withTimezone: true }),
+    venueTitleSnapshot: text('venue_title_snapshot'),
+    venueAddressSnapshot: text('venue_address_snapshot'),
     unitPriceKopecks: bigint('unit_price_kopecks', { mode: 'number' }).notNull(),
     quantity: integer('quantity').notNull(),
     lineGrossKopecks: bigint('line_gross_kopecks', { mode: 'number' }).notNull(),
@@ -316,7 +326,14 @@ export const commercePaymentEvents = pgTable(
   ],
 )
 
-/** Возврат: деньги и бонусы отдельно; повтор запроса с тем же ключом — тот же возврат. */
+/**
+ * Возврат (T-052/T-053, architecture.md §10): деньги и бонусы отдельно; повтор запроса с тем же
+ * ключом — тот же возврат. `cash_kopecks` — вся сумма на карту (включая возвращаемый сбор),
+ * `fee_kopecks` — часть её, приходящаяся на сервисный сбор; `bonus_kopecks` — потраченные бонусы,
+ * которые вернутся на счёт; `bonus_reversal_kopecks` — сторно начисленных 3% (известно после
+ * компенсации, `bonus_settled_at`). Ключ банка — `refund:<id>`, стабилен для всех повторов.
+ * Статус меняет только state-machine `@/modules/refunds` условным UPDATE.
+ */
 export const commerceRefunds = pgTable(
   'commerce_refunds',
   {
@@ -325,22 +342,47 @@ export const commerceRefunds = pgTable(
       .notNull()
       .references(() => commerceOrders.id, { onDelete: 'restrict' }),
     status: text('status', { enum: REFUND_STATUSES }).notNull(),
+    /** Кто инициировал: зритель из кабинета или сотрудник в админке. */
+    kind: text('kind', { enum: REFUND_KINDS }).notNull().default('customer'),
     cashKopecks: bigint('cash_kopecks', { mode: 'number' }).notNull(),
     bonusKopecks: bigint('bonus_kopecks', { mode: 'number' }).notNull(),
     feeKopecks: bigint('fee_kopecks', { mode: 'number' }).notNull(),
+    bonusReversalKopecks: bigint('bonus_reversal_kopecks', { mode: 'number' }).notNull().default(0),
     idempotencyKey: text('idempotency_key').notNull().unique(),
+    provider: text('provider'),
     providerRefundId: text('provider_refund_id'),
+    /** Последний ответ банка в терминах домена (pending/succeeded/canceled/timeout/…), без ПД. */
+    providerStatus: text('provider_status'),
+    /** Сколько раз обращались к банку (сверка повторяет до лимита, затем — ручной разбор). */
+    attempts: integer('attempts').notNull().default(0),
+    nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }),
+    lastError: text('last_error'),
     reason: text('reason').notNull(),
     requestedBy: text('requested_by').notNull(),
+    correlationId: text('correlation_id'),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    /** Бонусы компенсированы (сторно начисления, возврат потраченных) — шаг после успеха. */
+    bonusSettledAt: timestamp('bonus_settled_at', { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (t) => [
     index('commerce_refunds_order_idx').on(t.orderId),
     index('commerce_refunds_status_idx').on(t.status, t.updatedAt),
+    index('commerce_refunds_next_attempt_idx')
+      .on(t.nextAttemptAt)
+      .where(sql`${t.status} IN ('REQUESTED', 'PENDING')`),
+    uniqueIndex('commerce_refunds_provider_refund_uq')
+      .on(t.provider, t.providerRefundId)
+      .where(sql`${t.providerRefundId} IS NOT NULL`),
     check(
       'commerce_refunds_amounts',
-      sql`${t.cashKopecks} >= 0 AND ${t.bonusKopecks} >= 0 AND ${t.feeKopecks} >= 0`,
+      sql`${t.cashKopecks} >= 0 AND ${t.bonusKopecks} >= 0 AND ${t.feeKopecks} >= 0 AND ${t.feeKopecks} <= ${t.cashKopecks} AND ${t.bonusReversalKopecks} >= 0`,
+    ),
+    check('commerce_refunds_attempts_nonneg', sql`${t.attempts} >= 0`),
+    check(
+      'commerce_refunds_completed_shape',
+      sql`(${t.status} IN ('SUCCEEDED', 'FAILED')) = (${t.completedAt} IS NOT NULL)`,
     ),
   ],
 )
@@ -401,6 +443,17 @@ export const commerceOutbox = pgTable(
   ],
 )
 
+/**
+ * Настройки продаж, которые меняет администратор театра (политика возвратов и т.п.): ключ →
+ * JSON, проверяемый доменом (`@/modules/refunds`). Не коллекция CMS: изменение пишет журнал аудита.
+ */
+export const commerceSettings = pgTable('commerce_settings', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').notNull(),
+  updatedBy: text('updated_by').notNull(),
+  updatedAt: updatedAt(),
+})
+
 /** Журнал аудита денежных и инвентарных операций. Без секретов, токенов и лишних ПД. */
 export const commerceAuditLog = pgTable(
   'commerce_audit_log',
@@ -432,5 +485,6 @@ export const commerceTables = {
   commerce_refunds: commerceRefunds,
   commerce_refund_tickets: commerceRefundTickets,
   commerce_outbox: commerceOutbox,
+  commerce_settings: commerceSettings,
   commerce_audit_log: commerceAuditLog,
 }

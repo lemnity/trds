@@ -70,8 +70,10 @@ export function createFakeProvider({
     throw new Error('fake payment provider is disabled in production')
   if (!secret) throw new Error('fake provider secret is required')
 
-  const faults: Partial<Record<'create' | 'get' | 'refund', FakeFault>> = {}
-  const takeFault = (op: 'create' | 'get' | 'refund') => {
+  const faults: Partial<Record<'create' | 'get' | 'refund' | 'getRefund', FakeFault>> = {}
+  /** Как банк отвечает на новый возврат: сразу «выполнен» или «в обработке» (решает `settleRefund`). */
+  const refunds = { mode: 'succeeded' as 'succeeded' | 'pending' }
+  const takeFault = (op: 'create' | 'get' | 'refund' | 'getRefund') => {
     const fault = faults[op]
     delete faults[op]
     return fault
@@ -138,7 +140,7 @@ export function createFakeProvider({
 
     async refund(input) {
       const fault = takeFault('refund')
-      if (fault) throw new PaymentProviderError(fault.kind, 'fake fault')
+      if (fault && !fault.afterCreate) throw new PaymentProviderError(fault.kind, 'fake fault')
       const done = state.refunds.get(input.idempotencyKey)
       if (done) {
         if (
@@ -146,6 +148,7 @@ export function createFakeProvider({
           done.amountKopecks !== input.amountKopecks
         )
           throw new PaymentProviderError('rejected', 'idempotency key reused')
+        if (fault?.afterCreate) throw new PaymentProviderError(fault.kind, 'fake fault')
         return {
           providerRefundId: done.providerRefundId,
           status: done.status,
@@ -164,11 +167,26 @@ export function createFakeProvider({
       payment.refundedKopecks += input.amountKopecks
       const refund: ProviderRefund = {
         providerRefundId: `fake_refund_${randomUUID()}`,
-        status: 'succeeded',
+        status: refunds.mode,
         amountKopecks: input.amountKopecks,
       }
       state.refunds.set(input.idempotencyKey, { ...refund, paymentId: payment.id })
+      // Возврат проведён, ответ потерян (таймаут после выполнения) — повтор с тем же ключом.
+      if (fault) throw new PaymentProviderError(fault.kind, 'fake fault after refund')
       return refund
+    },
+
+    async getRefund(providerRefundId: string) {
+      const fault = takeFault('getRefund')
+      if (fault) throw new PaymentProviderError(fault.kind, 'fake fault')
+      for (const r of state.refunds.values())
+        if (r.providerRefundId === providerRefundId)
+          return {
+            providerRefundId: r.providerRefundId,
+            status: r.status,
+            amountKopecks: r.amountKopecks,
+          }
+      return null
     },
 
     async parseNotification({
@@ -227,6 +245,20 @@ export function createFakeProvider({
     /** Подпись произвольного тела (тест подделки уведомления). */
     sign,
     faults,
+    refunds,
+    /** Решение банка по возврату «в обработке»; отказ возвращает сумму в платёж. */
+    settleRefund(providerRefundId: string, outcome: 'succeeded' | 'canceled') {
+      for (const r of state.refunds.values()) {
+        if (r.providerRefundId !== providerRefundId || r.status !== 'pending') continue
+        r.status = outcome
+        if (outcome === 'canceled') {
+          const p = state.payments.get(r.paymentId)
+          if (p) p.refundedKopecks -= r.amountKopecks
+        }
+        return { ...r }
+      }
+      return null
+    },
   }
 
   return { provider, bank }

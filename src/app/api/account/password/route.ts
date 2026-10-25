@@ -1,17 +1,22 @@
 import type { NextRequest } from 'next/server'
 import { z } from 'zod'
 
-import { createRateLimiter } from '@/lib/rate-limit'
+import { apiError } from '@/lib/correlation'
+import { sharedRateLimiter } from '@/lib/rate-limit'
 import { getAccounts, PASSWORD_MAX, SESSION_COOKIE } from '@/modules/accounts'
 import { PASSWORD_MIN } from '@/modules/auth'
 
-import { clientIp, guarded, json, sameOrigin } from '../../auth/http'
+import { clientIp, fail, guarded, json, sameOrigin } from '../../auth/http'
 
 export const dynamic = 'force-dynamic'
 
 // Подбор текущего пароля из чужой сессии: лимит и по адресу, и по покупателю.
-const byIp = createRateLimiter({ limit: 20, windowMs: 10 * 60_000 })
-const byCustomer = createRateLimiter({ limit: 5, windowMs: 15 * 60_000 })
+const byIp = sharedRateLimiter({ name: 'account.password.ip', limit: 20, windowMs: 10 * 60_000 })
+const byCustomer = sharedRateLimiter({
+  name: 'account.password.customer',
+  limit: 5,
+  windowMs: 15 * 60_000,
+})
 
 const body = z.object({
   next: z.string().min(PASSWORD_MIN).max(PASSWORD_MAX),
@@ -22,27 +27,33 @@ const body = z.object({
     .optional(),
 })
 
+const MESSAGES = {
+  weak: 'Пароль слишком короткий или длинный.',
+  proof_required: 'Нужен текущий пароль или код из письма.',
+  invalid_current: 'Неверный текущий пароль.',
+  invalid_code: 'Неверный или устаревший код.',
+} as const
+
 /**
  * POST /api/account/password — задать или сменить пароль (T-055).
  * Тело: `{ next, current? , code? }` — для смены нужен текущий пароль или код из письма
  * (`POST /api/account/password/code`). Ответы: 200 `{ ok }` (остальные устройства вышли);
- * 400 `{ error: 'invalid' | 'weak' | 'proof_required' | 'invalid_current' | 'invalid_code' }`;
- * 401; 403; 429; 503.
+ * ошибки `{ code, message, correlationId }`: 400 `invalid | weak | proof_required |
+ * invalid_current | invalid_code`; 401; 403; 429; 503.
  */
-export const POST = guarded(async (req: NextRequest) => {
-  if (!sameOrigin(req)) return json({ error: 'forbidden' }, 403)
-  if (!byIp.hit(clientIp(req))) return json({ error: 'too_many' }, 429)
+export const POST = guarded('account.password', async (req: NextRequest, ctx) => {
+  if (!sameOrigin(req)) return fail.forbidden(ctx)
+  if (!(await byIp.hit(clientIp(req)))) return fail.tooMany(ctx)
   const { auth } = await getAccounts()
   const token = req.cookies.get(SESSION_COOKIE)?.value
   const session = await auth.getSession(token)
-  if (!session) return json({ error: 'unauthorized' }, 401)
+  if (!session) return fail.unauthorized(ctx)
   const parsed = body.safeParse(await req.json().catch(() => null))
   if (!parsed.success) {
     const weak = parsed.error.issues.some((i) => i.path[0] === 'next')
-    return json({ error: weak ? 'weak' : 'invalid' }, 400)
+    return weak ? apiError(400, 'weak', MESSAGES.weak, ctx.correlationId) : fail.invalid(ctx)
   }
-  if (!byCustomer.hit(session.customer.id))
-    return json({ error: 'too_many', retryAfter: 15 * 60 }, 429)
+  if (!(await byCustomer.hit(session.customer.id))) return fail.tooMany(ctx, 15 * 60)
   const result = await auth.changePassword({
     customerId: session.customer.id,
     next: parsed.data.next,
@@ -51,6 +62,6 @@ export const POST = guarded(async (req: NextRequest) => {
     keepToken: token,
   })
   if (result.ok) return json({ ok: true })
-  if (result.error === 'unknown') return json({ error: 'unauthorized' }, 401)
-  return json({ error: result.error }, 400)
+  if (result.error === 'unknown') return fail.unauthorized(ctx)
+  return apiError(400, result.error, MESSAGES[result.error], ctx.correlationId)
 })

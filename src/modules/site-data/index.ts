@@ -171,3 +171,5 @@ export const siteData = (): SiteData => (shared ??= createSiteData({ reader: pay
 
 export const loadShowsData = () => siteData().loadShowsData()
 export const loadSiteContent = () => siteData().loadSiteContent()
+
+export { DEFAULT_SEO, resolveSiteSeo, type ResolvedSiteSeo } from './seo'

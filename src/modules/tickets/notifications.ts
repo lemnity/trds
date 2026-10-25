@@ -8,7 +8,7 @@ import {
 } from '@/modules/email'
 import { THEATRE_TIME_ZONE } from '@/modules/shows/queries'
 
-import { seatLabel, type PerformanceLookup } from './performances'
+import { performanceInfoFor, seatLabel, type PerformanceLookup } from './performances'
 import { qrPng } from './qr'
 import type { TicketsService } from './service'
 import type { TicketsStore } from './store'
@@ -77,7 +77,7 @@ export function ticketNotificationHandlers({
     const live = notice.tickets.filter((t) => ticketState(t) === 'valid')
     if (!live.length) return
     const lines = live.map((t) => {
-      const info = lookup(t.performanceId)
+      const info = performanceInfoFor(t.performanceId, t.snapshot, lookup)
       return {
         number: t.number,
         showTitle: info?.showTitle ?? null,

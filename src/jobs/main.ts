@@ -9,8 +9,10 @@ import { pgWalletStore } from '../modules/wallet/pgStore'
 import { createWalletService } from '../modules/wallet/service'
 import { accountsCleanupJob } from './tasks/accounts-cleanup'
 import { emailOutboxJobs } from './tasks/outbox-email'
+import { leadOutboxJobs } from './tasks/outbox-leads'
 import { outboxMonitorJob } from './tasks/outbox-monitor'
 import { paymentsReconcileJob, workerPurchase } from './tasks/payments-reconcile'
+import { refundsReconcileJob, workerRefunds } from './tasks/refunds-reconcile'
 import { walletExpireJob } from './tasks/wallet-expire'
 import { runWorker, type Job } from './worker'
 
@@ -48,8 +50,12 @@ const jobs: Job[] = [
     purchase: workerPurchase({ db, wallet, secret: env.PAYLOAD_SECRET, log }),
     log,
   }),
+  // Возвраты: повтор с тем же ключом банка, статус «в обработке», компенсация бонусов (T-052/T-064).
+  refundsReconcileJob({ refunds: workerRefunds({ db, wallet, log }), log }),
   // Письма из outbox (T-047): только при настроенной почте (EMAIL_PROVIDER=smtp).
   ...emailOutboxJobs({ db, log }),
+  // Письма театру о новых заявках на корпоратив (outbox lead.created, T-034/T-065).
+  ...leadOutboxJobs({ db, log }),
 ]
 
 const DEFAULT_TICK_MS = 5 * 60 * 1000

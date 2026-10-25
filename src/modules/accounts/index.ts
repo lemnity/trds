@@ -12,10 +12,33 @@ export {
   OTP_RULES,
   PASSWORD_MAX,
   type Customer,
+  type ExternalProfile,
+  type IdentityProvider,
+  type LinkResult,
   type PasswordChangeResult,
   type RequestResult,
   type VerifyResult,
 } from './service'
+export {
+  OAUTH_COOKIE,
+  OAUTH_COOKIE_PATH,
+  OAUTH_TTL_SEC,
+  SIGNUP_COOKIE,
+  SIGNUP_TTL_SEC,
+  YANDEX,
+  checkCallback,
+  fetchYandexProfile,
+  safeNext,
+  seal,
+  startOAuth,
+  unseal,
+  yandexConfig,
+  type CallbackError,
+  type OAuthMode,
+  type OAuthState,
+  type PendingSignup,
+  type YandexConfig,
+} from './yandex'
 export { EmailNotConfiguredError } from '@/modules/email'
 
 /** Имя cookie сессии кабинета (HttpOnly). */

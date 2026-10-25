@@ -211,6 +211,36 @@ async function settle(
   }
 }
 
+/**
+ * Вернуть проданное в продажу после подтверждённого возврата (T-052/T-053): sold −q, места
+ * sold(этого заказа) → free. Блокировки — в том же порядке, что у брони и оплаты. Вызывать ли —
+ * решает политика возвратов (`returnToSale`, решение театра); без неё остаток остаётся проданным.
+ */
+export async function returnSold(
+  tx: CommerceTx,
+  lines: readonly InventoryLine[],
+  orderId: string,
+  at: Date,
+) {
+  const plan = planLines(lines)
+  if (plan.categories.length) await tx.lockInventory(plan.categories.map((c) => c.key))
+  for (const { key, quantity } of plan.categories)
+    if (!(await tx.adjustInventory(key, { held: 0, sold: -quantity }, at)))
+      throw new InventoryInvariantError('cannot return sold quantity')
+  for (const group of plan.seats) {
+    const ids = group.seats.map((s) => s.seatId)
+    await tx.lockSeats(group.performanceId, ids)
+    const changed = await tx.updateSeats(
+      group.performanceId,
+      ids,
+      { status: 'sold', orderId },
+      { status: 'free', holdId: null, orderId: null },
+      at,
+    )
+    if (changed !== ids.length) throw new InventoryInvariantError('cannot return sold seats')
+  }
+}
+
 /** Что продаётся на показе — источник: CMS (пока демо-данные `@/modules/shows`). */
 export type CapacitySpec = {
   performanceId: string

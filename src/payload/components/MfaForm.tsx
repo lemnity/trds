@@ -3,6 +3,8 @@
 import { Button } from '@payloadcms/ui'
 import { useState, type FormEvent } from 'react'
 
+import { MfaQr } from './MfaQr'
+
 type Status = {
   required: boolean
   verified: boolean
@@ -173,8 +175,10 @@ export function MfaForm({
           </Button>
         ) : (
           <form onSubmit={confirm}>
+            <p>1. Отсканируйте QR-код в приложении-аутентификаторе:</p>
+            <MfaQr value={setup.otpauthUrl} />
             <p>
-              1. В приложении добавьте аккаунт вручную и введите ключ:
+              Не сканируется — добавьте аккаунт вручную и введите ключ:
               <br />
               <code style={{ fontSize: '1.1rem', userSelect: 'all' }}>{groups(setup.secret)}</code>
             </p>

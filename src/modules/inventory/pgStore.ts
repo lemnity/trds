@@ -1,4 +1,15 @@
-import { and, asc, eq, gte, inArray, lte, sql } from '@payloadcms/db-postgres/drizzle'
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  lte,
+  sql,
+} from '@payloadcms/db-postgres/drizzle'
 import type { NodePgDatabase } from '@payloadcms/db-postgres/drizzle/node-postgres'
 
 import {
@@ -9,7 +20,10 @@ import {
   commerceOrders,
   commerceOutbox,
   commercePaymentEvents,
+  commerceRefunds,
+  commerceRefundTickets,
   commerceSeats,
+  commerceSettings,
   commerceTickets,
 } from '@/db/schema/commerce'
 
@@ -22,7 +36,10 @@ import type {
   InventoryRow,
   OrderItemRow,
   OrderRow,
+  RefundRow,
+  RefundTicketRow,
   SeatRow,
+  SettingRow,
   TicketRow,
 } from './store'
 
@@ -253,6 +270,100 @@ function pgTx(db: Db): CommerceTx {
         .returning({ id: commercePaymentEvents.id })
       return rows.length === 1
     },
+    async lockTickets(orderId) {
+      const rows = await db
+        .select()
+        .from(commerceTickets)
+        .where(eq(commerceTickets.orderId, orderId))
+        .orderBy(asc(commerceTickets.id))
+        .for('no key update')
+      return rows as TicketRow[]
+    },
+    async updateTickets(ids, from, set) {
+      if (!ids.length) return 0
+      const rows = await db
+        .update(commerceTickets)
+        .set(set)
+        .where(and(inArray(commerceTickets.id, ids), eq(commerceTickets.status, from)))
+        .returning({ id: commerceTickets.id })
+      return rows.length
+    },
+    async insertRefund(row) {
+      const rows = await db
+        .insert(commerceRefunds)
+        .values(row)
+        .onConflictDoNothing({ target: commerceRefunds.idempotencyKey })
+        .returning({ id: commerceRefunds.id })
+      return rows.length === 1
+    },
+    async findRefundByKey(key) {
+      const [row] = await db
+        .select()
+        .from(commerceRefunds)
+        .where(eq(commerceRefunds.idempotencyKey, key))
+      return (row as RefundRow | undefined) ?? null
+    },
+    async lockRefund(id) {
+      const [row] = await db
+        .select()
+        .from(commerceRefunds)
+        .where(eq(commerceRefunds.id, id))
+        .for('no key update')
+      return (row as RefundRow | undefined) ?? null
+    },
+    async updateRefund(id, from, set, at) {
+      const rows = await db
+        .update(commerceRefunds)
+        .set({ ...set, updatedAt: at })
+        .where(and(eq(commerceRefunds.id, id), eq(commerceRefunds.status, from)))
+        .returning({ id: commerceRefunds.id })
+      return rows.length === 1
+    },
+    async insertRefundTickets(rows) {
+      if (!rows.length) return true
+      // Живой возврат билета уже есть — конфликт частичного уникального индекса, без ошибки.
+      const inserted = await db
+        .insert(commerceRefundTickets)
+        .values(rows)
+        .onConflictDoNothing()
+        .returning({ id: commerceRefundTickets.ticketId })
+      return inserted.length === rows.length
+    },
+    async listRefundTickets(refundId) {
+      const rows = await db
+        .select()
+        .from(commerceRefundTickets)
+        .where(eq(commerceRefundTickets.refundId, refundId))
+        .orderBy(asc(commerceRefundTickets.ticketId))
+      return rows as RefundTicketRow[]
+    },
+    async voidRefundTickets(refundId, at) {
+      await db
+        .update(commerceRefundTickets)
+        .set({ voidedAt: at })
+        .where(
+          and(eq(commerceRefundTickets.refundId, refundId), isNull(commerceRefundTickets.voidedAt)),
+        )
+    },
+    async liveRefundOfTicket(ticketId) {
+      const [row] = await db
+        .select({ refund: commerceRefunds })
+        .from(commerceRefundTickets)
+        .innerJoin(commerceRefunds, eq(commerceRefunds.id, commerceRefundTickets.refundId))
+        .where(
+          and(eq(commerceRefundTickets.ticketId, ticketId), isNull(commerceRefundTickets.voidedAt)),
+        )
+      return (row?.refund as RefundRow | undefined) ?? null
+    },
+    async upsertSetting(row) {
+      await db
+        .insert(commerceSettings)
+        .values(row)
+        .onConflictDoUpdate({
+          target: commerceSettings.key,
+          set: { value: row.value, updatedBy: row.updatedBy, updatedAt: row.updatedAt },
+        })
+    },
   }
 }
 
@@ -323,6 +434,74 @@ export function pgCommerceStore(db: Db): CommerceStore {
         .where(eq(commerceTickets.orderId, orderId))
         .orderBy(asc(commerceTickets.number))
       return rows as TicketRow[]
+    },
+    async orderByNumber(number) {
+      const [row] = await db.select().from(commerceOrders).where(eq(commerceOrders.number, number))
+      return (row as OrderRow | undefined) ?? null
+    },
+    async ticketByNumber(number) {
+      const [row] = await db
+        .select()
+        .from(commerceTickets)
+        .where(eq(commerceTickets.number, number))
+      return (row as TicketRow | undefined) ?? null
+    },
+    async refund(id) {
+      const [row] = await db.select().from(commerceRefunds).where(eq(commerceRefunds.id, id))
+      return (row as RefundRow | undefined) ?? null
+    },
+    async refundsOfOrder(orderId) {
+      const rows = await db
+        .select()
+        .from(commerceRefunds)
+        .where(eq(commerceRefunds.orderId, orderId))
+        .orderBy(asc(commerceRefunds.createdAt), asc(commerceRefunds.id))
+      return rows as RefundRow[]
+    },
+    async refundTickets(refundId) {
+      const rows = await db
+        .select()
+        .from(commerceRefundTickets)
+        .where(eq(commerceRefundTickets.refundId, refundId))
+        .orderBy(asc(commerceRefundTickets.ticketId))
+      return rows as RefundTicketRow[]
+    },
+    async refundsDue(statuses, now, limit) {
+      if (!statuses.length) return []
+      const rows = await db
+        .select()
+        .from(commerceRefunds)
+        .where(
+          and(
+            inArray(commerceRefunds.status, statuses),
+            isNotNull(commerceRefunds.nextAttemptAt),
+            lte(commerceRefunds.nextAttemptAt, now),
+          ),
+        )
+        .orderBy(asc(commerceRefunds.nextAttemptAt), asc(commerceRefunds.id))
+        .limit(limit)
+      return rows as RefundRow[]
+    },
+    async refundsUnsettled(limit) {
+      const rows = await db
+        .select()
+        .from(commerceRefunds)
+        .where(and(eq(commerceRefunds.status, 'SUCCEEDED'), isNull(commerceRefunds.bonusSettledAt)))
+        .orderBy(asc(commerceRefunds.updatedAt), asc(commerceRefunds.id))
+        .limit(limit)
+      return rows as RefundRow[]
+    },
+    async recentRefunds(limit) {
+      const rows = await db
+        .select()
+        .from(commerceRefunds)
+        .orderBy(desc(commerceRefunds.createdAt), desc(commerceRefunds.id))
+        .limit(limit)
+      return rows as RefundRow[]
+    },
+    async setting(key) {
+      const [row] = await db.select().from(commerceSettings).where(eq(commerceSettings.key, key))
+      return (row as SettingRow | undefined) ?? null
     },
   }
 }

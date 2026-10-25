@@ -11,23 +11,39 @@ import { SiteFooter } from '@/components/site/SiteFooter'
 import { SiteHeader } from '@/components/site/SiteHeader'
 
 import { SITE_URL } from '@/lib/site'
+import { resolveSiteSeo } from '@/modules/site-data'
 
 import { onest } from './fonts'
 import { Providers } from './providers'
+import { getSiteContent } from './site-data'
 import './globals.css'
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  openGraph: {
-    siteName: 'Модный театр TURDUS',
-    locale: 'ru_RU',
-    type: 'website',
-  },
-  title: { default: 'Модный театр TURDUS — Екатеринбург', template: '%s — TURDUS' },
-  description:
-    'Иммерсивные спектакли модного театра TURDUS в Екатеринбурге: в барах, ресторанах, квартире и на улицах города.',
-  // Превью на GitHub Pages не должно индексироваться вместо сайта театра.
-  ...(process.env.PAGES_EXPORT === '1' && { robots: { index: false, follow: false } }),
+/**
+ * SEO по умолчанию (T-022): заголовок, описание и картинка для ссылок — из «Настроек сайта» в CMS,
+ * незаполненное — из демо-значений (`@/modules/site-data`). Страницы переопределяют своё.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  // Сбой CMS не должен ронять метаданные всех страниц: тогда — значения по умолчанию.
+  const seo = resolveSiteSeo(
+    await getSiteContent().then(
+      (c) => c.seo,
+      () => null,
+    ),
+  )
+  return {
+    metadataBase: new URL(SITE_URL),
+    openGraph: {
+      siteName: 'Модный театр TURDUS',
+      locale: 'ru_RU',
+      type: 'website',
+      // Файла opengraph-image в сегменте нет намеренно: он перекрыл бы картинку из CMS.
+      images: [{ url: seo.imageUrl }],
+    },
+    title: { default: seo.title, template: '%s — TURDUS' },
+    description: seo.description,
+    // Превью на GitHub Pages не должно индексироваться вместо сайта театра.
+    ...(process.env.PAGES_EXPORT === '1' && { robots: { index: false, follow: false } }),
+  }
 }
 
 export default function FrontendLayout({ children }: { children: ReactNode }) {

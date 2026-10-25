@@ -44,7 +44,7 @@ describe('lead requests', () => {
       phone: null,
       eventDate: '2026-12-25',
       guests: 40,
-      notifyPending: true,
+      assignee: null,
       duplicateOf: null,
     })
     expect(LEAD_STATUS_LABELS[rows[0]!.status]).toBe('Новая')

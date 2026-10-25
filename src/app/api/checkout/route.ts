@@ -3,7 +3,7 @@ import { z } from 'zod'
 
 import { apiError, withCorrelation } from '@/lib/correlation'
 import { errorInfo } from '@/lib/log'
-import { createRateLimiter } from '@/lib/rate-limit'
+import { sharedRateLimiter } from '@/lib/rate-limit'
 import { MAX_TICKETS_PER_ORDER, parseContact } from '@/modules/checkout'
 import { PaymentConfigError, getPurchase, type CheckoutError } from '@/modules/orders'
 import { findPerformance } from '@/modules/shows'
@@ -15,7 +15,7 @@ import { noStore, readBody, sessionCustomerId, siteOrigin } from './http'
 export const dynamic = 'force-dynamic'
 
 // Оформление — несколько попыток на покупку; потолок с одного адреса не даёт занять зал бронями.
-const byIp = createRateLimiter({ limit: 20, windowMs: 10 * 60_000 })
+const byIp = sharedRateLimiter({ name: 'checkout.create.ip', limit: 20, windowMs: 10 * 60_000 })
 const MAX_BODY_BYTES = 8 * 1024
 
 const ID = /^[a-z0-9-]{1,100}$/
@@ -71,7 +71,7 @@ export const POST = withCorrelation('checkout.create', async (req: NextRequest, 
   const fail = (status: number, code: string, message: string, headers?: Record<string, string>) =>
     apiError(status, code, message, ctx.correlationId, headers)
   if (!sameOrigin(req)) return fail(403, 'forbidden', 'Запрос не с сайта театра.')
-  if (!byIp.hit(clientIp(req)))
+  if (!(await byIp.hit(clientIp(req))))
     return fail(429, 'too_many', 'Слишком много попыток. Подождите несколько минут.', {
       'Retry-After': '600',
     })

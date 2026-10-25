@@ -141,8 +141,8 @@ describe.skipIf(!url)('tickets, account and email outbox on PostgreSQL', () => {
       sql`update commerce_tickets set status = 'REFUNDED', refunded_at = now() where id = ${tickets[0]!.id}`,
     )
     await db.execute(sql`insert into commerce_refunds
-      (id, order_id, status, cash_kopecks, bonus_kopecks, fee_kopecks, idempotency_key, reason, requested_by, created_at, updated_at)
-      values (${refundId}, ${order.id}, 'SUCCEEDED', 150000, 0, 0, ${`r-${refundId}`}, 'customer', 'customer', now(), now())`)
+      (id, order_id, status, cash_kopecks, bonus_kopecks, fee_kopecks, idempotency_key, reason, requested_by, completed_at, created_at, updated_at)
+      values (${refundId}, ${order.id}, 'SUCCEEDED', 150000, 0, 0, ${`r-${refundId}`}, 'customer', 'customer', now(), now(), now())`)
     await db.execute(sql`insert into commerce_refund_tickets (refund_id, ticket_id, cash_kopecks, bonus_kopecks, fee_kopecks)
       values (${refundId}, ${tickets[0]!.id}, 150000, 0, 0)`)
 

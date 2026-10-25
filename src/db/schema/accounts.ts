@@ -4,6 +4,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from '@payloadcms/db-postgres/drizzle/pg-core'
 
@@ -66,9 +67,32 @@ export const consents = pgTable('accounts_consents', {
   givenAt: timestamp('given_at', { withTimezone: true }).notNull(),
 })
 
+/**
+ * Внешние способы входа (T-056): какой аккаунт провайдера привязан к покупателю. `subject` —
+ * постоянный идентификатор пользователя у провайдера (`id` из login.yandex.ru/info); почта и имя
+ * не дублируются. Один аккаунт провайдера — один покупатель, у покупателя — один на провайдера.
+ */
+export const identities = pgTable(
+  'accounts_identities',
+  {
+    id: uuid('id').primaryKey(),
+    customerId: uuid('customer_id')
+      .notNull()
+      .references(() => customers.id, { onDelete: 'cascade' }),
+    provider: text('provider', { enum: ['yandex'] }).notNull(),
+    subject: text('subject').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    uniqueIndex('accounts_identities_provider_subject_uq').on(t.provider, t.subject),
+    uniqueIndex('accounts_identities_customer_provider_uq').on(t.customerId, t.provider),
+  ],
+)
+
 export const accountsTables = {
   accounts_customers: customers,
   accounts_auth_codes: authCodes,
   accounts_sessions: sessions,
   accounts_consents: consents,
+  accounts_identities: identities,
 }

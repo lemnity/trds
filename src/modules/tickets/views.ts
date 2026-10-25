@@ -1,6 +1,11 @@
 import type { OrderStatus } from '@/modules/checkout'
 
-import { performanceEnd, seatLabel, type PerformanceLookup } from './performances'
+import {
+  performanceEnd,
+  performanceInfoFor,
+  seatLabel,
+  type PerformanceLookup,
+} from './performances'
 import type { OrderRecord, TicketRecord } from './store'
 
 /**
@@ -73,7 +78,7 @@ export const qrPath = (number: string, format: 'svg' | 'png' = 'svg') =>
   `/api/tickets/${encodeURIComponent(number)}/qr?format=${format}`
 
 export const toTicketView = (t: TicketRecord, lookup: PerformanceLookup, now: Date): TicketView => {
-  const info = lookup(t.performanceId)
+  const info = performanceInfoFor(t.performanceId, t.snapshot, lookup)
   const state = ticketState(t)
   const endsAt = info ? performanceEnd(info) : null
   const past = endsAt !== null && endsAt.getTime() <= now.getTime()
@@ -132,7 +137,7 @@ export const toOrderView = (
   feeKopecks: o.feeKopecks,
   cashKopecks: o.cashKopecks,
   items: o.items.map((i) => {
-    const info = lookup(i.performanceId)
+    const info = performanceInfoFor(i.performanceId, i.snapshot, lookup)
     return {
       title: i.title,
       showTitle: info?.showTitle ?? null,

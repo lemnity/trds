@@ -59,14 +59,21 @@ describe('wallet.expire job', () => {
 })
 
 describe('accounts.cleanup job', () => {
-  it('deletes long-expired codes and ended sessions in batches with SKIP LOCKED', async () => {
-    const { db, queries } = fakeDb([{ rowCount: CLEANUP_BATCH }, { rowCount: 7 }, { rowCount: 2 }])
+  it('deletes long-expired codes, ended sessions and old rate-limit windows with SKIP LOCKED', async () => {
+    const { db, queries } = fakeDb([
+      { rowCount: CLEANUP_BATCH },
+      { rowCount: 7 },
+      { rowCount: 2 },
+      { rowCount: 4 },
+    ])
     const { log, records } = capture()
     await accountsCleanupJob({ db: async () => db, log, now: () => NOW }).run()
 
-    expect(queries).toHaveLength(3)
+    expect(queries).toHaveLength(4)
     expect(queries[0]!.sql).toContain('delete from "accounts_auth_codes"')
     expect(queries[2]!.sql).toContain('delete from "accounts_sessions"')
+    expect(queries[3]!.sql).toContain('delete from "ops_rate_limits"')
+    expect(queries[3]!.params).toContain(NOW.toISOString())
     for (const q of queries) expect(q.sql).toContain('for update skip locked')
     const codesCutoff = new Date(NOW.getTime() - ACCOUNTS_RETENTION.authCodesAfterExpiryMs)
     expect(queries[0]!.params).toContain(codesCutoff.toISOString())
@@ -75,6 +82,7 @@ describe('accounts.cleanup job', () => {
         event: 'accounts.cleaned',
         codesDeleted: CLEANUP_BATCH + 7,
         sessionsDeleted: 2,
+        rateLimitWindowsDeleted: 4,
       }),
     ])
   })

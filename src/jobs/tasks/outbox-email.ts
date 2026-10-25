@@ -7,9 +7,8 @@ import {
   type OutboxProcessor,
 } from '@/modules/email'
 import { pgOutboxQueue } from '@/modules/email/pgOutbox'
-import { getShowsData } from '@/modules/shows/source'
 import { ticketNotificationHandlers } from '@/modules/tickets/notifications'
-import { performanceLookupFrom } from '@/modules/tickets/performances'
+import { noPerformanceLookup } from '@/modules/tickets/performances'
 import { pgTicketsStore } from '@/modules/tickets/pgStore'
 import { createTicketsService } from '@/modules/tickets/service'
 import { ticketSecretFrom } from '@/modules/tickets/token'
@@ -64,7 +63,9 @@ export function emailOutboxJobs({
   }
   if (!env.PAYLOAD_SECRET) throw new Error('PAYLOAD_SECRET is not set')
   const store = pgTicketsStore(db as Parameters<typeof pgTicketsStore>[0])
-  const performances = async () => performanceLookupFrom(await getShowsData())
+  // У worker нет Payload: спектакль, время и площадка — из снимка позиции заказа (на момент
+  // покупки), а не из демо-данных. Позиции до снимков уходят без этих строк (письмо честнее).
+  const performances = () => noPerformanceLookup
   const tickets = createTicketsService({
     store,
     secret: ticketSecretFrom(env.PAYLOAD_SECRET),

@@ -205,6 +205,7 @@ const record = (over: Partial<TicketRecord> = {}): TicketRecord => ({
   ticketTypeId: 'std',
   seatId: null,
   categoryTitle: 'Входной',
+  snapshot: null,
   status: 'ISSUED',
   tokenVersion: 1,
   priceKopecks: 150_000,

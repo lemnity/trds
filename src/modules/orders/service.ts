@@ -45,6 +45,18 @@ export type PlaceOrderLine = {
   title: string
   unitPriceKopecks: number
   quantity: number
+  /**
+   * Снимок показа для билета, письма и worker (без него они зависят от источника афиши).
+   * Не входит в отпечаток запроса: правка названия в CMS не делает повтор оформления конфликтом.
+   */
+  snapshot?: OrderLineSnapshot | null
+}
+
+export type OrderLineSnapshot = {
+  showTitle: string
+  showSlug: string
+  startsAt: Date
+  venue: { title: string; address: string } | null
 }
 
 export type PlaceOrderInput = {
@@ -292,6 +304,8 @@ export function createOrderService({ store, ticketSecret, randomInt, retry }: De
         throw new RangeError('quantity must be a positive integer')
       if (l.seatId !== null && l.quantity !== 1)
         throw new RangeError('seat line must have quantity 1')
+      if (l.snapshot && Number.isNaN(l.snapshot.startsAt.getTime()))
+        throw new RangeError('snapshot startsAt must be a valid date')
     }
     const ticketCount = lines.reduce((sum, l) => sum + l.quantity, 0)
     if (ticketCount > MAX_TICKETS_PER_ORDER) throw new RangeError('too many tickets')
@@ -356,6 +370,11 @@ export function createOrderService({ store, ticketSecret, randomInt, retry }: De
           ticketTypeId: l.ticketTypeId,
           seatId: l.seatId,
           titleSnapshot: l.title,
+          showTitleSnapshot: l.snapshot?.showTitle ?? null,
+          showSlugSnapshot: l.snapshot?.showSlug ?? null,
+          startsAtSnapshot: l.snapshot?.startsAt ?? null,
+          venueTitleSnapshot: l.snapshot?.venue?.title ?? null,
+          venueAddressSnapshot: l.snapshot?.venue?.address ?? null,
           unitPriceKopecks: l.unitPriceKopecks,
           quantity: l.quantity,
           lineGrossKopecks: grosses[i]!,

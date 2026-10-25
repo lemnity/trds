@@ -9,7 +9,10 @@ import type {
   OrderRow,
   OutboxRow,
   PaymentEventRow,
+  RefundRow,
+  RefundTicketRow,
   SeatRow,
+  SettingRow,
   TicketRow,
 } from './store'
 
@@ -37,6 +40,9 @@ export function memoryCommerceStore(
   const outbox: OutboxRow[] = []
   const audit: AuditRow[] = []
   const paymentEvents: PaymentEventRow[] = []
+  const refunds: RefundRow[] = []
+  const refundTickets: RefundTicketRow[] = []
+  const settings = new Map<string, SettingRow>()
   let retryableFailures = 0
 
   const locks = new Map<string, Promise<void>>()
@@ -328,6 +334,96 @@ export function memoryCommerceStore(
           pushRow(paymentEvents, copy(row))
           return true
         },
+        async lockTickets(orderId) {
+          const ids = tickets
+            .filter((t) => t.orderId === orderId)
+            .map((t) => t.id)
+            .sort(cmp)
+          const rows: TicketRow[] = []
+          for (const id of ids) {
+            await lock(`ticket:${id}`)
+            const row = tickets.find((t) => t.id === id)
+            if (row) rows.push(copy(row))
+          }
+          return rows
+        },
+        async updateTickets(ids, from, set) {
+          await pause()
+          let changed = 0
+          for (const id of ids) {
+            const row = tickets.find((t) => t.id === id)
+            if (!row || (!faults.noGuards && row.status !== from)) continue
+            if (!faults.noChecks && (set.status === 'REFUNDED') !== (set.refundedAt !== null))
+              throw new Error('check constraint commerce_tickets_refunded_shape violated')
+            mutate(row, set)
+            changed++
+          }
+          return changed
+        },
+        async insertRefund(row) {
+          const key = `refund-key:${row.idempotencyKey}`
+          await awaitUnique(key)
+          if (refunds.some((r) => r.idempotencyKey === row.idempotencyKey)) return false
+          claimUnique(key)
+          pushRow(refunds, copy(row))
+          return true
+        },
+        async findRefundByKey(key) {
+          await pause()
+          const row = refunds.find((r) => r.idempotencyKey === key)
+          return row ? copy(row) : null
+        },
+        async lockRefund(id) {
+          await lock(`refund:${id}`)
+          const row = refunds.find((r) => r.id === id)
+          return row ? copy(row) : null
+        },
+        async updateRefund(id, from, set, at) {
+          await pause()
+          const row = refunds.find((r) => r.id === id)
+          if (!row || (!faults.noGuards && row.status !== from)) return false
+          mutate(row, { ...set, updatedAt: at })
+          return true
+        },
+        async insertRefundTickets(rows) {
+          for (const row of rows) {
+            // Частичный уникальный индекс живых долей: ждём чужую незавершённую вставку билета.
+            const key = `refund-ticket:${row.ticketId}`
+            await awaitUnique(key)
+            if (
+              !faults.noGuards &&
+              refundTickets.some((r) => r.ticketId === row.ticketId && r.voidedAt === null)
+            )
+              return false
+            claimUnique(key)
+            pushRow(refundTickets, copy(row))
+          }
+          return true
+        },
+        async listRefundTickets(refundId) {
+          await pause()
+          return refundTickets
+            .filter((r) => r.refundId === refundId)
+            .sort((a, b) => cmp(a.ticketId, b.ticketId))
+            .map(copy)
+        },
+        async voidRefundTickets(refundId, at) {
+          await pause()
+          for (const row of refundTickets)
+            if (row.refundId === refundId && row.voidedAt === null) mutate(row, { voidedAt: at })
+        },
+        async liveRefundOfTicket(ticketId) {
+          await pause()
+          const share = refundTickets.find((r) => r.ticketId === ticketId && r.voidedAt === null)
+          const row = share && refunds.find((r) => r.id === share.refundId)
+          return row ? copy(row) : null
+        },
+        async upsertSetting(row) {
+          await pause()
+          const before = settings.get(row.key)
+          settings.set(row.key, copy(row))
+          undo.push(() => (before ? settings.set(row.key, before) : settings.delete(row.key)))
+        },
       }
 
       try {
@@ -372,6 +468,54 @@ export function memoryCommerceStore(
     async tickets(orderId) {
       return tickets.filter((t) => t.orderId === orderId).map(copy)
     },
+    async orderByNumber(number) {
+      const row = orders.find((o) => o.number === number)
+      return row ? copy(row) : null
+    },
+    async ticketByNumber(number) {
+      const row = tickets.find((t) => t.number === number)
+      return row ? copy(row) : null
+    },
+    async refund(id) {
+      const row = refunds.find((r) => r.id === id)
+      return row ? copy(row) : null
+    },
+    async refundsOfOrder(orderId) {
+      return refunds
+        .filter((r) => r.orderId === orderId)
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime() || cmp(a.id, b.id))
+        .map(copy)
+    },
+    async refundTickets(refundId) {
+      return refundTickets
+        .filter((r) => r.refundId === refundId)
+        .sort((a, b) => cmp(a.ticketId, b.ticketId))
+        .map(copy)
+    },
+    async refundsDue(statuses, now, limit) {
+      return refunds
+        .filter((r) => statuses.includes(r.status) && r.nextAttemptAt && r.nextAttemptAt <= now)
+        .sort((a, b) => a.nextAttemptAt!.getTime() - b.nextAttemptAt!.getTime() || cmp(a.id, b.id))
+        .slice(0, limit)
+        .map(copy)
+    },
+    async refundsUnsettled(limit) {
+      return refunds
+        .filter((r) => r.status === 'SUCCEEDED' && r.bonusSettledAt === null)
+        .sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime() || cmp(a.id, b.id))
+        .slice(0, limit)
+        .map(copy)
+    },
+    async recentRefunds(limit) {
+      return [...refunds]
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime() || cmp(b.id, a.id))
+        .slice(0, limit)
+        .map(copy)
+    },
+    async setting(key) {
+      const row = settings.get(key)
+      return row ? copy(row) : null
+    },
   }
 
   return Object.assign(store, {
@@ -389,6 +533,8 @@ export function memoryCommerceStore(
       outbox: outbox.map(copy),
       audit: audit.map(copy),
       paymentEvents: paymentEvents.map(copy),
+      refunds: refunds.map(copy),
+      refundTickets: refundTickets.map(copy),
     }),
   })
 }

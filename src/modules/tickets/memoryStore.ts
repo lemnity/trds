@@ -1,5 +1,6 @@
 import type { MemoryCommerceStore } from '@/modules/inventory/memoryStore'
 
+import { snapshotFromColumns } from './performances'
 import {
   VISIBLE_ORDER_STATUSES,
   type OrderRecord,
@@ -10,8 +11,7 @@ import {
 type Dump = ReturnType<MemoryCommerceStore['dump']>
 
 /**
- * Те же запросы поверх хранилища в памяти (dev с ACCOUNTS_STORE=memory и тесты). Возвратов
- * в памяти нет — `refundForNotice` всегда null.
+ * Те же запросы поверх хранилища в памяти (dev с ACCOUNTS_STORE=memory и тесты).
  */
 export function memoryTicketsStore(source: Pick<MemoryCommerceStore, 'dump'>): TicketsStore {
   const ticketsOf = (d: Dump, match: (t: Dump['tickets'][number]) => boolean): TicketRecord[] =>
@@ -33,6 +33,7 @@ export function memoryTicketsStore(source: Pick<MemoryCommerceStore, 'dump'>): T
             ticketTypeId: t.ticketTypeId,
             seatId: t.seatId,
             categoryTitle: item.titleSnapshot,
+            snapshot: snapshotFromColumns(item),
             status: t.status,
             tokenVersion: t.tokenVersion,
             priceKopecks: t.priceKopecks,
@@ -66,6 +67,7 @@ export function memoryTicketsStore(source: Pick<MemoryCommerceStore, 'dump'>): T
         ticketTypeId: i.ticketTypeId,
         seatId: i.seatId,
         title: i.titleSnapshot,
+        snapshot: snapshotFromColumns(i),
         unitPriceKopecks: i.unitPriceKopecks,
         quantity: i.quantity,
         lineGrossKopecks: i.lineGrossKopecks,
@@ -104,8 +106,23 @@ export function memoryTicketsStore(source: Pick<MemoryCommerceStore, 'dump'>): T
         tickets: ticketsOf(d, (t) => t.orderId === orderId),
       }
     },
-    async refundForNotice() {
-      return null
+    async refundForNotice(refundId) {
+      const d = source.dump()
+      const refund = d.refunds.find((r) => r.id === refundId)
+      const order = refund && d.orders.find((o) => o.id === refund.orderId)
+      if (!refund || !order) return null
+      return {
+        id: refund.id,
+        status: refund.status,
+        cashKopecks: refund.cashKopecks,
+        bonusKopecks: refund.bonusKopecks,
+        feeKopecks: refund.feeKopecks,
+        order: { id: order.id, number: order.number, email: order.email },
+        ticketNumbers: d.refundTickets
+          .filter((r) => r.refundId === refundId)
+          .flatMap((r) => d.tickets.filter((t) => t.id === r.ticketId).map((t) => t.number))
+          .sort(),
+      }
     },
   }
 }

@@ -1,5 +1,7 @@
 import type { NextRequest } from 'next/server'
 
+import { apiError, withCorrelation, type RequestContext } from '@/lib/correlation'
+import { errorInfo } from '@/lib/log'
 import { EmailNotConfiguredError, SESSION_COOKIE } from '@/modules/accounts'
 
 /** Изменяющие запросы с cookie-сессией — только со своего сайта (CSRF, rules.md). */
@@ -34,17 +36,50 @@ export const clearedSessionCookie = () =>
   `${SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`
 
 /**
- * Обёртка маршрутов входа: недоступная база или почта — понятный 503, а не 500 и не зависание.
- * В лог — только тип ошибки (без почты, кодов и токенов).
+ * Обёртка маршрутов входа и кабинета (T-015): correlation ID (`withCorrelation`), ошибки —
+ * `{code, message, correlationId}`; недоступная база или почта — понятный 503, а не 500 и не
+ * зависание. В лог — только тип ошибки (без почты, кодов и токенов).
  */
-export const guarded =
-  (handler: (req: NextRequest) => Promise<Response>) =>
-  async (req: NextRequest): Promise<Response> => {
+export const guarded = (
+  route: string,
+  handler: (req: NextRequest, ctx: RequestContext) => Promise<Response>,
+) =>
+  withCorrelation(route, async (req: NextRequest, ctx) => {
     try {
-      return await handler(req)
+      return await handler(req, ctx)
     } catch (error) {
-      if (error instanceof EmailNotConfiguredError) return json({ error: 'email_unavailable' }, 503)
-      console.error('[auth] unavailable:', error instanceof Error ? error.name : 'unknown')
-      return json({ error: 'unavailable' }, 503)
+      if (error instanceof EmailNotConfiguredError)
+        return apiError(
+          503,
+          'email_unavailable',
+          'Отправка писем пока не настроена.',
+          ctx.correlationId,
+        )
+      ctx.log.error('auth.unavailable', { error: errorInfo(error) })
+      return apiError(
+        503,
+        'unavailable',
+        'Сервис временно недоступен. Попробуйте позже.',
+        ctx.correlationId,
+      )
     }
-  }
+  })
+
+/** Короткие ответы-ошибки маршрутов кабинета (тексты — для поддержки, форма показывает свои). */
+export const fail = {
+  forbidden: (ctx: RequestContext) =>
+    apiError(403, 'forbidden', 'Запрос не с сайта театра.', ctx.correlationId),
+  tooMany: (ctx: RequestContext, retryAfter?: number) =>
+    apiError(
+      429,
+      'too_many',
+      'Слишком много попыток. Подождите несколько минут.',
+      ctx.correlationId,
+      retryAfter ? { 'Retry-After': String(retryAfter) } : {},
+      retryAfter ? { retryAfter } : {},
+    ),
+  invalid: (ctx: RequestContext, extra: Record<string, unknown> = {}) =>
+    apiError(400, 'invalid', 'Проверьте введённые данные.', ctx.correlationId, {}, extra),
+  unauthorized: (ctx: RequestContext, headers: Record<string, string> = {}) =>
+    apiError(401, 'unauthorized', 'Войдите в личный кабинет.', ctx.correlationId, headers),
+}

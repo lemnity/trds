@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server'
 
+import { withCorrelation } from '@/lib/correlation'
 import { log } from '@/lib/log'
 import { formatRub } from '@/lib/money'
 import { getDevBank, type FakeBank } from '@/modules/orders'
@@ -61,7 +62,7 @@ label{font-size:.875rem}select{font:inherit;padding:.25rem}
   )
 
 /** GET /api/payments/fake/bank?payment=<id> — страница оплаты учебного банка. */
-export async function GET(req: NextRequest) {
+export const GET = withCorrelation('payments.fake_bank', async (req: NextRequest) => {
   const bank = devBank()
   if (!bank) return notFound()
   const id = req.nextUrl.searchParams.get('payment') ?? ''
@@ -84,10 +85,10 @@ ${
 <button name="action" value="late">Оплатить позже</button>
 </form>`
 }`)
-}
+})
 
 /** POST — решение «покупателя»: исход платежа, уведомление и возврат на сайт. */
-export async function POST(req: NextRequest) {
+export const POST = withCorrelation('payments.fake_bank_decide', async (req: NextRequest) => {
   const bank = devBank()
   if (!bank) return notFound()
   const form = await req.formData().catch(() => null)
@@ -109,4 +110,4 @@ export async function POST(req: NextRequest) {
     if (action !== 'silent') await deliver(bank, id, origin)
   }
   return Response.redirect(payment.returnUrl, 303)
-}
+})

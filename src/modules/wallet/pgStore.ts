@@ -180,7 +180,45 @@ function pgTx(db: Db): WalletTx {
         .set({ rewardEntryId: entryId })
         .where(eq(walletReferrals.referredCustomerId, referredCustomerId))
     },
+    async lockCustomer(customerId) {
+      // Блокировка до конца транзакции; ключ — хеш метки и id покупателя (не пересекается с чужими).
+      await db.execute(
+        sql`SELECT pg_advisory_xact_lock(hashtextextended(${`wallet:${customerId}`}, 0))`,
+      )
+    },
+    openDebts: (customerId) => openDebts(db, customerId),
+    async entriesBySource(customerId, kind, sourceRef) {
+      const rows = await db
+        .select()
+        .from(walletLedger)
+        .where(
+          and(
+            eq(walletLedger.customerId, customerId),
+            eq(walletLedger.kind, kind),
+            eq(walletLedger.sourceRef, sourceRef),
+          ),
+        )
+        .orderBy(asc(walletLedger.createdAt), asc(walletLedger.id))
+      return rows as LedgerEntry[]
+    },
   }
+}
+
+/** Сторно с непокрытым остатком (долг): −сумма − погашено долями, старые первыми. */
+async function openDebts(db: Db, customerId: string) {
+  const rows = await db
+    .select({
+      entryId: walletLedger.id,
+      // Имена таблиц явно: в подзапросе неквалифицированный "id" был бы id доли, а не строки.
+      outstandingKopecks:
+        sql<number>`(-"wallet_ledger"."amount_kopecks" - COALESCE((SELECT SUM(a."kopecks") FROM "wallet_spend_allocations" a WHERE a."spend_entry_id" = "wallet_ledger"."id"), 0))`.mapWith(
+          Number,
+        ),
+    })
+    .from(walletLedger)
+    .where(and(eq(walletLedger.customerId, customerId), eq(walletLedger.kind, 'reversal')))
+    .orderBy(asc(walletLedger.createdAt), asc(walletLedger.id))
+  return rows.filter((r) => r.outstandingKopecks > 0)
 }
 
 /** Хранилище кошелька в PostgreSQL (таблицы src/db/schema/wallet.ts). */
@@ -256,6 +294,9 @@ export function pgWalletStore(db: Db): WalletStore {
     },
     async qualifiedCount(referrerId) {
       return pgTx(db).countQualified(referrerId)
+    },
+    async debt(customerId) {
+      return (await openDebts(db, customerId)).reduce((n, d) => n + d.outstandingKopecks, 0)
     },
   }
 }

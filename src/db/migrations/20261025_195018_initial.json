@@ -277,6 +277,102 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.accounts_identities": {
+      "name": "accounts_identities",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "customer_id": {
+          "name": "customer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider": {
+          "name": "provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subject": {
+          "name": "subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "accounts_identities_provider_subject_uq": {
+          "name": "accounts_identities_provider_subject_uq",
+          "columns": [
+            {
+              "expression": "provider",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "subject",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "accounts_identities_customer_provider_uq": {
+          "name": "accounts_identities_customer_provider_uq",
+          "columns": [
+            {
+              "expression": "customer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "provider",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "accounts_identities_customer_id_accounts_customers_id_fk": {
+          "name": "accounts_identities_customer_id_accounts_customers_id_fk",
+          "tableFrom": "accounts_identities",
+          "tableTo": "accounts_customers",
+          "columnsFrom": ["customer_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.wallet_ledger": {
       "name": "wallet_ledger",
       "schema": "",
@@ -896,12 +992,11 @@
           "primaryKey": false,
           "notNull": false
         },
-        "notify_pending": {
-          "name": "notify_pending",
-          "type": "boolean",
+        "assignee": {
+          "name": "assignee",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": true
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -967,22 +1062,6 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "leads_requests_notify_idx": {
-          "name": "leads_requests_notify_idx",
-          "columns": [
-            {
-              "expression": "created_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "where": "\"leads_requests\".\"notify_pending\"",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
       "foreignKeys": {
@@ -1016,7 +1095,7 @@
         },
         "leads_requests_status": {
           "name": "leads_requests_status",
-          "value": "\"leads_requests\".\"status\" IN ('new', 'in_progress', 'done')"
+          "value": "\"leads_requests\".\"status\" IN ('new', 'in_progress', 'done', 'archived')"
         }
       },
       "isRLSEnabled": false
@@ -1779,6 +1858,36 @@
           "primaryKey": false,
           "notNull": true
         },
+        "show_title_snapshot": {
+          "name": "show_title_snapshot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "show_slug_snapshot": {
+          "name": "show_slug_snapshot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "starts_at_snapshot": {
+          "name": "starts_at_snapshot",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "venue_title_snapshot": {
+          "name": "venue_title_snapshot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "venue_address_snapshot": {
+          "name": "venue_address_snapshot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "unit_price_kopecks": {
           "name": "unit_price_kopecks",
           "type": "bigint",
@@ -2343,6 +2452,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'customer'"
+        },
         "cash_kopecks": {
           "name": "cash_kopecks",
           "type": "bigint",
@@ -2361,14 +2477,52 @@
           "primaryKey": false,
           "notNull": true
         },
+        "bonus_reversal_kopecks": {
+          "name": "bonus_reversal_kopecks",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "idempotency_key": {
           "name": "idempotency_key",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
+        "provider": {
+          "name": "provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "provider_refund_id": {
           "name": "provider_refund_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "provider_status": {
+          "name": "provider_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "attempts": {
+          "name": "attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "next_attempt_at": {
+          "name": "next_attempt_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_error": {
+          "name": "last_error",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -2384,6 +2538,24 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "correlation_id": {
+          "name": "correlation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bonus_settled_at": {
+          "name": "bonus_settled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -2434,6 +2606,44 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "commerce_refunds_next_attempt_idx": {
+          "name": "commerce_refunds_next_attempt_idx",
+          "columns": [
+            {
+              "expression": "next_attempt_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"commerce_refunds\".\"status\" IN ('REQUESTED', 'PENDING')",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "commerce_refunds_provider_refund_uq": {
+          "name": "commerce_refunds_provider_refund_uq",
+          "columns": [
+            {
+              "expression": "provider",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "provider_refund_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"commerce_refunds\".\"provider_refund_id\" IS NOT NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -2459,7 +2669,15 @@
       "checkConstraints": {
         "commerce_refunds_amounts": {
           "name": "commerce_refunds_amounts",
-          "value": "\"commerce_refunds\".\"cash_kopecks\" >= 0 AND \"commerce_refunds\".\"bonus_kopecks\" >= 0 AND \"commerce_refunds\".\"fee_kopecks\" >= 0"
+          "value": "\"commerce_refunds\".\"cash_kopecks\" >= 0 AND \"commerce_refunds\".\"bonus_kopecks\" >= 0 AND \"commerce_refunds\".\"fee_kopecks\" >= 0 AND \"commerce_refunds\".\"fee_kopecks\" <= \"commerce_refunds\".\"cash_kopecks\" AND \"commerce_refunds\".\"bonus_reversal_kopecks\" >= 0"
+        },
+        "commerce_refunds_attempts_nonneg": {
+          "name": "commerce_refunds_attempts_nonneg",
+          "value": "\"commerce_refunds\".\"attempts\" >= 0"
+        },
+        "commerce_refunds_completed_shape": {
+          "name": "commerce_refunds_completed_shape",
+          "value": "(\"commerce_refunds\".\"status\" IN ('SUCCEEDED', 'FAILED')) = (\"commerce_refunds\".\"completed_at\" IS NOT NULL)"
         }
       },
       "isRLSEnabled": false
@@ -2672,6 +2890,43 @@
       },
       "isRLSEnabled": false
     },
+    "public.commerce_settings": {
+      "name": "commerce_settings",
+      "schema": "",
+      "columns": {
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.commerce_audit_log": {
       "name": "commerce_audit_log",
       "schema": "",
@@ -2777,6 +3032,70 @@
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.ops_rate_limits": {
+      "name": "ops_rate_limits",
+      "schema": "",
+      "columns": {
+        "key_hash": {
+          "name": "key_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "window_start": {
+          "name": "window_start",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bucket": {
+          "name": "bucket",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hits": {
+          "name": "hits",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "ops_rate_limits_expires_idx": {
+          "name": "ops_rate_limits_expires_idx",
+          "columns": [
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "ops_rate_limits_key_hash_window_start_pk": {
+          "name": "ops_rate_limits_key_hash_window_start_pk",
+          "columns": ["key_hash", "window_start"]
+        }
+      },
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
@@ -12294,6 +12613,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "3d1f4a15-815f-4d72-951f-ce30ab13134d",
+  "id": "e4c48792-a8aa-46aa-9316-bef697d0de0c",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }

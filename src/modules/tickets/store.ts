@@ -1,6 +1,8 @@
 import type { OrderStatus } from '@/modules/checkout'
 import type { TicketStatus } from '@/modules/inventory/store'
 
+import type { ShowSnapshot } from './performances'
+
 /**
  * Чтение билетов и заказов для кабинета, QR и писем (T-046, T-047, T-051). Только чтение: статусы
  * меняет `@/modules/orders` (state-machine), здесь их лишь показывают. Хранилище — PostgreSQL
@@ -20,6 +22,8 @@ export type TicketRecord = {
   seatId: string | null
   /** Название категории — снимок на момент заказа (TICKETS-03). */
   categoryTitle: string
+  /** Снимок показа из позиции заказа; null — позиция до снимков (данные из афиши). */
+  snapshot: ShowSnapshot | null
   status: TicketStatus
   tokenVersion: number
   priceKopecks: number
@@ -36,6 +40,7 @@ export type OrderItemRecord = {
   ticketTypeId: string
   seatId: string | null
   title: string
+  snapshot: ShowSnapshot | null
   unitPriceKopecks: number
   quantity: number
   lineGrossKopecks: number

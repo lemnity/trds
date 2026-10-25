@@ -37,6 +37,13 @@ export type LedgerKind =
   | 'release'
   | 'expire'
   | 'manual'
+  /** Возврат билета: потраченные на него бонусы — лотом со сроком исходного лота. */
+  | 'refund'
+  /**
+   * Возврат билета: сторно начисленных за него бонусов (строка < 0). Сколько покрыто лотами —
+   * в `wallet_spend_allocations`; непокрытая часть — долг (PRD §5.6), её гасят будущие начисления.
+   */
+  | 'reversal'
 
 export type LedgerEntry = {
   id: string
@@ -138,6 +145,15 @@ export interface WalletTx {
   markQualified(referredCustomerId: string, at: Date): Promise<boolean>
   countQualified(referrerId: string): Promise<number>
   setReferralReward(referredCustomerId: string, entryId: string): Promise<void>
+  /**
+   * Сериализовать операции с долгом покупателя (сторно при возврате ↔ погашение начислением):
+   * advisory lock транзакции по покупателю — у покупателя без лотов строк для FOR UPDATE нет.
+   */
+  lockCustomer(customerId: string): Promise<void>
+  /** Сторно с непогашенным остатком (долг), старые первыми. */
+  openDebts(customerId: string): Promise<{ entryId: string; outstandingKopecks: number }[]>
+  /** Строки покупателя вида `kind` с источником `sourceRef` (например, все возвраты бонусов заказа). */
+  entriesBySource(customerId: string, kind: LedgerKind, sourceRef: string): Promise<LedgerEntry[]>
 }
 
 export interface WalletStore {
@@ -154,6 +170,22 @@ export interface WalletStore {
   /** false — покупатель уже к кому-то привязан. */
   attachReferral(row: ReferralRow): Promise<boolean>
   qualifiedCount(referrerId: string): Promise<number>
+  /** Непогашенный долг покупателя (сумма непокрытых сторно). */
+  debt(customerId: string): Promise<number>
+}
+
+/** Итог компенсации бонусов по возврату (T-064). */
+export type RefundCompensation = {
+  /** Возвращено потраченных бонусов (новыми лотами). */
+  returnedKopecks: number
+  /** Сторно начисления по билетам возврата. */
+  reversedKopecks: number
+  /** Сколько сторно покрыто балансом; остальное — долг. */
+  coveredKopecks: number
+  debtKopecks: number
+  /** Начисление за заказ ещё не сделано — сторно не из чего (повторить позже, если начислят). */
+  accrualMissing: boolean
+  duplicate: boolean
 }
 
 type Deps = {
@@ -512,8 +544,182 @@ export function createWalletService({
     const amountKopecks = accrualFor(cashForTicketsKopecks, settings)
     if (amountKopecks === 0) return { amountKopecks: 0, duplicate: false }
     const entry = lot(customerId, 'purchase', amountKopecks, now, `purchase:${orderRef}`, orderRef)
-    const inserted = await store.transaction((tx) => tx.insertEntry(entry))
-    return { amountKopecks, duplicate: !inserted }
+    // Новое начисление сначала гасит долг по сторно (PRD §5.6) — в той же транзакции.
+    const result = await store.transaction(async (tx) => {
+      await tx.lockCustomer(customerId)
+      if (!(await tx.insertEntry(entry))) return { inserted: false, repaid: 0 }
+      return { inserted: true, repaid: await repayDebt(tx, entry) }
+    })
+    return {
+      amountKopecks,
+      duplicate: !result.inserted,
+      // Только если что-то погашено: форма ответа без долга прежняя.
+      ...(result.repaid > 0 && { debtRepaidKopecks: result.repaid }),
+    }
+  }
+
+  /**
+   * Погасить долг покупателя из только что созданного лота (внутри транзакции начисления):
+   * остаток лота уменьшается, погашение — строки `wallet_spend_allocations` к строке сторно.
+   * Доступный баланс не становится отрицательным: берётся не больше остатка лота.
+   */
+  const repayDebt = async (tx: WalletTx, entry: LedgerEntry) => {
+    let left = entry.amountKopecks
+    for (const debt of await tx.openDebts(entry.customerId)) {
+      if (left === 0) break
+      const take = Math.min(left, debt.outstandingKopecks)
+      if (!(await tx.takeFromLot(entry.id, take)))
+        throw new Error('wallet ledger invariant violated on debt repayment')
+      await tx.insertAllocations([
+        { id: randomUUID(), spendEntryId: debt.entryId, lotEntryId: entry.id, kopecks: take },
+      ])
+      left -= take
+    }
+    return entry.amountKopecks - left
+  }
+
+  /** Активное списание по заказу: при поздней оплате — повторное (`spend:<order>:late`). */
+  const activeSpend = async (tx: WalletTx, orderId: string) => {
+    const late = await tx.findEntryByKey(`spend:${orderId}:late`)
+    if (late) return { entry: late, ref: `${orderId}:late` }
+    const spent = await tx.findEntryByKey(`spend:${orderId}`)
+    if (!spent) return null
+    const parts = await tx.spendAllocations(spent.id)
+    // Списание уже компенсировано (заказ не состоялся) — возвращать нечего.
+    if (parts[0] && (await tx.findEntryByKey(releaseKey(orderId, parts[0].lotEntryId)))) return null
+    return { entry: spent, ref: orderId }
+  }
+
+  /**
+   * Бонусы при возврате билетов (T-064, PRD §5.6). Одна транзакция, исходные строки не меняются:
+   *
+   * 1. Потраченные на билеты бонусы (`returnSpentKopecks`) возвращаются новыми лотами `refund`
+   *    со сроком исходных лотов — из долей списания заказа, ещё не возвращённых прежними
+   *    возвратами (сначала лоты с самым поздним сроком). Ключ `refund:<refundId>:<lotId>`.
+   * 2. Начисление 3% за заказ сторнируется на долю билетов (`reversalShare(начислено)` —
+   *    детерминированно, `allocate` по билетам). Сторно берётся из лота начисления, затем из
+   *    остального баланса (сначала сгорающее раньше); чего не хватило — долг: доступный баланс
+   *    не уходит в минус, долг гасят будущие начисления (`repayDebt`). Ключ `reversal:<refundId>`.
+   *
+   * Повтор и параллельный вызов по тому же возврату ничего не удваивают (ключи + блокировка
+   * покупателя). Правило долга — допущение до подтверждения театром (PRD §5.6, §11).
+   */
+  async function compensateRefund(
+    input: {
+      customerId: string
+      orderId: string
+      refundId: string
+      returnSpentKopecks: number
+      /** Сколько из начисленного за заказ приходится на билеты возврата. */
+      reversalShare: (accruedKopecks: number) => number
+    },
+    now: Date,
+  ): Promise<RefundCompensation> {
+    const { customerId, orderId, refundId } = input
+    if (!customerId || !orderId || !refundId) throw new RangeError('ids are required')
+    if (!isKopecks(input.returnSpentKopecks))
+      throw new RangeError('returnSpentKopecks must be integer kopecks')
+    return store.transaction(async (tx) => {
+      await tx.lockCustomer(customerId)
+      const result: RefundCompensation = {
+        returnedKopecks: 0,
+        reversedKopecks: 0,
+        coveredKopecks: 0,
+        debtKopecks: 0,
+        accrualMissing: false,
+        duplicate: false,
+      }
+      // Каждый шаг идемпотентен сам по себе: шаг 2 можно доделать позже (начисление пришло после).
+      // 1. Возврат потраченных бонусов.
+      let left = input.returnSpentKopecks
+      const spend = left > 0 ? await activeSpend(tx, orderId) : null
+      if (spend) {
+        const returned = new Map<string, number>()
+        let done = false
+        for (const e of await tx.entriesBySource(customerId, 'refund', spend.ref)) {
+          if (e.idempotencyKey.startsWith(`refund:${refundId}:`)) done = true
+          if (e.relatedEntryId)
+            returned.set(e.relatedEntryId, (returned.get(e.relatedEntryId) ?? 0) + e.amountKopecks)
+        }
+        if (done) {
+          result.duplicate = true
+          left = 0
+        }
+        const parts = (await tx.spendAllocations(spend.entry.id)).sort(
+          (a, b) =>
+            b.expiresAt.getTime() - a.expiresAt.getTime() ||
+            a.lotEntryId.localeCompare(b.lotEntryId),
+        )
+        for (const part of parts) {
+          if (left === 0) break
+          const take = Math.min(left, part.kopecks - (returned.get(part.lotEntryId) ?? 0))
+          if (take <= 0) continue
+          const inserted = await tx.insertEntry({
+            id: randomUUID(),
+            customerId,
+            kind: 'refund',
+            amountKopecks: take,
+            lotRemainingKopecks: take,
+            expiresAt: part.expiresAt,
+            sourceRef: spend.ref,
+            idempotencyKey: `refund:${refundId}:${part.lotEntryId}`,
+            relatedEntryId: part.lotEntryId,
+            createdAt: now,
+          })
+          if (!inserted) throw new Error('wallet refund partially applied')
+          result.returnedKopecks += take
+          left -= take
+        }
+      }
+
+      // 2. Сторно начисления за билеты возврата.
+      const accrual = await tx.findEntryByKey(`purchase:${orderId}`)
+      if (!accrual) result.accrualMissing = true
+      const share = accrual ? input.reversalShare(accrual.amountKopecks) : 0
+      if (!isKopecks(share) || share > (accrual?.amountKopecks ?? 0))
+        throw new RangeError('reversal share is out of range')
+      const reversed = share > 0 ? await tx.findEntryByKey(`reversal:${refundId}`) : null
+      if (reversed) {
+        result.duplicate = true
+        result.reversedKopecks = -reversed.amountKopecks
+      } else if (share > 0) {
+        const lots = await tx.lockLiveLots(customerId, now)
+        const own = lots.find((l) => l.id === accrual!.id)
+        const rest = lots
+          .filter((l) => l.id !== accrual!.id)
+          .sort((a, b) => a.expiresAt.getTime() - b.expiresAt.getTime() || a.id.localeCompare(b.id))
+        const reversal: LedgerEntry = {
+          id: randomUUID(),
+          customerId,
+          kind: 'reversal',
+          amountKopecks: -share,
+          lotRemainingKopecks: null,
+          expiresAt: null,
+          sourceRef: orderId,
+          idempotencyKey: `reversal:${refundId}`,
+          relatedEntryId: accrual!.id,
+          createdAt: now,
+        }
+        if (!(await tx.insertEntry(reversal)))
+          throw new Error('wallet reversal changed concurrently')
+        let need = share
+        for (const lot of own ? [own, ...rest] : rest) {
+          if (need === 0) break
+          const take = Math.min(need, lot.remainingKopecks)
+          if (take === 0) continue
+          if (!(await tx.takeFromLot(lot.id, take)))
+            throw new Error('wallet lot changed under lock')
+          await tx.insertAllocations([
+            { id: randomUUID(), spendEntryId: reversal.id, lotEntryId: lot.id, kopecks: take },
+          ])
+          need -= take
+        }
+        result.reversedKopecks = share
+        result.coveredKopecks = share - need
+        result.debtKopecks = need
+      }
+      return result
+    })
   }
 
   /** Привязать нового покупателя к пригласившему по коду (при регистрации). */
@@ -564,7 +770,11 @@ export function createWalletService({
         referredCustomerId,
       )
       const rewarded = await tx.insertEntry(reward)
-      if (rewarded) await tx.setReferralReward(referredCustomerId, reward.id)
+      if (rewarded) {
+        await tx.setReferralReward(referredCustomerId, reward.id)
+        await tx.lockCustomer(referral.referrerId)
+        await repayDebt(tx, reward)
+      }
       return { qualified: true as const, rewarded }
     })
   }
@@ -619,6 +829,8 @@ export function createWalletService({
     annulCertificate,
     ensureReferralCode,
     balance,
+    compensateRefund,
+    debt: (customerId: string) => store.debt(customerId),
   }
 }
 
@@ -653,6 +865,23 @@ export function memoryWalletStore(): WalletStore & {
 
   const isLot = (e: LedgerEntry) => e.amountKopecks > 0 && e.lotRemainingKopecks !== null
   const copy = <T extends object>(row: T): T => ({ ...row })
+  /** Сторно с непокрытым остатком: −сумма − погашено долями. */
+  const openDebtsOf = (customerId: string) =>
+    ledger
+      .filter((e) => e.customerId === customerId && e.kind === 'reversal')
+      .map((e) => ({
+        entryId: e.id,
+        createdAt: e.createdAt,
+        outstandingKopecks:
+          -e.amountKopecks -
+          allocations.filter((a) => a.spendEntryId === e.id).reduce((n, a) => n + a.kopecks, 0),
+      }))
+      .filter((d) => d.outstandingKopecks > 0)
+      .sort(
+        (a, b) =>
+          a.createdAt.getTime() - b.createdAt.getTime() || a.entryId.localeCompare(b.entryId),
+      )
+      .map(({ entryId, outstandingKopecks }) => ({ entryId, outstandingKopecks }))
 
   return {
     async transaction(fn) {
@@ -829,6 +1058,22 @@ export function memoryWalletStore(): WalletStore & {
           r.rewardEntryId = entryId
           undo.push(() => (r.rewardEntryId = previous))
         },
+        async lockCustomer(customerId) {
+          await pause()
+          await lock(`customer:${customerId}`)
+        },
+        async openDebts(customerId) {
+          await pause()
+          return openDebtsOf(customerId)
+        },
+        async entriesBySource(customerId, kind, sourceRef) {
+          await pause()
+          return ledger
+            .filter(
+              (e) => e.customerId === customerId && e.kind === kind && e.sourceRef === sourceRef,
+            )
+            .map(copy)
+        },
       }
 
       try {
@@ -902,6 +1147,9 @@ export function memoryWalletStore(): WalletStore & {
     },
     async qualifiedCount(referrerId) {
       return referrals.filter((r) => r.referrerId === referrerId && r.qualifiedAt).length
+    },
+    async debt(customerId) {
+      return openDebtsOf(customerId).reduce((n, d) => n + d.outstandingKopecks, 0)
     },
     dump: () => ({
       ledger: ledger.map(copy),
