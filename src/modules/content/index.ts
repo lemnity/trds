@@ -597,6 +597,7 @@ export type LegalDocument = { slug: string; title: string }
 export const legalDocuments: LegalDocument[] = [
   { slug: 'personal-data', title: 'Персональные данные' },
   { slug: 'privacy', title: 'Политика конфиденциальности' },
+  { slug: 'cookies', title: 'Использование cookie' },
   { slug: 'terms', title: 'Пользовательское соглашение' },
   { slug: 'refunds', title: 'Возврат и претензии' },
   { slug: 'requisites', title: 'Реквизиты' },

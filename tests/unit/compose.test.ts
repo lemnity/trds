@@ -13,6 +13,8 @@ type Service = {
   healthcheck?: unknown
   depends_on?: Record<string, { condition: string }>
   environment?: Record<string, string>
+  entrypoint?: string[]
+  volumes?: string[]
 }
 type Compose = {
   services: Record<string, Service>
@@ -20,7 +22,10 @@ type Compose = {
 }
 
 const root = path.resolve(import.meta.dirname, '../..')
-const compose = parse(readFileSync(path.join(root, 'docker-compose.yml'), 'utf8')) as Compose
+// merge: раскрывать `<<: *app-env`, как это делает docker compose.
+const compose = parse(readFileSync(path.join(root, 'docker-compose.yml'), 'utf8'), {
+  merge: true,
+}) as Compose
 const service = (name: string) => {
   const s = compose.services[name]
   if (!s) throw new Error(`service ${name} is missing`)
@@ -28,8 +33,14 @@ const service = (name: string) => {
 }
 
 describe('docker-compose.yml', () => {
-  it('defines app, worker, postgres and caddy', () => {
-    expect(Object.keys(compose.services).sort()).toEqual(['app', 'caddy', 'postgres', 'worker'])
+  it('defines app, worker, postgres, caddy and backup', () => {
+    expect(Object.keys(compose.services).sort()).toEqual([
+      'app',
+      'backup',
+      'caddy',
+      'postgres',
+      'worker',
+    ])
   })
 
   it('keeps PostgreSQL unreachable from outside', () => {
@@ -40,14 +51,14 @@ describe('docker-compose.yml', () => {
   })
 
   it('publishes ports only through caddy', () => {
-    for (const name of ['app', 'worker', 'postgres']) {
+    for (const name of ['app', 'worker', 'postgres', 'backup']) {
       expect(service(name).ports).toBeUndefined()
     }
     expect(service('caddy').ports?.length).toBeGreaterThan(0)
   })
 
   it('pins third-party images by digest', () => {
-    for (const name of ['postgres', 'caddy']) {
+    for (const name of ['postgres', 'caddy', 'backup']) {
       expect(service(name).image).toMatch(/:[\w.-]+@sha256:[0-9a-f]{64}$/)
     }
   })
@@ -74,5 +85,30 @@ describe('docker-compose.yml', () => {
         }
       }
     }
+  })
+
+  // T-014/T-015: бэкап и файлы состояния для /api/health.
+  it('runs daily backups with the same PostgreSQL image, inside the backend network only', () => {
+    const backup = service('backup')
+    expect(backup.image).toBe(service('postgres').image)
+    expect(backup.networks).toEqual(['backend'])
+    expect(backup.entrypoint).toEqual(['bash', '/scripts/backup-scheduler.sh'])
+    expect(backup.depends_on?.postgres?.condition).toBe('service_healthy')
+    expect(backup.volumes).toEqual(
+      expect.arrayContaining(['./scripts:/scripts:ro', 'backups:/backups', 'ops-state:/app/state']),
+    )
+  })
+
+  it('shares worker heartbeat and backup status with the app read-only', () => {
+    expect(service('worker').volumes).toContain('ops-state:/app/state')
+    expect(service('app').volumes).toContain('ops-state:/app/state:ro')
+    for (const name of ['app', 'worker']) {
+      expect(service(name).environment?.WORKER_HEARTBEAT_FILE).toBe(
+        '/app/state/worker-heartbeat.json',
+      )
+    }
+    expect(service('app').environment?.BACKUP_STATUS_FILE).toBe(
+      service('backup').environment?.BACKUP_STATUS_FILE,
+    )
   })
 })

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import logo from '@/assets/logo.webp'
 import { contacts, legalDocuments } from '@/modules/content'
 
+import { CookieSettingsButton } from './CookieConsent'
 import { LogoBird } from './LogoBird'
 import { SocialIcon } from './SocialIcon'
 import { ACCOUNT_HREF } from './navigation'
@@ -108,6 +109,10 @@ export function SiteFooter() {
             ))}
             <li>
               <Link href="/site-map">Карта сайта</Link>
+            </li>
+            <li>
+              {/* Отозвать или дать согласие на аналитику в любой момент (T-036). */}
+              <CookieSettingsButton className={styles.docButton} />
             </li>
           </ul>
         </nav>

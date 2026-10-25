@@ -8,6 +8,7 @@ import { IS_PREVIEW } from '@/lib/site'
 import { AccountStats } from '@/components/account/AccountStats'
 import { BonusSection } from '@/components/account/BonusSection'
 import { CertificateSection } from '@/components/account/CertificateSection'
+import { ProfileSecurity } from '@/components/account/ProfileSecurity'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { PageTabs } from '@/components/ui/PageTabs'
 import { reveal } from '@/components/ui/reveal'
@@ -22,7 +23,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-type Customer = { name: string | null; email: string }
+/** `hasPassword` — для блока «Пароль и сеансы» (сам хеш со страницы не уходит). */
+type Customer = { name: string | null; email: string; hasPassword: boolean }
 
 /**
  * Билеты в кабинете. ЗАГЛУШКА до T-051: продаж на этом сайте ещё нет, поэтому у любого
@@ -51,7 +53,13 @@ async function currentCustomer(): Promise<Customer | null | 'unavailable'> {
     return 'unavailable'
   }
   if (!session) redirect('/login?next=/account')
-  return session.customer
+  let hasPassword: boolean
+  try {
+    hasPassword = await (await getAccounts()).auth.hasPassword(session.customer.id)
+  } catch {
+    return 'unavailable'
+  }
+  return { name: session.customer.name, email: session.customer.email, hasPassword }
 }
 
 const Soon = () => <span className={styles.soon}>Скоро</span>
@@ -188,22 +196,11 @@ export default async function AccountPage() {
               Не указан <Soon />
             </dd>
           </div>
-          <div>
-            <dt>Пароль</dt>
-            <dd className={styles.muted}>
-              Смена пароля <Soon />
-            </dd>
-          </div>
+          <ProfileSecurity hasPassword={customer?.hasPassword ?? null} />
           <div>
             <dt>Яндекс ID</dt>
             <dd className={styles.muted}>
               Не привязан <Soon />
-            </dd>
-          </div>
-          <div>
-            <dt>Сеансы</dt>
-            <dd className={styles.muted}>
-              Выйти на всех устройствах <Soon />
             </dd>
           </div>
         </dl>

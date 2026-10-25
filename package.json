@@ -19,6 +19,9 @@
     "generate:importmap": "NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "generate:types": "NODE_OPTIONS=--no-deprecation payload generate:types",
     "certificates:issue": "NODE_OPTIONS=--no-deprecation payload run src/bin/issue-certificates.ts",
+    "backup": "bash scripts/backup.sh",
+    "restore": "bash scripts/restore.sh",
+    "drill:schema": "NODE_OPTIONS=--no-deprecation payload run scripts/drill/push-schema.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

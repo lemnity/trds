@@ -6,6 +6,8 @@ import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
 import { accountsTables } from './db/schema/accounts'
+import { commerceTables } from './db/schema/commerce'
+import { leadsTables } from './db/schema/leads'
 import { walletTables } from './db/schema/wallet'
 import { AdminUsers } from './payload/collections/AdminUsers'
 
@@ -37,7 +39,13 @@ export default buildConfig({
     beforeSchemaInit: [
       ({ schema }) => ({
         ...schema,
-        tables: { ...schema.tables, ...accountsTables, ...walletTables },
+        tables: {
+          ...schema.tables,
+          ...accountsTables,
+          ...walletTables,
+          ...leadsTables,
+          ...commerceTables,
+        },
       }),
     ],
   }),

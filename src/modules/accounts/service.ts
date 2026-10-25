@@ -8,7 +8,7 @@ import {
   timingSafeEqual,
 } from 'node:crypto'
 
-import { CODE_LENGTH } from '@/modules/auth'
+import { CODE_LENGTH, PASSWORD_MIN } from '@/modules/auth'
 
 /**
  * Вход по одноразовому коду и сессии (PRD 5.5, T-050, rules.md §Безопасность).
@@ -25,7 +25,8 @@ export const OTP_RULES = {
   sessionDays: 30,
 } as const
 
-export type CodePurpose = 'login' | 'register'
+/** `password` — подтверждение почтой смены пароля в профиле (T-055); для входа не годится. */
+export type CodePurpose = 'login' | 'register' | 'password'
 
 export type CodeRow = {
   id: string
@@ -64,13 +65,18 @@ export interface AuthStore {
   /** Погасить код, только если он ещё не погашен (защита от гонки). true — погасили мы. */
   consumeCode(id: string, at: Date): Promise<boolean>
   findCustomer(email: string): Promise<CustomerRecord | null>
+  findCustomerById(id: string): Promise<CustomerRecord | null>
   insertCustomer(customer: CustomerRecord & { createdAt: Date }): Promise<CustomerRecord>
   setCustomerName(id: string, name: string): Promise<void>
   /** Задать пароль, только если его ещё нет. */
   setCustomerPassword(id: string, passwordHash: string): Promise<void>
+  /** Заменить пароль (смена в профиле после проверки). */
+  updateCustomerPassword(id: string, passwordHash: string): Promise<void>
   insertSession(row: SessionRow): Promise<void>
   findSession(tokenHash: string): Promise<(SessionRow & { customer: Customer }) | null>
   revokeSession(tokenHash: string, at: Date): Promise<void>
+  /** Отозвать все живые сессии покупателя, кроме `exceptTokenHash` (если задан). */
+  revokeCustomerSessions(customerId: string, at: Date, exceptTokenHash?: string): Promise<void>
 }
 
 export type SentCode = { email: string; code: string; purpose: CodePurpose }
@@ -90,8 +96,21 @@ export type RequestResult =
   | { ok: false; error: 'too_many'; retryAfter: number }
 
 export type VerifyResult =
-  | { ok: true; customer: Customer; session: { token: string; expiresAt: Date } }
+  | {
+      ok: true
+      customer: Customer
+      session: { token: string; expiresAt: Date }
+      /** Покупатель создан этим входом (новая регистрация) — для приглашения друга (T-062). */
+      created: boolean
+    }
   | { ok: false; error: 'invalid' }
+
+export type PasswordChangeResult =
+  | { ok: true }
+  | { ok: false; error: 'weak' | 'proof_required' | 'invalid_current' | 'invalid_code' | 'unknown' }
+
+/** Наибольшая длина пароля (как в форме и API входа). */
+export const PASSWORD_MAX = 128
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase()
 
@@ -195,35 +214,53 @@ export function createAuthService({
     return { ok: true }
   }
 
-  async function verifyCode(input: { email: string; code: string }): Promise<VerifyResult> {
-    const email = normalizeEmail(input.email)
-    const at = now()
-    const fail = { ok: false, error: 'invalid' } as const
-    if (!/^\d+$/.test(input.code) || input.code.length !== CODE_LENGTH) return fail
+  /**
+   * Проверить и погасить последний код почты нужного назначения. Действует только последний
+   * выданный код: новый запрос (любого назначения) делает прежний недействительным.
+   */
+  async function consumeLatestCode(
+    email: string,
+    code: string,
+    purposes: CodePurpose[],
+    at: Date,
+  ): Promise<CodeRow | null> {
+    if (!/^\d+$/.test(code) || code.length !== CODE_LENGTH) return null
     const [latest] = await store.codesSince(email, new Date(at.getTime() - OTP_RULES.ttlSec * 1000))
     if (
       !latest ||
+      !purposes.includes(latest.purpose) ||
       latest.consumedAt ||
       latest.expiresAt <= at ||
       latest.attempts >= OTP_RULES.maxAttempts
     )
-      return fail
-    if (!sameHash(latest.codeHash, hashCode(email, input.code))) {
+      return null
+    if (!sameHash(latest.codeHash, hashCode(email, code))) {
       await store.addAttempt(latest.id)
-      return fail
+      return null
     }
-    if (!(await store.consumeCode(latest.id, at))) return fail
+    return (await store.consumeCode(latest.id, at)) ? latest : null
+  }
+
+  async function verifyCode(input: { email: string; code: string }): Promise<VerifyResult> {
+    const email = normalizeEmail(input.email)
+    const at = now()
+    const latest = await consumeLatestCode(email, input.code, ['login', 'register'], at)
+    if (!latest) return { ok: false, error: 'invalid' }
 
     let record = await store.findCustomer(email)
-    if (!record)
+    let created = false
+    if (!record) {
+      const id = randomUUID()
       record = await store.insertCustomer({
-        id: randomUUID(),
+        id,
         email,
         name: latest.name,
         passwordHash: latest.passwordHash,
         createdAt: at,
       })
-    else {
+      // При гонке двух первых входов insertCustomer вернёт уже созданного — «создан» только у одного.
+      created = record.id === id
+    } else {
       if (!record.name && latest.name) {
         await store.setCustomerName(record.id, latest.name)
         record = { ...record, name: latest.name }
@@ -232,10 +269,10 @@ export function createAuthService({
       if (!record.passwordHash && latest.passwordHash)
         await store.setCustomerPassword(record.id, latest.passwordHash)
     }
-    return openSession({ id: record.id, email: record.email, name: record.name }, at)
+    return openSession({ id: record.id, email: record.email, name: record.name }, at, created)
   }
 
-  async function openSession(customer: Customer, at: Date): Promise<VerifyResult> {
+  async function openSession(customer: Customer, at: Date, created = false): Promise<VerifyResult> {
     const token = randomBytes(32).toString('base64url')
     const expiresAt = new Date(at.getTime() + OTP_RULES.sessionDays * 86_400_000)
     await store.insertSession({
@@ -246,7 +283,7 @@ export function createAuthService({
       revokedAt: null,
       createdAt: at,
     })
-    return { ok: true, customer, session: { token, expiresAt } }
+    return { ok: true, customer, session: { token, expiresAt }, created }
   }
 
   /** Вход по паролю (T-055): одинаковый ответ для неверного пароля и неизвестной почты. */
@@ -270,7 +307,66 @@ export function createAuthService({
     await store.revokeSession(sha256(token), now())
   }
 
-  return { requestCode, verifyCode, passwordLogin, getSession, logout }
+  /** Задан ли пароль — для профиля (сам хеш наружу не отдаётся). */
+  async function hasPassword(customerId: string) {
+    return Boolean((await store.findCustomerById(customerId))?.passwordHash)
+  }
+
+  /** Код на почту покупателя для смены пароля без старого (те же лимиты отправки, что у входа). */
+  async function requestPasswordCode(customerId: string): Promise<RequestResult | null> {
+    const record = await store.findCustomerById(customerId)
+    if (!record) return null
+    return requestCode({ email: record.email, purpose: 'password' })
+  }
+
+  /**
+   * Задать или сменить пароль в профиле (T-055). Нет пароля — достаточно сессии. Есть — нужен
+   * текущий пароль или свежий код из письма (purpose `password`). После смены остальные сессии
+   * отзываются: кто знал старый пароль, выходит; текущее устройство (`keepToken`) остаётся.
+   */
+  async function changePassword(input: {
+    customerId: string
+    next: string
+    current?: string
+    code?: string
+    keepToken?: string
+  }): Promise<PasswordChangeResult> {
+    if (input.next.length < PASSWORD_MIN || input.next.length > PASSWORD_MAX)
+      return { ok: false, error: 'weak' }
+    const at = now()
+    const record = await store.findCustomerById(input.customerId)
+    if (!record) return { ok: false, error: 'unknown' }
+    if (record.passwordHash) {
+      if (input.current !== undefined) {
+        if (!(await checkPassword(input.current, record.passwordHash)))
+          return { ok: false, error: 'invalid_current' }
+      } else if (input.code !== undefined) {
+        if (!(await consumeLatestCode(record.email, input.code, ['password'], at)))
+          return { ok: false, error: 'invalid_code' }
+      } else return { ok: false, error: 'proof_required' }
+    }
+    await store.updateCustomerPassword(record.id, await hashPassword(input.next))
+    const keep = input.keepToken && /^[\w-]{43}$/.test(input.keepToken) ? input.keepToken : null
+    await store.revokeCustomerSessions(record.id, at, keep ? sha256(keep) : undefined)
+    return { ok: true }
+  }
+
+  /** «Выйти на всех устройствах»: отозвать все сессии, включая текущую. */
+  async function logoutEverywhere(customerId: string) {
+    await store.revokeCustomerSessions(customerId, now())
+  }
+
+  return {
+    requestCode,
+    verifyCode,
+    passwordLogin,
+    getSession,
+    logout,
+    hasPassword,
+    requestPasswordCode,
+    changePassword,
+    logoutEverywhere,
+  }
 }
 
 export type AuthService = ReturnType<typeof createAuthService>
@@ -307,6 +403,10 @@ export function memoryAuthStore(): AuthStore & {
       const c = customers.find((x) => x.email === email)
       return c ? { ...c } : null
     },
+    async findCustomerById(id) {
+      const c = customers.find((x) => x.id === id)
+      return c ? { ...c } : null
+    },
     async insertCustomer({ id, email, name, passwordHash }) {
       const c = { id, email, name, passwordHash }
       customers.push(c)
@@ -319,6 +419,9 @@ export function memoryAuthStore(): AuthStore & {
       const c = customers.find((x) => x.id === id)!
       c.passwordHash ??= passwordHash
     },
+    async updateCustomerPassword(id, passwordHash) {
+      customers.find((x) => x.id === id)!.passwordHash = passwordHash
+    },
     async insertSession(row) {
       sessions.push({ ...row })
     },
@@ -330,6 +433,11 @@ export function memoryAuthStore(): AuthStore & {
     async revokeSession(tokenHash, at) {
       const s = sessions.find((x) => x.tokenHash === tokenHash)
       if (s && !s.revokedAt) s.revokedAt = at
+    },
+    async revokeCustomerSessions(customerId, at, exceptTokenHash) {
+      for (const s of sessions)
+        if (s.customerId === customerId && !s.revokedAt && s.tokenHash !== exceptTokenHash)
+          s.revokedAt = at
     },
     dump: () => ({
       codes: codes.map((c) => ({ ...c })),

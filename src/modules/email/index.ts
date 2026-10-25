@@ -44,19 +44,22 @@ export function getEmailProvider(): EmailProvider {
   }
 }
 
-/** Письмо с кодом входа или подтверждения почты. */
+/** Письмо с кодом входа, подтверждения почты или смены пароля. */
 export const codeEmail = (
   code: string,
-  purpose: 'login' | 'register',
+  purpose: 'login' | 'register' | 'password',
 ): Omit<EmailMessage, 'to'> => ({
-  subject:
-    purpose === 'register'
-      ? `${code} — код подтверждения почты TURDUS`
-      : `${code} — код входа TURDUS`,
+  subject: {
+    register: `${code} — код подтверждения почты TURDUS`,
+    login: `${code} — код входа TURDUS`,
+    password: `${code} — код для смены пароля TURDUS`,
+  }[purpose],
   text: [
-    purpose === 'register'
-      ? 'Подтвердите почту для личного кабинета модного театра TURDUS.'
-      : 'Вход в личный кабинет модного театра TURDUS.',
+    {
+      register: 'Подтвердите почту для личного кабинета модного театра TURDUS.',
+      login: 'Вход в личный кабинет модного театра TURDUS.',
+      password: 'Смена пароля в личном кабинете модного театра TURDUS.',
+    }[purpose],
     '',
     `Код: ${code}`,
     '',

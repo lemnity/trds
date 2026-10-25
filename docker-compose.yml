@@ -5,6 +5,10 @@ name: trds
 x-app-env: &app-env
   DATABASE_URL: postgres://trds:${POSTGRES_PASSWORD:?задайте POSTGRES_PASSWORD в .env}@postgres:5432/trds
   PAYLOAD_SECRET: ${PAYLOAD_SECRET:?задайте PAYLOAD_SECRET в .env}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  # Файлы состояния на общем томе ops-state: heartbeat worker и итог бэкапа (/api/health, T-015).
+  WORKER_HEARTBEAT_FILE: /app/state/worker-heartbeat.json
+  BACKUP_STATUS_FILE: /app/state/backup-status.json
 
 services:
   postgres:
@@ -33,6 +37,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - ops-state:/app/state:ro
     # edge — исходящий доступ к API банка/почты и вход от caddy.
     networks:
       - backend
@@ -59,9 +65,41 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - ops-state:/app/state
     networks:
       - backend
       - edge
+
+  # Ежедневный pg_dump + архив медиа (scripts/backup.sh, docs/runbook.md). Тот же образ PostgreSQL —
+  # pg_dump той же версии, что и сервер. Только внутренняя сеть: внешняя копия в S3 — заглушка,
+  # для неё понадобится edge после выбора провайдера.
+  backup:
+    image: postgres:16.15-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+    restart: unless-stopped
+    entrypoint: ['bash', '/scripts/backup-scheduler.sh']
+    environment:
+      PGHOST: postgres
+      PGUSER: trds
+      PGDATABASE: trds
+      PGPASSWORD: ${POSTGRES_PASSWORD:?задайте POSTGRES_PASSWORD в .env}
+      BACKUP_DIR: /backups
+      BACKUP_AT: ${BACKUP_AT:-00:30}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+      BACKUP_STATUS_FILE: /app/state/backup-status.json
+      BACKUP_OFFSITE_TARGET: ${BACKUP_OFFSITE_TARGET:-}
+    volumes:
+      - ./scripts:/scripts:ro
+      - backups:/backups
+      - ops-state:/app/state
+    depends_on:
+      postgres:
+        condition: service_healthy
+      # Том ops-state первым монтирует образ приложения: каталог /app/state принадлежит nextjs.
+      worker:
+        condition: service_started
+    networks:
+      - backend
 
   caddy:
     image: caddy:2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b
@@ -92,3 +130,6 @@ volumes:
   postgres-data:
   caddy-data:
   caddy-config:
+  # Локальные копии БД; хранить на другом диске/хосте — см. docs/runbook.md.
+  backups:
+  ops-state:

@@ -339,3 +339,70 @@
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
+
+/* Профиль: пароль и сеансы (ProfileSecurity, T-055). Строки — внутри списка профиля кабинета. */
+.security {
+  row-gap: 0.75rem;
+}
+
+.security .success {
+  flex: 1 1 100%;
+  margin: 0;
+}
+
+/* Двойной класс — сильнее `.profile dd` страницы кабинета (порядок CSS-файлов не гарантирован). */
+.securityMuted.securityMuted,
+.securityForm {
+  font-weight: 400;
+}
+
+.securityMuted {
+  color: var(--color-muted);
+}
+
+.securityForm {
+  display: grid;
+  flex: 1 1 100%;
+  gap: 1rem;
+  max-width: 28rem;
+}
+
+.securityForm p {
+  line-height: 1.5;
+}
+
+.securityActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.securityLink {
+  justify-self: start;
+  min-height: var(--tap-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--step--1);
+  font-weight: 600;
+  text-decoration: underline;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.securityLink:disabled {
+  color: var(--color-muted);
+  cursor: default;
+}
+
+.securityLink:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.securityError {
+  color: var(--color-danger);
+  font-weight: 600;
+}

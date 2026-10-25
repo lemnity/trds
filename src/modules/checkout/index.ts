@@ -24,3 +24,14 @@ export {
   parseDemoBalance,
   type BonusInput,
 } from './bonus'
+export { allocate } from './allocate'
+export {
+  ORDER_TRANSITIONS,
+  isSettled,
+  transition,
+  type OrderEvent,
+  type OrderEventType,
+  type OrderPatch,
+  type OrderStatus,
+  type TransitionResult,
+} from './orderState'

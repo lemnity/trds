@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 
 import { pgWalletStore } from './pgStore'
 import { createWalletService, memoryWalletStore, type WalletService } from './service'
+export { attachReferralOnSignup, type SignupReferralOutcome } from './signup'
 
 export {
   HISTORY_LIMIT,

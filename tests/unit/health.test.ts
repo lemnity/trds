@@ -28,3 +28,27 @@ describe('checkHealth', () => {
     expect(Date.now() - started).toBeLessThan(1000)
   })
 })
+
+describe('checkHealth optional checks', () => {
+  it('reports degraded, not error, when only an optional check fails', async () => {
+    const result = await checkHealth({ database: async () => {} }, 100, {
+      worker: async () => {
+        throw new Error('stale')
+      },
+    })
+    expect(result).toEqual({ status: 'degraded', checks: { database: 'ok', worker: 'error' } })
+  })
+
+  it('still reports error when a required check fails', async () => {
+    const result = await checkHealth(
+      {
+        database: async () => {
+          throw new Error('down')
+        },
+      },
+      100,
+      { worker: async () => {} },
+    )
+    expect(result.status).toBe('error')
+  })
+})

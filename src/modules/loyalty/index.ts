@@ -23,3 +23,4 @@ export {
   parseCertificateCode,
   type ParsedCertificate,
 } from './certificates'
+export { normalizeReferralCode } from './referral'

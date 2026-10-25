@@ -1,9 +1,9 @@
 'use client'
 
-import { Button, Checkbox, Description, FieldError, Input, Label, TextField } from '@heroui/react'
+import { Button, Checkbox, FieldError, Input, Label, TextField } from '@heroui/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from 'react'
 
 import {
   CODE_LENGTH,
@@ -16,10 +16,18 @@ import {
   parseRegistration,
   type RegistrationErrors,
 } from '@/modules/auth'
+import { normalizeReferralCode } from '@/modules/loyalty'
 
 import { InlineNotice } from '../ui/InlineNotice'
 import { postJson, returnPath } from './api'
-import { IS_STATIC_PREVIEW, setSignedIn, startDemoSession, type Session } from './session'
+import { PasswordField } from './PasswordField'
+import {
+  IS_STATIC_PREVIEW,
+  setSignedIn,
+  startDemoSession,
+  useSession,
+  type Session,
+} from './session'
 import styles from './Auth.module.css'
 
 type Mode = 'login' | 'register'
@@ -28,66 +36,10 @@ type Step = 'details' | 'code' | 'checked'
 /** Через сколько секунд можно запросить код ещё раз. */
 const RESEND_AFTER = 60
 
-const EyeIcon = ({ open }: { open: boolean }) => (
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-    <path
-      d={
-        open
-          ? 'M3 3l18 18M10.6 6.2A9.6 9.6 0 0 1 12 6c5 0 8.5 4.5 9.5 6-.5.8-1.6 2.3-3.2 3.6M6.3 7.8C4.6 9 3.4 10.7 2.5 12c1 1.5 4.5 6 9.5 6 1.5 0 2.9-.4 4.1-1M9.9 9.9a3 3 0 0 0 4.2 4.2'
-          : 'M2.5 12C3.5 10.5 7 6 12 6s8.5 4.5 9.5 6c-1 1.5-4.5 6-9.5 6s-8.5-4.5-9.5-6ZM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z'
-      }
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-)
-
-/** Поле пароля с кнопкой «показать / скрыть» внутри. */
-function PasswordField({
-  value,
-  onChange,
-  error,
-  autoComplete,
-  description,
-}: {
-  value: string
-  onChange: (value: string) => void
-  error?: string
-  autoComplete: 'current-password' | 'new-password'
-  description?: string
-}) {
-  const [shown, setShown] = useState(false)
-  return (
-    <TextField
-      type={shown ? 'text' : 'password'}
-      autoComplete={autoComplete}
-      value={value}
-      onChange={onChange}
-      isRequired
-      isInvalid={Boolean(error)}
-      validationBehavior="aria"
-    >
-      <Label>Пароль</Label>
-      <div className={styles.passwordRow}>
-        <Input />
-        <button
-          type="button"
-          className={styles.reveal}
-          aria-pressed={shown}
-          aria-label={shown ? 'Скрыть пароль' : 'Показать пароль'}
-          onClick={() => setShown(!shown)}
-        >
-          <EyeIcon open={shown} />
-        </button>
-      </div>
-      {description && !error && <Description>{description}</Description>}
-      <FieldError>{error}</FieldError>
-    </TextField>
-  )
-}
+// Код друга из ссылки `/register?ref=` (T-062): читается в браузере, на сервере — нет.
+const noSubscribe = () => () => {}
+const readInvite = () =>
+  normalizeReferralCode(new URLSearchParams(window.location.search).get('ref'))
 
 /**
  * Вход и регистрация (PRD 5.5): почта (и имя с согласием при регистрации) → код из письма;
@@ -111,6 +63,11 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [notice, setNotice] = useState('')
   const router = useRouter()
   const codeRef = useRef<HTMLInputElement>(null)
+  // Код приглашения живёт в состоянии формы и переживает шаг с кодом из письма. Уже вошедший
+  // зритель по ссылке друга ничего не привязывает: приглашение — только для новых.
+  const session = useSession()
+  const urlInvite = useSyncExternalStore(noSubscribe, readInvite, () => null)
+  const invite = mode === 'register' && !session ? urlInvite : null
 
   // Обратный отсчёт до повторной отправки.
   useEffect(() => {
@@ -200,7 +157,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     setBusy(true)
     const { status, data } = await postJson<{ customer?: Session; error?: string }>(
       '/api/auth/email-code/verify',
-      { email, code },
+      { email, code, ...(invite && { ref: invite }) },
     )
     setBusy(false)
     if (status === 200 && data?.customer) return finishSignIn(data.customer)
@@ -299,6 +256,12 @@ export function AuthForm({ mode }: { mode: Mode }) {
   if (step === 'details')
     return (
       <form className={styles.form} onSubmit={submitDetails} noValidate>
+        {invite && (
+          <InlineNotice tone="info" title="Вас пригласил друг">
+            Зарегистрируйтесь по этой ссылке — когда купите первый билет, другу засчитается
+            приглашение.
+          </InlineNotice>
+        )}
         {mode === 'register' && (
           <TextField
             autoComplete="name"

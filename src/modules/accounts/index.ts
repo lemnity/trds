@@ -2,19 +2,27 @@ import config from '@payload-config'
 import { createHmac, randomUUID } from 'node:crypto'
 import { getPayload } from 'payload'
 
+import { CONSENT_DOCUMENTS } from '@/modules/consent'
 import { codeEmail, getEmailProvider } from '@/modules/email'
 
 import { pgAuthStore, recordConsent } from './pgStore'
 import { createAuthService, memoryAuthStore, type AuthService } from './service'
 
-export { OTP_RULES, type Customer, type RequestResult, type VerifyResult } from './service'
+export {
+  OTP_RULES,
+  PASSWORD_MAX,
+  type Customer,
+  type PasswordChangeResult,
+  type RequestResult,
+  type VerifyResult,
+} from './service'
 export { EmailNotConfiguredError } from '@/modules/email'
 
 /** Имя cookie сессии кабинета (HttpOnly). */
 export const SESSION_COOKIE = 'turdus_session'
 
 /** Версия документа «Согласие на обработку ПД», под которой даётся согласие. */
-export const CONSENT_VERSION = 'draft-2026-10'
+export const CONSENT_VERSION = CONSENT_DOCUMENTS['personal-data'].version
 
 const memoryStore = globalThis as typeof globalThis & {
   __turdusAccounts?: ReturnType<typeof memoryAuthStore>

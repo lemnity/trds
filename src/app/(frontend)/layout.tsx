@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
+import { CookieConsent } from '@/components/site/CookieConsent'
 import { LOW_VISION_KEY } from '@/components/site/lowVision'
 import { PageLoader } from '@/components/site/PageLoader'
 import { RevealOnScroll } from '@/components/site/RevealOnScroll'
@@ -51,6 +52,7 @@ export default function FrontendLayout({ children }: { children: ReactNode }) {
             {children}
           </SiteChrome>
           <RevealOnScroll />
+          <CookieConsent />
         </Providers>
       </body>
     </html>

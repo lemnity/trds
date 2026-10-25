@@ -12,7 +12,7 @@ import {
   TextField,
 } from '@heroui/react'
 import Link from 'next/link'
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 
 import {
   LEAD_FORMATS,
@@ -22,14 +22,28 @@ import {
   type LeadFormat,
 } from '@/modules/leads'
 
+import { postJson } from '../auth/api'
+import { IS_STATIC_PREVIEW } from '../auth/session'
 import { InlineNotice } from '../ui/InlineNotice'
 import styles from './Corporate.module.css'
 
 type Props = { email: string; manager: { handle: string; href: string } }
 
+/** Ключ отправки: один на одно содержимое формы — повтор после сбоя не создаст вторую заявку. */
+const newSubmissionKey = () => {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  // randomUUID есть только на https и localhost; запасной путь — те же 16 случайных байт.
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+type Sent = { kind: 'server' } | { kind: 'mail'; href: string }
+
 /**
- * Заявка на корпоратив (T-034). До `POST /api/leads` (сохранение, журнал согласия, канбан
- * T-065) заявка уходит письмом: после проверки открывается почта с готовым текстом.
+ * Заявка на корпоратив (T-034, PRD §5.7). На сервере — `POST /api/leads`: заявка сохраняется
+ * со статусом «Новая», согласие — в журнал. Ключ отправки живёт, пока не изменились поля:
+ * повторное нажатие после ошибки сети не создаёт дубль. На статическом превью (сервера нет) —
+ * письмо театру с готовым текстом (mailto); при сбое сервера письмо предлагается запасным путём.
  */
 export function CorporateForm({ email, manager }: Props) {
   const [v, setV] = useState({
@@ -44,9 +58,15 @@ export function CorporateForm({ email, manager }: Props) {
     consent: false,
   })
   const [errors, setErrors] = useState<LeadErrors>({})
-  const [sent, setSent] = useState<string | null>(null)
+  const [sent, setSent] = useState<Sent | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [problem, setProblem] = useState<{ text: string; mail: string | null } | null>(null)
+  const submissionKey = useRef<string | null>(null)
 
   const set = <K extends keyof typeof v>(key: K, value: (typeof v)[K]) => {
+    // Другое содержимое — другая заявка: следующий «Отправить» получит новый ключ.
+    submissionKey.current = null
+    setProblem(null)
     setV((prev) => ({ ...prev, [key]: value }))
     setErrors((prev) => ({
       ...prev,
@@ -55,20 +75,82 @@ export function CorporateForm({ email, manager }: Props) {
     }))
   }
 
-  const submit = (event: FormEvent) => {
+  const mailHref = (lead: Parameters<typeof leadMailBody>[0]) =>
+    `mailto:${email}?subject=${encodeURIComponent(`Заявка на корпоратив — ${lead.name}`)}&body=${encodeURIComponent(leadMailBody(lead))}`
+
+  const submit = async (event: FormEvent) => {
     event.preventDefault()
+    if (busy) return
+    setProblem(null)
     const result = parseLead(v, new Date())
     if (!result.ok) {
       setErrors(result.errors)
       return
     }
-    const subject = `Заявка на корпоратив — ${result.value.name}`
-    const href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(leadMailBody(result.value))}`
-    setSent(href)
-    window.location.href = href
+    if (IS_STATIC_PREVIEW) {
+      // Превью без сервера: заявку некуда сохранить — открываем письмо театру.
+      const href = mailHref(result.value)
+      setSent({ kind: 'mail', href })
+      window.location.href = href
+      return
+    }
+    submissionKey.current ??= newSubmissionKey()
+    setBusy(true)
+    const { status, data } = await postJson<{ error?: string; fields?: LeadErrors }>('/api/leads', {
+      idempotencyKey: submissionKey.current,
+      lead: v,
+    })
+    setBusy(false)
+    if (status === 200 || status === 201) {
+      submissionKey.current = null
+      setSent({ kind: 'server' })
+      return
+    }
+    if (status === 400 && data?.fields) {
+      setErrors(data.fields)
+      return
+    }
+    if (status === 409) {
+      // Ключ уже занят другим содержимым — следующая попытка уйдёт с новым.
+      submissionKey.current = null
+      setProblem({
+        text: 'Заявка изменилась во время отправки. Нажмите «Отправить заявку» ещё раз.',
+        mail: null,
+      })
+      return
+    }
+    const mail = mailHref(result.value)
+    setProblem({
+      text:
+        status === 429
+          ? 'Слишком много заявок подряд. Попробуйте через 10 минут или отправьте заявку письмом.'
+          : 'Нет связи с сервером. Попробуйте ещё раз — повторная отправка не создаст дубль. Или отправьте заявку письмом.',
+      mail,
+    })
   }
 
-  if (sent)
+  // Новая заявка: контакты оставляем, детали события — сначала.
+  const reset = () => {
+    setV((prev) => ({ ...prev, date: '', guests: '', budget: '', comment: '', consent: false }))
+    setSent(null)
+  }
+
+  if (sent?.kind === 'server')
+    return (
+      <div className={styles.form} role="status">
+        <InlineNotice tone="info" title="Заявка принята">
+          Театр получил заявку и свяжется с вами по указанным контактам. Если хотите что-то уточнить
+          сразу — напишите на {email} или руководителю в Telegram {manager.handle}.
+        </InlineNotice>
+        <div className={styles.sentActions}>
+          <button type="button" className={styles.linkButton} onClick={reset}>
+            Отправить ещё одну заявку
+          </button>
+        </div>
+      </div>
+    )
+
+  if (sent?.kind === 'mail')
     return (
       <div className={styles.form} role="status">
         <InlineNotice tone="info" title="Письмо с заявкой готово">
@@ -76,7 +158,7 @@ export function CorporateForm({ email, manager }: Props) {
           открылась, напишите на {email} или руководителю в Telegram {manager.handle}.
         </InlineNotice>
         <div className={styles.sentActions}>
-          <a href={sent} className={styles.linkButton}>
+          <a href={sent.href} className={styles.linkButton}>
             Открыть письмо ещё раз
           </a>
           <button type="button" className={styles.linkButton} onClick={() => setSent(null)}>
@@ -193,11 +275,24 @@ export function CorporateForm({ email, manager }: Props) {
         </Link>
       </p>
 
-      <Button type="submit" fullWidth className={styles.submit}>
-        Отправить заявку
+      {problem && (
+        <InlineNotice tone="danger" title="Заявка не отправлена">
+          {problem.text}
+          {problem.mail && (
+            <>
+              {' '}
+              <a href={problem.mail}>Отправить письмом</a>
+            </>
+          )}
+        </InlineNotice>
+      )}
+      <Button type="submit" fullWidth className={styles.submit} isPending={busy}>
+        {busy ? 'Отправляем…' : 'Отправить заявку'}
       </Button>
       <p className={styles.hint}>
-        Заявка уйдёт письмом театру: откроется ваша почта с готовым текстом.
+        {IS_STATIC_PREVIEW
+          ? 'Заявка уйдёт письмом театру: откроется ваша почта с готовым текстом.'
+          : 'Заявка придёт театру — вам ответят по почте или телефону из заявки.'}
       </p>
     </form>
   )

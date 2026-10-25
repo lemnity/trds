@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, isNull, sql } from '@payloadcms/db-postgres/drizzle'
+import { and, desc, eq, gte, gt, isNull, ne, sql } from '@payloadcms/db-postgres/drizzle'
 import type { NodePgDatabase } from '@payloadcms/db-postgres/drizzle/node-postgres'
 
 import { authCodes, consents, customers, sessions } from '@/db/schema/accounts'
@@ -50,6 +50,18 @@ export function pgAuthStore(db: Db): AuthStore {
         .where(eq(customers.email, email))
       return row ?? null
     },
+    async findCustomerById(id) {
+      const [row] = await db
+        .select({
+          id: customers.id,
+          email: customers.email,
+          name: customers.name,
+          passwordHash: customers.passwordHash,
+        })
+        .from(customers)
+        .where(eq(customers.id, id))
+      return row ?? null
+    },
     async insertCustomer(customer) {
       // Два параллельных первых входа одной почтой — второй получает уже созданного покупателя.
       await db.insert(customers).values(customer).onConflictDoNothing({ target: customers.email })
@@ -76,6 +88,9 @@ export function pgAuthStore(db: Db): AuthStore {
         .set({ passwordHash })
         .where(and(eq(customers.id, id), isNull(customers.passwordHash)))
     },
+    async updateCustomerPassword(id, passwordHash) {
+      await db.update(customers).set({ passwordHash }).where(eq(customers.id, id))
+    },
     async insertSession(row) {
       await db.insert(sessions).values(row)
     },
@@ -95,6 +110,20 @@ export function pgAuthStore(db: Db): AuthStore {
         .update(sessions)
         .set({ revokedAt: at })
         .where(and(eq(sessions.tokenHash, tokenHash), isNull(sessions.revokedAt)))
+    },
+    async revokeCustomerSessions(customerId, at, exceptTokenHash) {
+      await db
+        .update(sessions)
+        .set({ revokedAt: at })
+        .where(
+          and(
+            eq(sessions.customerId, customerId),
+            isNull(sessions.revokedAt),
+            // Истёкшие не трогаем — они и так недействительны.
+            gt(sessions.expiresAt, at),
+            ...(exceptTokenHash ? [ne(sessions.tokenHash, exceptTokenHash)] : []),
+          ),
+        )
     },
   }
 }

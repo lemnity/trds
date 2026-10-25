@@ -68,3 +68,63 @@ describe('runWorker', () => {
     expect(events.at(-1)).toEqual({ event: 'worker.stopped' })
   })
 })
+
+describe('runWorker schedule and heartbeat', () => {
+  it('runs a job with everyMs only when its interval has passed', async () => {
+    const controller = new AbortController()
+    let clock = 0
+    const runs: string[] = []
+    let ticks = 0
+    await runWorker({
+      jobs: [
+        { name: 'hourly', everyMs: 3_000, run: async () => void runs.push('hourly') },
+        {
+          name: 'each',
+          run: async () => {
+            runs.push('each')
+            if (++ticks >= 4) controller.abort()
+          },
+        },
+      ],
+      tickMs: 1,
+      signal: controller.signal,
+      log: () => {},
+      // Каждое обращение к часам — плюс 0,5 с (три обращения за такт).
+      now: () => new Date((clock += 500)),
+    })
+    expect(runs.filter((r) => r === 'each')).toHaveLength(4)
+    expect(runs.filter((r) => r === 'hourly')).toHaveLength(2)
+  })
+
+  it('reports per-job state to onHeartbeat and survives a failing sink', async () => {
+    const controller = new AbortController()
+    const { events, log } = collect()
+    const states: unknown[] = []
+    let calls = 0
+    await runWorker({
+      jobs: [
+        {
+          name: 'broken',
+          run: async () => {
+            throw new Error('x')
+          },
+        },
+        { name: 'fine', run: async () => {} },
+      ],
+      tickMs: 1,
+      signal: controller.signal,
+      log,
+      onHeartbeat: async (state) => {
+        states.push(state)
+        if (++calls === 1) throw new Error('disk full')
+        controller.abort()
+      },
+    })
+    expect(states).toHaveLength(2)
+    expect(states[1]).toMatchObject({
+      jobs: { broken: { ok: false }, fine: { ok: true } },
+    })
+    expect(events).toContainEqual({ event: 'worker.heartbeat_failed', error: 'Error' })
+    expect(events.at(-1)).toEqual({ event: 'worker.stopped' })
+  })
+})

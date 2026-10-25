@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 /**
  * Корпоративы: тексты и ссылки с сайта театра, форма заявки (T-034), фото с прошедших событий.
- * Заявка до серверной части уходит письмом (CorporateForm).
+ * Заявка уходит в `POST /api/leads`; на статическом превью — письмом театру (CorporateForm).
  */
 export default function CorporatePage() {
   return (
