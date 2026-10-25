@@ -1,4 +1,4 @@
-/* Кабинет: цифры сверху, разделы — билеты (вкладки), бонусы (карточки), профиль (список). */
+/* Кабинет: разделы — билеты (вкладки), бонусы и сертификат (src/components/account), профиль. */
 .page {
   padding-bottom: var(--section-space);
 }
@@ -9,43 +9,6 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-muted);
-}
-
-/* Цифры — четыре плитки на линии; на телефоне 2×2. */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  border-block: 1px solid var(--color-ink);
-}
-
-.stats > li + li .stat {
-  border-left: 1px solid var(--color-hairline);
-}
-
-.stat {
-  display: grid;
-  gap: 0.35rem;
-  height: 100%;
-  padding: clamp(1rem, 2.5vw, 1.5rem) clamp(0.75rem, 2vw, 1.5rem);
-  text-decoration: none;
-  transition: background var(--motion-base);
-}
-
-.stat:hover {
-  background: var(--color-surface);
-}
-
-.stat b {
-  font-size: clamp(2rem, 1.4rem + 2vw, 3.25rem);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-}
-
-.stat span {
-  font-size: var(--step--1);
   color: var(--color-muted);
 }
 
@@ -111,67 +74,6 @@
   font-weight: 600;
 }
 
-/* Бонусы: баланс на тёмной карточке, рядом приглашение и история. */
-.bonusGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.card {
-  display: grid;
-  align-content: start;
-  gap: 0.6rem;
-  padding: clamp(1.25rem, 3vw, 1.75rem);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-card);
-}
-
-.cardLabel {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.cardText {
-  color: var(--color-muted);
-  line-height: 1.5;
-}
-
-.cardMeta {
-  margin-top: auto;
-  font-size: var(--step--1);
-}
-
-.balance {
-  background: var(--color-ink);
-  color: #ffffff;
-}
-
-.balance .cardText,
-.balance .cardMeta {
-  color: #c9cedb;
-}
-
-.balanceValue {
-  font-weight: 700;
-  font-size: clamp(2.5rem, 1.5rem + 3vw, 4rem);
-  line-height: 1;
-  letter-spacing: -0.03em;
-}
-
-.fakeLink {
-  padding: 0.6rem 0.8rem;
-  border: 1px dashed var(--color-control-border);
-  font-family: ui-monospace, monospace;
-  font-size: 0.875rem;
-  color: var(--color-muted);
-}
-
 /* «Скоро» — маленькая плашка у ещё не работающих действий. */
 .soon {
   display: inline-flex;
@@ -228,33 +130,9 @@
   margin-top: 2rem;
 }
 
-@media (max-width: 60rem) {
-  .bonusGrid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
 @media (max-width: 40rem) {
-  .stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .stats > li:nth-child(3) .stat {
-    border-left: 0;
-  }
-
-  .stats > li:nth-child(n + 3) .stat {
-    border-top: 1px solid var(--color-hairline);
-  }
-
   .profile > div {
     grid-template-columns: minmax(0, 1fr);
     gap: 0.25rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .stat {
-    transition: none;
   }
 }

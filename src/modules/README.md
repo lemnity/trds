@@ -11,6 +11,7 @@
 | `tickets` | выпуск билетов и QR-токен без ПД |
 | `refunds` | правила и оркестрация возвратов |
 | `loyalty` | bonus ledger, резервы, начисления, сгорание, рефералы |
+| `wallet` | bonus ledger, сертификаты и рефералы в PostgreSQL; правила — loyalty |
 | `auth` | email OTP и сессии зрителя |
 | `leads` | заявки на корпоративы и переходы статусов |
 | `email` | шаблоны и `EmailProvider` |

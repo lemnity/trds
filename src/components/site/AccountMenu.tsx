@@ -25,6 +25,7 @@ const UserIcon = () => (
 export const ACCOUNT_LINKS = [
   { href: '/account#tickets', label: 'Мои билеты' },
   { href: '/account#bonuses', label: 'Бонусы' },
+  { href: '/account#certificate', label: 'Сертификат' },
   { href: '/account#profile', label: 'Профиль' },
 ]
 

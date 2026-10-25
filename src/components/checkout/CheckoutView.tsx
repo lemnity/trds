@@ -11,11 +11,13 @@ import {
   TextField,
 } from '@heroui/react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { useRef, useState, useSyncExternalStore, type FormEvent, type ReactNode } from 'react'
 
 import {
   formatPhoneInput,
+  loginHrefFor,
+  parseBonusRubles,
   parseContact,
   quoteOrder,
   selectionFromSearch,
@@ -25,10 +27,12 @@ import {
 } from '@/modules/checkout'
 import { quoteSeats } from '@/modules/seating'
 import { formatRub } from '@/lib/money'
+import { applyBonus } from '@/modules/loyalty'
 import type { SalePerformance } from '@/modules/shows'
 
 import { InlineNotice } from '../ui/InlineNotice'
 import styles from './Checkout.module.css'
+import { CheckoutBonus, useBonusAccount } from './CheckoutBonus'
 import { CheckoutSummary, type OrderLine } from './CheckoutSummary'
 
 type Props = {
@@ -85,6 +89,7 @@ type Order = { lines: OrderLine[]; count: number; total: number; seats: boolean 
  */
 export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
   const params = useSearchParams()
+  const pathname = usePathname()
   const nameRef = useRef<HTMLInputElement>(null)
   const emailRef = useRef<HTMLInputElement>(null)
   const phoneRef = useRef<HTMLInputElement>(null)
@@ -98,6 +103,8 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
   const [consent, setConsent] = useState(false)
   const [errors, setErrors] = useState<ContactErrors>({})
   const [paymentUnavailable, setPaymentUnavailable] = useState(false)
+  const bonusAccount = useBonusAccount()
+  const [bonusText, setBonusText] = useState('')
   const started = useSyncExternalStore(
     noopSubscribe,
     () => Date.parse(performance.startsAt) <= Date.now(),
@@ -160,7 +167,17 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
   }
 
   const fee = serviceFee(order.count)
-  const toPay = order.total + fee
+  // Суммы — только из applyBonus: введённое зрителем — лишь пожелание, его обрезает правило 30%
+  // и баланс. При оплате на сервер уйдёт одно число — желаемое списание; сервер пересчитает всё.
+  const bonusInput = parseBonusRubles(bonusText)
+  const requestedBonus = bonusInput.ok ? bonusInput.kopecks : 0
+  const bonus = applyBonus({
+    ticketsKopecks: order.total,
+    feeKopecks: fee,
+    balanceKopecks: bonusAccount.status === 'ready' ? bonusAccount.balanceKopecks : 0,
+    requestedKopecks: requestedBonus,
+  })
+  const signedIn = bonusAccount.status !== 'guest'
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
@@ -173,6 +190,7 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
     if (nextErrors.phone) return phoneRef.current?.focus()
     if (nextErrors.rulesAccepted) return rulesRef.current?.querySelector('input')?.focus()
     if (nextErrors.consent) return consentRef.current?.querySelector('input')?.focus()
+    // Когда появится оплата, в запрос пойдёт только bonus.spentKopecks как желаемое списание.
     // Банк и параметры чека ещё не подтверждены (T-001/T-002): платёж не создаём,
     // ничего не бронируем и не показываем «оплачено» (rules.md §7, §9).
     setPaymentUnavailable(true)
@@ -255,6 +273,16 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
           </div>
         </RadioGroup>
 
+        <CheckoutBonus
+          account={bonusAccount}
+          loginHref={loginHrefFor(pathname, params.toString())}
+          bonus={bonus}
+          requestedKopecks={requestedBonus}
+          value={bonusText}
+          isInvalid={!bonusInput.ok}
+          onChange={setBonusText}
+        />
+
         <Checkbox
           ref={rulesRef}
           isSelected={rulesAccepted}
@@ -292,7 +320,7 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
         </Checkbox>
 
         <Button type="submit" fullWidth className={styles.pay}>
-          Оплатить&nbsp; {formatRub(toPay)}
+          Оплатить&nbsp; {formatRub(bonus.cashKopecks)}
         </Button>
 
         {/* Живой регион есть всегда — сообщения появляются внутри (WCAG 4.1.3). */}
@@ -318,7 +346,9 @@ export function CheckoutView({ performance, backHref, fallbackUrl }: Props) {
         lines={order.lines}
         ticketCount={order.count}
         feeKopecks={fee}
-        totalKopecks={toPay}
+        bonusKopecks={bonus.spentKopecks}
+        accrualKopecks={signedIn ? bonus.accrualKopecks : null}
+        totalKopecks={bonus.cashKopecks}
       />
     </div>
   )

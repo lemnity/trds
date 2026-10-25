@@ -16,3 +16,11 @@ export {
 } from './contact'
 export { SERVICE_FEE, serviceFee } from './fees'
 export { selectionFromSearch, selectionToSearch, type Selection } from './selection'
+export {
+  bonusRublesText,
+  bonusWord,
+  loginHrefFor,
+  parseBonusRubles,
+  parseDemoBalance,
+  type BonusInput,
+} from './bonus'

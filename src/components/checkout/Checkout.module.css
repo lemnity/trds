@@ -169,6 +169,79 @@
   font-weight: 600;
 }
 
+/* Бонусы: рамка как у плиток оплаты; гостю — одна строка со ссылкой на вход. */
+.bonus {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  border: 1.5px solid var(--color-hairline);
+  background: var(--color-surface);
+  font-size: var(--step--1);
+}
+
+.bonusTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: var(--step--1);
+}
+
+.bonusLink {
+  color: var(--color-brand);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.bonusLink:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.bonusMuted,
+.bonusHint {
+  color: var(--color-muted);
+  font-size: var(--step--1);
+}
+
+/* Пустой живой регион не занимает места. */
+.bonusHint:empty {
+  display: none;
+}
+
+.bonus .bonusInput {
+  max-width: 12rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.bonus [data-slot='field-error'] {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.bonusDemo {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--color-control-border);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.bonusActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bonusActions button {
+  min-height: var(--tap-min);
+  border-radius: var(--radius-control);
+}
+
 /* Сводка: светлая голубовато-серая панель, строки с тонкими разделителями. */
 .summary {
   padding: clamp(1.5rem, 3vw, 2.5rem);
@@ -225,6 +298,13 @@
   color: var(--color-brand);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+.accrual {
+  margin-top: 1rem;
+  font-weight: 600;
+  font-size: var(--step--1);
+  color: var(--color-success);
 }
 
 .note {

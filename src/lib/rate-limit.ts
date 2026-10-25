@@ -5,6 +5,10 @@
 export function createRateLimiter({ limit, windowMs }: { limit: number; windowMs: number }) {
   const hits = new Map<string, number[]>()
   return {
+    /** Проверить без учёта попытки: true — лимит ещё не исчерпан (для счёта только неудач). */
+    allowed(key: string, now = Date.now()) {
+      return (hits.get(key) ?? []).filter((t) => now - t < windowMs).length < limit
+    },
     /** true — запрос разрешён. */
     hit(key: string, now = Date.now()) {
       const recent = (hits.get(key) ?? []).filter((t) => now - t < windowMs)

@@ -6,6 +6,7 @@ import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
 import { accountsTables } from './db/schema/accounts'
+import { walletTables } from './db/schema/wallet'
 import { AdminUsers } from './payload/collections/AdminUsers'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -31,10 +32,13 @@ export default buildConfig({
       // Без базы — быстрая ошибка, а не вечное ожидание (кабинет и API отвечают «недоступно»).
       connectionTimeoutMillis: 5000,
     },
-    // Доменные таблицы кабинета (src/db/schema) — в общей схеме: синхронизация в dev и
-    // миграции Payload их учитывают и не удаляют.
+    // Доменные таблицы кабинета и бонусного кошелька (src/db/schema) — в общей схеме:
+    // синхронизация в dev и миграции Payload их учитывают и не удаляют.
     beforeSchemaInit: [
-      ({ schema }) => ({ ...schema, tables: { ...schema.tables, ...accountsTables } }),
+      ({ schema }) => ({
+        ...schema,
+        tables: { ...schema.tables, ...accountsTables, ...walletTables },
+      }),
     ],
   }),
   sharp,

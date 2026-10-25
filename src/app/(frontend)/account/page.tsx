@@ -4,8 +4,10 @@ import { redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
 
 import { IS_PREVIEW } from '@/lib/site'
-import { formatRub } from '@/lib/money'
 
+import { AccountStats } from '@/components/account/AccountStats'
+import { BonusSection } from '@/components/account/BonusSection'
+import { CertificateSection } from '@/components/account/CertificateSection'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { PageTabs } from '@/components/ui/PageTabs'
 import { reveal } from '@/components/ui/reveal'
@@ -23,15 +25,14 @@ export const metadata: Metadata = {
 type Customer = { name: string | null; email: string }
 
 /**
- * Сводка кабинета. ЗАГЛУШКА до T-051 (билеты) и T-060 (бонусы): продаж на этом сайте ещё нет,
- * поэтому у любого покупателя честные нули. Когда появятся заказы — считать из БД.
+ * Билеты в кабинете. ЗАГЛУШКА до T-051: продаж на этом сайте ещё нет, поэтому у любого
+ * покупателя честные нули. Когда появятся заказы — считать из БД. Бонусы, друзья и сертификаты
+ * приходят в браузере из /api/loyalty/summary (useLoyalty), на превью — демо.
  */
 const getSummary = () => ({
   upcoming: 0,
   past: 0,
   refunded: 0,
-  bonusKopecks: 0,
-  invited: 0,
 })
 
 /**
@@ -86,13 +87,6 @@ export default async function AccountPage() {
   const customer = current
   const s = getSummary()
 
-  const stats = [
-    { value: String(s.upcoming), label: 'билетов впереди', href: '#tickets' },
-    { value: String(s.past), label: 'спектаклей посещено', href: '#tickets' },
-    { value: formatRub(s.bonusKopecks), label: 'бонусов на счёте', href: '#bonuses' },
-    { value: String(s.invited), label: 'друзей приглашено', href: '#bonuses' },
-  ]
-
   return (
     <div className={`container ${styles.page}`}>
       <header className={head.head} {...reveal()}>
@@ -107,17 +101,8 @@ export default async function AccountPage() {
         </p>
       </header>
 
-      {/* Цифры — заглушки до продаж на сайте (getSummary). */}
-      <ul className={styles.stats} aria-label="Коротко">
-        {stats.map((stat, i) => (
-          <li key={stat.label} {...reveal(i)}>
-            <a href={stat.href} className={styles.stat}>
-              <b>{stat.value}</b>
-              <span>{stat.label}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
+      {/* Билеты — заглушки до продаж на сайте (getSummary), бонусы — из useLoyalty. */}
+      <AccountStats upcoming={s.upcoming} past={s.past} />
 
       <section id="tickets" className={styles.section} aria-labelledby="tickets-title">
         <h2 id="tickets-title" className={styles.sectionTitle} {...reveal()}>
@@ -174,36 +159,14 @@ export default async function AccountPage() {
         <h2 id="bonuses-title" className={styles.sectionTitle} {...reveal()}>
           Бонусы
         </h2>
-        <div className={styles.bonusGrid}>
-          <div className={`${styles.card} ${styles.balance}`} {...reveal(1)}>
-            <p className={styles.cardLabel}>Баланс</p>
-            <p className={styles.balanceValue}>{formatRub(s.bonusKopecks)}</p>
-            <p className={styles.cardText}>
-              Бонусы начисляются за покупки на сайте, ими можно оплатить часть следующего билета.
-            </p>
-            <p className={styles.cardMeta}>Ближайшее сгорание: —</p>
-          </div>
-          <div className={styles.card} {...reveal(2)}>
-            <p className={styles.cardLabel}>
-              Пригласить друга <Soon />
-            </p>
-            <p className={styles.cardText}>
-              Персональная ссылка появится вместе с бонусной программой. За первую покупку друга
-              начислим бонусы вам.
-            </p>
-            <p className={styles.fakeLink} aria-disabled="true">
-              turdus…/?ref=••••••
-            </p>
-          </div>
-          <div className={styles.card} {...reveal(3)}>
-            <p className={styles.cardLabel}>История</p>
-            <p className={styles.cardText}>Начислений и списаний пока нет.</p>
-          </div>
-        </div>
-        <p className={styles.note}>
-          Процент начисления, доля оплаты бонусами и срок их жизни утверждает театр — цифры появятся
-          здесь вместе с правилами.
-        </p>
+        <BonusSection />
+      </section>
+
+      <section id="certificate" className={styles.section} aria-labelledby="certificate-title">
+        <h2 id="certificate-title" className={styles.sectionTitle} {...reveal()}>
+          Сертификат
+        </h2>
+        <CertificateSection />
       </section>
 
       <section id="profile" className={styles.section} aria-labelledby="profile-title">
