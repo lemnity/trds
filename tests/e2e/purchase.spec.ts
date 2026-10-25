@@ -143,6 +143,8 @@ test('покупка с бонусами, QR в кабинете и возвра
     await expect(second.getByRole('region', { name: 'Возврат билета' })).toContainText(
       'Вернётся на карту',
     )
+    // В режиме возврата QR не показывается — только данные билета и расчёт.
+    await expect(second.getByRole('img', { name: /QR-код билета/ })).toHaveCount(0)
     await second.getByRole('button', { name: 'Отмена' }).click()
     await second.getByRole('button', { name: 'Закрыть' }).click()
 

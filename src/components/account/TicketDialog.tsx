@@ -46,6 +46,9 @@ export function TicketDialog({
   const { date, time } = formatTicketDate(ticket.startsAt)
   const now = new Date()
   const hint = TICKET_STATE_HINTS[ticket.state]
+  const refundable = ticket.state === 'valid' && Boolean(ticket.qrUrl)
+  // Открыт кнопкой «Вернуть»: без QR и календаря — только данные билета и возврат.
+  const refundView = startRefund && refundable
 
   const addToCalendar = () => {
     const ics = ticketIcs(ticket, { now: new Date(), siteUrl: siteOrigin() })
@@ -60,12 +63,15 @@ export function TicketDialog({
       className={styles.overlay}
     >
       <Modal className={styles.modal}>
-        <Dialog className={styles.dialog} aria-label={`Билет ${ticket.number}`}>
+        <Dialog
+          className={styles.dialog}
+          aria-label={`${refundView ? 'Возврат билета' : 'Билет'} ${ticket.number}`}
+        >
           {({ close }) => (
             <>
               <div className={styles.dialogHead}>
                 <Heading slot="title" className={styles.dialogTitle}>
-                  {ticket.show?.title ?? 'Спектакль'}
+                  {refundView ? 'Возврат билета' : (ticket.show?.title ?? 'Спектакль')}
                 </Heading>
                 <Button
                   className={buttonVariants({ variant: 'ghost', size: 'sm' })}
@@ -75,7 +81,9 @@ export function TicketDialog({
                 </Button>
               </div>
 
-              {ticket.qrUrl ? (
+              {refundView ? (
+                <p className={styles.refundShow}>{ticket.show?.title ?? 'Спектакль'}</p>
+              ) : ticket.qrUrl ? (
                 <figure className={styles.qrBox}>
                   {/* Картинка с сервера (сессия владельца) или демо-QR; не next/image — без оптимизации и кеша. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -132,17 +140,22 @@ export function TicketDialog({
                 </div>
               </dl>
 
-              {canAddToCalendar(ticket, now) && (
+              {!refundView && canAddToCalendar(ticket, now) && (
                 <Button className={buttonVariants({ variant: 'outline' })} onPress={addToCalendar}>
                   Добавить в календарь
                 </Button>
               )}
 
+              {/* Возврат — только у действующего билета на будущий показ; правила проверит сервер.
+                  В режиме «Вернуть» расчёт идёт сразу под данными билета, до состава заказа. */}
+              {refundView && refundable && (
+                <TicketRefund ticketNumber={ticket.number} autoStart demo={demo} />
+              )}
+
               {order && <OrderDetails order={order} />}
 
-              {/* Возврат — только у действующего билета на будущий показ; правила проверит сервер. */}
-              {ticket.state === 'valid' && ticket.qrUrl && (
-                <TicketRefund ticketNumber={ticket.number} autoStart={startRefund} demo={demo} />
+              {!refundView && refundable && (
+                <TicketRefund ticketNumber={ticket.number} demo={demo} />
               )}
             </>
           )}

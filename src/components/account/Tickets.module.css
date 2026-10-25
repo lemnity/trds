@@ -185,6 +185,13 @@
   line-height: var(--leading-tight);
 }
 
+/* Режим «Вернуть»: название спектакля под заголовком «Возврат билета». */
+.refundShow {
+  font-weight: 700;
+  font-size: var(--step-1);
+  line-height: var(--leading-tight);
+}
+
 .qrBox {
   display: grid;
   justify-items: center;
