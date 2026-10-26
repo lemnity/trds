@@ -48,6 +48,9 @@ test('после «Принять» загружается счётчик; ре�
   await expect(banner).toBeHidden()
 
   // Отзыв: «Настройки cookie» → снять аналитику → страница перезагружается без счётчика.
+  // В подвале кнопка может быть в меню «⋯», если строка документов не помещается.
+  const more = page.getByRole('button', { name: 'Ещё документы' })
+  if (await more.isVisible()) await more.click()
   await page.getByRole('button', { name: 'Настройки cookie' }).click()
   const settings = page.getByRole('region', { name: 'Cookie на сайте' })
   await settings.getByText('Аналитика — Яндекс Метрика').click()

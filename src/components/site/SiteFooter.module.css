@@ -85,10 +85,114 @@
   border-top: 1px solid var(--color-hairline);
 }
 
+.docsNav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0 1.75rem;
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
 .docs {
   display: flex;
   flex-wrap: wrap;
   gap: 0 1.75rem;
+  min-width: 0;
+}
+
+/* Замерили — строго в один ряд, лишнее уже в «⋯». */
+.docs[data-fit] {
+  flex-wrap: nowrap;
+}
+
+.docs li {
+  white-space: nowrap;
+}
+
+/* Мерка ширин: тот же шрифт и отступы, вне потока и невидимая. */
+.measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  gap: 0 1.75rem;
+  font-size: var(--step--1);
+  white-space: nowrap;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.more {
+  position: relative;
+  flex: none;
+}
+
+.moreButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+
+.moreButton:hover,
+.moreButton[aria-expanded='true'] {
+  color: var(--color-ink);
+  background: var(--color-hairline);
+}
+
+.moreButton:focus-visible,
+.moreLink:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
+}
+
+/* Подвал внизу страницы — меню раскрывается вверх. */
+.moreMenu {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 40;
+  min-width: 16rem;
+  background: var(--color-surface);
+  box-shadow:
+    0 0 0 1px var(--color-hairline),
+    0 16px 40px rgb(21 23 28 / 0.14);
+}
+
+.moreMenu[hidden] {
+  display: none;
+}
+
+.moreMenu li + li .moreLink {
+  border-top: 1px solid var(--color-hairline);
+}
+
+.moreLink {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 1.25rem;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--step--1);
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.moreLink:hover {
+  background: var(--color-hairline);
 }
 
 .docs a,

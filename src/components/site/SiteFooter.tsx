@@ -4,7 +4,7 @@ import Link from 'next/link'
 import logo from '@/assets/logo.webp'
 import { getSiteContent } from '@/app/(frontend)/site-data'
 
-import { CookieSettingsButton } from './CookieConsent'
+import { type FooterDoc, FooterDocs } from './FooterDocs'
 import { LogoBird } from './LogoBird'
 import { SocialIcon } from './SocialIcon'
 import { ACCOUNT_HREF } from './navigation'
@@ -18,6 +18,22 @@ const NAV = [
   { href: '/contacts', title: 'Контакты' },
   { href: ACCOUNT_HREF, title: 'Личный кабинет' },
 ]
+
+/** Порядок документов в подвале — по важности: первые остаются на виду, хвост уходит в «⋯». */
+const DOC_PRIORITY = ['privacy', 'terms', 'refunds', 'requisites', 'personal-data', 'cookies']
+
+const footerDocs = (docs: { slug: string; title: string }[]): FooterDoc[] => {
+  const rank = (slug: string) => {
+    const i = DOC_PRIORITY.indexOf(slug)
+    return i < 0 ? DOC_PRIORITY.length : i
+  }
+  return [
+    ...[...docs]
+      .sort((a, b) => rank(a.slug) - rank(b.slug))
+      .map((d) => ({ href: `/documents/${d.slug}`, title: d.title })),
+    { href: '/site-map', title: 'Карта сайта' },
+  ]
+}
 
 /** Ссылка на сайт разработчика (simakoov.ru). «oo» в Simakoov — знак бесконечности, по которому бежит штрих (без анимации при reduced motion). */
 function DevCredit() {
@@ -101,22 +117,7 @@ export async function SiteFooter() {
       </div>
 
       <div className={`container ${styles.bottom}`}>
-        <nav aria-label="Документы">
-          <ul className={styles.docs}>
-            {legalDocuments.map((doc) => (
-              <li key={doc.slug}>
-                <Link href={`/documents/${doc.slug}`}>{doc.title}</Link>
-              </li>
-            ))}
-            <li>
-              <Link href="/site-map">Карта сайта</Link>
-            </li>
-            <li>
-              {/* Отозвать или дать согласие на аналитику в любой момент (T-036). */}
-              <CookieSettingsButton className={styles.docButton} />
-            </li>
-          </ul>
-        </nav>
+        <FooterDocs docs={footerDocs(legalDocuments)} />
         <DevCredit />
       </div>
     </footer>

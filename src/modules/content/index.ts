@@ -99,6 +99,7 @@ export const contacts = {
   social: [
     { name: 'Telegram', handle: '@Turdustheatre', href: 'https://telegram.me/Turdustheatre' },
     { name: 'ВКонтакте', handle: 'turdustheater', href: 'https://vk.com/turdustheater' },
+    { name: 'MAX', handle: 'Театр TURDUS', href: 'https://max.ru/id660402643447_biz' },
   ],
 }
 
