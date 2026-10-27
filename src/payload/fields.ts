@@ -151,10 +151,13 @@ export const requireImageOnPublish =
   ({ data, originalDoc, req }) => {
     const merged = { ...originalDoc, ...data }
     if (merged._status === 'published' && !merged[name] && !merged[`${name}Url`])
-      throw new ValidationError({
-        collection,
-        errors: [{ path: name, message: `${label}: загрузите файл или укажите адрес` }],
-        req,
-      })
+      throw new ValidationError(
+        {
+          collection,
+          errors: [{ path: name, label, message: `${label}: загрузите файл или укажите адрес` }],
+          req,
+        },
+        req.t,
+      )
     return data
   }

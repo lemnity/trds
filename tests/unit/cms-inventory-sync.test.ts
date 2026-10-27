@@ -79,6 +79,7 @@ describe('ticket type → inventory (syncCapacity)', () => {
     expect((error as ValidationError).data.errors).toEqual([
       {
         path: 'capacity',
+        label: 'Вместимость (квота)',
         message:
           'Нельзя меньше проданного и забронированного: «standard» — уже 5 билетов, указано 3.',
       },

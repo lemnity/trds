@@ -35,6 +35,7 @@
     "@payloadcms/db-postgres": "3.90.2",
     "@payloadcms/next": "3.90.2",
     "@payloadcms/richtext-lexical": "3.90.2",
+    "@payloadcms/translations": "3.90.2",
     "@payloadcms/ui": "3.90.2",
     "@react-aria/ssr": "3.10.1",
     "@react-aria/utils": "3.34.1",

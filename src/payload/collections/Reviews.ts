@@ -30,11 +30,20 @@ export const Reviews: CollectionConfig = {
       ({ data, req }) => {
         // Выдержка — дословная часть отзыва: иначе это уже не цитата.
         if (data?.lead && data?.quote && !String(data.quote).includes(String(data.lead)))
-          throw new ValidationError({
-            collection: 'reviews',
-            errors: [{ path: 'lead', message: 'Выдержка должна дословно входить в полный текст' }],
-            req,
-          })
+          throw new ValidationError(
+            {
+              collection: 'reviews',
+              errors: [
+                {
+                  path: 'lead',
+                  label: 'Выдержка для крупного набора',
+                  message: 'Выдержка должна дословно входить в полный текст',
+                },
+              ],
+              req,
+            },
+            req.t,
+          )
         return data
       },
     ],

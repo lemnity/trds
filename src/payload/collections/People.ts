@@ -3,6 +3,8 @@ import type { CollectionConfig } from 'payload'
 import { contentAccess } from '../access/roles'
 import { imageFields, paragraphsField, seoField, slugField, sortOrderField } from '../fields'
 
+type WorkValidateArgs = { siblingData?: { show?: unknown } }
+
 /**
  * Люди театра (T-025): актёры, режиссёры, руководство, педагоги. Связаны с составами спектаклей
  * и архива. Портреты и биографии — только переданные театром (rules.md §7).
@@ -41,7 +43,34 @@ export const People: CollectionConfig = {
       type: 'array',
       label: 'Работы',
       labels: { singular: 'Работа', plural: 'Работы' },
-      fields: [{ name: 'title', type: 'text', label: 'Название', required: true }],
+      // Спектакль выбирается из каталога (афиша и архив); название вручную — только для работ
+      // вне театра (биография от театра называет и чужие постановки).
+      fields: [
+        {
+          name: 'show',
+          type: 'relationship',
+          label: 'Спектакль из каталога',
+          relationTo: ['shows', 'archive'],
+          admin: {
+            description: 'Из афиши или архива. Нет в каталоге — заполните «Название» ниже.',
+          },
+        },
+        {
+          name: 'title',
+          type: 'text',
+          label: 'Название (если спектакля нет в каталоге)',
+          validate: (value: string | null | undefined, { siblingData }: WorkValidateArgs) =>
+            value?.trim() || siblingData?.show
+              ? true
+              : 'Выберите спектакль из каталога или укажите название',
+        },
+        {
+          name: 'character',
+          type: 'text',
+          label: 'Герой — кого играет',
+          admin: { description: 'Например: «Тартюф». Пусто — если работа не актёрская.' },
+        },
+      ],
     },
     {
       name: 'quote',

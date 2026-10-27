@@ -174,12 +174,16 @@ export const leadership: Leader[] = [
   },
 ]
 
+/** Работа в биографии: спектакль из каталога (со ссылкой, если идёт в афише) или чужая постановка. */
+export type BioWork = { title: string; href?: string; character?: string }
+export type PersonBio = { title: string; paragraphs: string[]; works?: BioWork[]; source: string }
+
+const titles = (list: string[]): BioWork[] => list.map((title) => ({ title }))
+
 /**
  * Биографии людей театра — дословно со страницы teatrturdus.ru/theatre-school (16.10.2026),
  * где они представлены как педагоги «Актёрской школы». Ключ — адрес страницы человека.
  */
-export type PersonBio = { title: string; paragraphs: string[]; works?: string[]; source: string }
-
 export const personBios: Record<string, PersonBio> = {
   'artem-aksenov': {
     title: 'Художественный руководитель и режиссёр курса «Актёрской школы»',
@@ -187,7 +191,7 @@ export const personBios: Record<string, PersonBio> = {
       'Выпускник ЕГТИ.',
       'Член Союза театральных деятелей Российской Федерации. Актёр Свердловской государственной детской филармонии. Режиссёр. Продюсер.',
     ],
-    works: [
+    works: titles([
       '«Ромео и Джульетта» (на языке оригинала), У. Шекспир',
       '«Сон в летнюю ночь» (на языке оригинала), У. Шекспир',
       '«Женитьба», Н. Гоголь',
@@ -201,7 +205,7 @@ export const personBios: Record<string, PersonBio> = {
       'Иммерсивный спектакль «Не ходите в гости...» по рассказам Чехова',
       'Спектакль-автофикшн «В бананово-лимонном Сингапуре»',
       '«Муж для Памелы», Д. Патрик',
-    ],
+    ]),
     source: 'teatrturdus.ru/theatre-school',
   },
   'marina-shuranova': {
@@ -296,7 +300,7 @@ export const school = {
         'Выпускник ЕГТИ.',
         'Член Союза театральных деятелей Российской Федерации. Актёр Свердловской государственной детской филармонии. Режиссёр. Продюсер.',
       ],
-      works: personBios['artem-aksenov']!.works,
+      works: personBios['artem-aksenov']!.works?.map((work) => work.title),
     },
     {
       slug: 'larisa-vavilova',

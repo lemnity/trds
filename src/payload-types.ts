@@ -272,7 +272,23 @@ export interface Person {
   bio?: string | null;
   works?:
     | {
-        title: string;
+        /**
+         * Из афиши или архива. Нет в каталоге — заполните «Название» ниже.
+         */
+        show?:
+          | ({
+              relationTo: 'shows';
+              value: number | Show;
+            } | null)
+          | ({
+              relationTo: 'archive';
+              value: number | Archive;
+            } | null);
+        title?: string | null;
+        /**
+         * Например: «Тартюф». Пусто — если работа не актёрская.
+         */
+        character?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -346,6 +362,47 @@ export interface Media {
       filename?: string | null;
     };
   };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "archive".
+ */
+export interface Archive {
+  id: number;
+  title: string;
+  /**
+   * Часть адреса: /shows/<адрес>. Пусто — заполнится из названия.
+   */
+  slug?: string | null;
+  genre?: string | null;
+  poster?: (number | null) | Media;
+  /**
+   * Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…
+   */
+  posterUrl?: string | null;
+  credits?:
+    | {
+        role: string;
+        entries?:
+          | {
+              character?: string | null;
+              /**
+               * Несколько человек — состав в очередь.
+               */
+              people: (number | Person)[];
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Меньше — выше в списке.
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -454,47 +511,6 @@ export interface TicketType {
   sortOrder?: number | null;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "archive".
- */
-export interface Archive {
-  id: number;
-  title: string;
-  /**
-   * Часть адреса: /shows/<адрес>. Пусто — заполнится из названия.
-   */
-  slug?: string | null;
-  genre?: string | null;
-  poster?: (number | null) | Media;
-  /**
-   * Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…
-   */
-  posterUrl?: string | null;
-  credits?:
-    | {
-        role: string;
-        entries?:
-          | {
-              character?: string | null;
-              /**
-               * Несколько человек — состав в очередь.
-               */
-              people: (number | Person)[];
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Меньше — выше в списке.
-   */
-  sortOrder?: number | null;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -992,7 +1008,9 @@ export interface PeopleSelect<T extends boolean = true> {
   works?:
     | T
     | {
+        show?: T;
         title?: T;
+        character?: T;
         id?: T;
       };
   quote?:

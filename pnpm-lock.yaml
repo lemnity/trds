@@ -30,6 +30,9 @@ importers:
       '@payloadcms/richtext-lexical':
         specifier: 3.90.2
         version: 3.90.2(@faceless-ui/modal@3.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@faceless-ui/scroll-info@2.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@payloadcms/next@3.90.2(@types/react@19.2.18)(graphql@16.8.1)(monaco-editor@0.57.0)(next@16.4.2(@babel/core@7.29.7)(@playwright/test@1.64.0)(@types/node@24.19.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(sass@1.77.4))(payload@3.90.2(graphql@16.8.1)(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(@types/react@19.2.18)(monaco-editor@0.57.0)(next@16.4.2(@babel/core@7.29.7)(@playwright/test@1.64.0)(@types/node@24.19.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(sass@1.77.4))(payload@3.90.2(graphql@16.8.1)(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)(yjs@13.6.33)
+      '@payloadcms/translations':
+        specifier: 3.90.2
+        version: 3.90.2
       '@payloadcms/ui':
         specifier: 3.90.2
         version: 3.90.2(@types/react@19.2.18)(monaco-editor@0.57.0)(next@16.4.2(@babel/core@7.29.7)(@playwright/test@1.64.0)(@types/node@24.19.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(sass@1.77.4))(payload@3.90.2(graphql@16.8.1)(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)

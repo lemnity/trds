@@ -195,7 +195,7 @@ export async function seedCms(payload: Payload, options: SeedOptions): Promise<S
           position: leader?.position ?? null,
           bioTitle: bio?.title ?? null,
           bio: bio?.paragraphs.join('\n\n') ?? null,
-          works: (bio?.works ?? []).map((title) => ({ title })),
+          works: (bio?.works ?? []).map(({ title }) => ({ title })),
           quote: leader?.quote ? { text: leader.quote.text, about: leader.quote.about } : {},
           leadership: !!leader,
           sortOrder: leader?.i ?? 0,

@@ -35,11 +35,20 @@ const uniqueCodePerPerformance: CollectionBeforeValidateHook = async ({
     req,
   })
   if (docs.length)
-    throw new ValidationError({
-      collection: TICKET_TYPES_SLUG,
-      errors: [{ path: 'code', message: 'У этого показа уже есть категория с таким ключом' }],
-      req,
-    })
+    throw new ValidationError(
+      {
+        collection: TICKET_TYPES_SLUG,
+        errors: [
+          {
+            path: 'code',
+            label: 'Ключ',
+            message: 'У этого показа уже есть категория с таким ключом',
+          },
+        ],
+        req,
+      },
+      req.t,
+    )
   return data
 }
 

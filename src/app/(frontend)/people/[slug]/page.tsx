@@ -166,7 +166,10 @@ export default async function PersonPage({ params }: { params: Promise<Params> }
                 <p className={styles.bioWorksTitle}>Спектакли</p>
                 <ul className={styles.bioWorks}>
                   {bio.works.map((work) => (
-                    <li key={work}>{work}</li>
+                    <li key={work.title}>
+                      {work.href ? <Link href={work.href}>{work.title}</Link> : work.title}
+                      {work.character && <> — {work.character}</>}
+                    </li>
                   ))}
                 </ul>
               </>

@@ -13,6 +13,7 @@ import { imageOf, mediaUrl, paragraphs } from '../shows/cms'
 
 import type {
   AboutPage,
+  BioWork,
   Contacts,
   CorporatePage,
   Leader,
@@ -76,10 +77,24 @@ export const portraitOf = (media: number | CmsMedia | null | undefined): Portrai
   return m?.url && m.width && m.height ? { src: m.url, width: m.width, height: m.height } : null
 }
 
+/**
+ * Работа из CMS: спектакль из каталога даёт название (и ссылку, если он в афише), иначе —
+ * название вручную. Неопубликованный спектакль приходит без данных (только id) — тогда тоже
+ * ручное название; без него строка не показывается.
+ */
+const workFromCms = (work: NonNullable<CmsPerson['works']>[number]): BioWork[] => {
+  const ref = work.show && typeof work.show.value === 'object' ? work.show : null
+  const title = ref ? (ref.value as { title: string }).title : work.title?.trim()
+  if (!title) return []
+  const slug = ref?.relationTo === 'shows' ? (ref.value as { slug?: string | null }).slug : null
+  const character = work.character?.trim()
+  return [{ title, ...(slug && { href: `/shows/${slug}` }), ...(character && { character }) }]
+}
+
 export const bioFromCms = (doc: CmsPerson): PersonBio | null => {
   const body = paragraphs(doc.bio)
   if (!body.length) return null
-  const works = (doc.works ?? []).map((w) => w.title)
+  const works = (doc.works ?? []).flatMap(workFromCms)
   return {
     title: doc.bioTitle || doc.position || '',
     paragraphs: body,

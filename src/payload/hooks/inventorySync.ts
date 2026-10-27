@@ -115,17 +115,22 @@ async function sync(
   perf: Performance,
   collection: string,
   path: string,
+  label: string,
 ) {
   const result = await (await inventoryFor(req)).syncCapacity(capacityFromPerformance(perf))
   if (result.ok) return result
-  throw new ValidationError({
-    collection,
-    errors: result.conflicts.map((c) => ({
-      path,
-      message: `Нельзя меньше проданного и забронированного: «${c.ticketTypeId}» — уже ${c.committed} ${ticketsWord(c.committed)}, указано ${c.capacity}.`,
-    })),
-    req,
-  })
+  throw new ValidationError(
+    {
+      collection,
+      errors: result.conflicts.map((c) => ({
+        path,
+        label,
+        message: `Нельзя меньше проданного и забронированного: «${c.ticketTypeId}» — уже ${c.committed} ${ticketsWord(c.committed)}, указано ${c.capacity}.`,
+      })),
+      req,
+    },
+    req.t,
+  )
 }
 
 /** Категория билетов сохранена → синхронизировать вместимость всего показа. */
@@ -136,7 +141,14 @@ export const syncTicketTypeCapacity =
     if (performanceId === null) return doc
     const perf = await loadPerformance(req, performanceId)
     const types = await loadTypes(req, performanceId)
-    await sync(req, inventoryFor, inventoryPerformance(perf, types), TICKET_TYPES_SLUG, 'capacity')
+    await sync(
+      req,
+      inventoryFor,
+      inventoryPerformance(perf, types),
+      TICKET_TYPES_SLUG,
+      'capacity',
+      'Вместимость (квота)',
+    )
     return doc
   }
 
@@ -161,6 +173,7 @@ export const guardTicketTypeDelete =
       inventoryPerformance(perf, types, { code: type.code, capacity: 0 }),
       TICKET_TYPES_SLUG,
       'capacity',
+      'Вместимость (квота)',
     )
   }
 
@@ -171,7 +184,14 @@ export const syncPerformanceSeating =
     if (doc._status === 'draft') return doc
     const types = await loadTypes(req, doc.id)
     if (!doc.seating?.planId && types.length === 0) return doc
-    await sync(req, inventoryFor, inventoryPerformance(doc, types), PERFORMANCES_SLUG, 'seating')
+    await sync(
+      req,
+      inventoryFor,
+      inventoryPerformance(doc, types),
+      PERFORMANCES_SLUG,
+      'seating',
+      'Схема зала',
+    )
     return doc
   }
 

@@ -1,5 +1,6 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { ru } from '@payloadcms/translations/languages/ru'
 import path from 'path'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
@@ -29,9 +30,14 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
     meta: { titleSuffix: ' — TURDUS CMS' },
+    dateFormat: 'd MMMM yyyy, HH:mm',
     // Второй фактор (T-023): экран /admin/mfa и перенаправление на него до прохождения MFA.
     // Канбан корпоративов (T-065) и сертификаты (T-066) — свои разделы в стандартном шаблоне.
     components: {
+      graphics: {
+        Icon: '/payload/components/AdminBrand#AdminIcon',
+        Logo: '/payload/components/AdminBrand#AdminLogo',
+      },
       providers: ['/payload/components/MfaGate#MfaGate'],
       afterNavLinks: [
         '/payload/components/AdminNavLinks#AdminNavLinks',
@@ -39,16 +45,26 @@ export default buildConfig({
         '/payload/components/MfaNavLink#MfaNavLink',
       ],
       views: {
-        mfa: { Component: '/payload/components/MfaView#MfaView', path: '/mfa' },
-        leads: { Component: '/payload/components/leads/LeadsView#LeadsView', path: '/leads' },
+        mfa: {
+          Component: '/payload/components/MfaView#MfaView',
+          path: '/mfa',
+          meta: { title: 'Второй фактор' },
+        },
+        leads: {
+          Component: '/payload/components/leads/LeadsView#LeadsView',
+          path: '/leads',
+          meta: { title: 'Корпоративы' },
+        },
         certificates: {
           Component: '/payload/components/certificates/CertificatesView#CertificatesView',
           path: '/certificates',
+          meta: { title: 'Подарочные сертификаты' },
         },
         // Возвраты (T-053): кассир и администратор.
         refunds: {
           Component: '/payload/components/refunds/RefundsView#RefundsView',
           path: '/refunds',
+          meta: { title: 'Возвраты' },
         },
       },
     },
@@ -58,6 +74,27 @@ export default buildConfig({
   // Коллекции и настройки CMS — src/payload (роли и доступы — src/payload/access/roles.ts).
   collections,
   globals: [SiteSettings],
+  // Админка только на русском; переопределены строки, которые в стандартном переводе звучат
+  // неестественно (галочки в списках — «Правда/Ложь», пустое значение — «Без метки»; у старых
+  // записей без значения галочки ячейка запрашивает ключ `general:null`).
+  i18n: {
+    supportedLanguages: { ru },
+    fallbackLanguage: 'ru',
+    translations: {
+      ru: {
+        general: {
+          true: 'Да',
+          false: 'Нет',
+          null: 'Нет',
+          noLabel: '—',
+          dashboard: 'Главная',
+          email: 'Почта',
+          emailAddress: 'Почта',
+          searchBy: 'Поиск: {{label}}',
+        },
+      },
+    },
+  },
   plugins: storagePlugins(),
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET ?? '',

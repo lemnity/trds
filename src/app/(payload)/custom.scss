@@ -1,0 +1,4 @@
+// Логотип театра (src/payload/components/AdminBrand.tsx) — тёмный; в тёмной теме админки светлый.
+html[data-theme='dark'] .turdus-admin-brand {
+  filter: invert(1);
+}

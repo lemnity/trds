@@ -1,3 +1,5 @@
+import { AdminIcon as AdminIcon_547aa444501e522c092c005941ad7303 } from '../../../payload/components/AdminBrand'
+import { AdminLogo as AdminLogo_547aa444501e522c092c005941ad7303 } from '../../../payload/components/AdminBrand'
 import { AdminNavLinks as AdminNavLinks_6989c2b28aaa1ffaed0e1a411d06ffaa } from '../../../payload/components/AdminNavLinks'
 import { RefundsNavLink as RefundsNavLink_7b11dc1e76bf6af7be00789285ef8d1f } from '../../../payload/components/refunds/RefundsNavLink'
 import { MfaNavLink as MfaNavLink_5bd747441aa4ab87badb346e980d60c4 } from '../../../payload/components/MfaNavLink'
@@ -10,6 +12,8 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "/payload/components/AdminBrand#AdminIcon": AdminIcon_547aa444501e522c092c005941ad7303,
+  "/payload/components/AdminBrand#AdminLogo": AdminLogo_547aa444501e522c092c005941ad7303,
   "/payload/components/AdminNavLinks#AdminNavLinks": AdminNavLinks_6989c2b28aaa1ffaed0e1a411d06ffaa,
   "/payload/components/refunds/RefundsNavLink#RefundsNavLink": RefundsNavLink_7b11dc1e76bf6af7be00789285ef8d1f,
   "/payload/components/MfaNavLink#MfaNavLink": MfaNavLink_5bd747441aa4ab87badb346e980d60c4,
