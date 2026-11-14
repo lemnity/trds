@@ -345,7 +345,12 @@ describe('order.paid email over the real order flow', () => {
     expect(mail.idempotencyKey).toBe(`order.paid:${order.id}`)
     expect(mail.subject).toContain(order.number)
     expect(mail.subject).not.toContain('@')
-    expect(mail.attachments).toHaveLength(2)
+    // Логотип и QR на каждый билет.
+    expect(mail.attachments!.map((a) => a.cid)).toEqual([
+      'logo@turdus',
+      'qr-1@turdus',
+      'qr-2@turdus',
+    ])
     expect(mail.attachments!.every((a) => a.contentType === 'image/png' && a.cid)).toBe(true)
     for (const t of tickets) {
       expect(mail.text).toContain(t.number)

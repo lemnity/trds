@@ -30,7 +30,7 @@ export const authCodes = pgTable(
     id: uuid('id').primaryKey(),
     email: text('email').notNull(),
     codeHash: text('code_hash').notNull(),
-    purpose: text('purpose', { enum: ['login', 'register', 'password'] }).notNull(),
+    purpose: text('purpose', { enum: ['login', 'register', 'password', 'staff'] }).notNull(),
     name: text('name'),
     passwordHash: text('password_hash'),
     attempts: integer('attempts').notNull().default(0),

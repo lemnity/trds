@@ -13,6 +13,9 @@ x-app-env: &app-env
   NEXT_PUBLIC_SITE_URL: https://${SITE_DOMAIN:?задайте SITE_DOMAIN в .env}
   PUBLIC_SITE_URL: https://${SITE_DOMAIN:?задайте SITE_DOMAIN в .env}
   CMS_SYSTEM_ADMIN_EMAILS: ${CMS_SYSTEM_ADMIN_EMAILS:-}
+  # Супер-админ: почта + код из приложения-аутентификатора (src/payload/auth/superAdmin.ts).
+  SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-}
+  SUPERADMIN_TOTP_SECRET: ${SUPERADMIN_TOTP_SECRET:-}
   # Медиа админки — на томе media (входит в бэкап).
   MEDIA_DIR: /app/media
   # Необязательные интеграции: пустое значение = выключено (оплата, почта, Яндекс ID).

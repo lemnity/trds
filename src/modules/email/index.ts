@@ -100,21 +100,24 @@ export {
   type OutboxRunStats,
 } from './outbox'
 
-/** Письмо с кодом входа, подтверждения почты или смены пароля. */
+/** Письмо с кодом входа, подтверждения почты, смены пароля или входа сотрудника в админку. */
 export const codeEmail = (
   code: string,
-  purpose: 'login' | 'register' | 'password',
+  purpose: 'login' | 'register' | 'password' | 'staff',
 ): Omit<EmailMessage, 'to'> => ({
   subject: {
     register: `${code} — код подтверждения почты TURDUS`,
     login: `${code} — код входа TURDUS`,
     password: `${code} — код для смены пароля TURDUS`,
+    staff: `${code} — код входа в админку TURDUS`,
   }[purpose],
   text: [
     {
       register: 'Подтвердите почту для личного кабинета модного театра TURDUS.',
       login: 'Вход в личный кабинет модного театра TURDUS.',
       password: 'Смена пароля в личном кабинете модного театра TURDUS.',
+      staff:
+        'Вход в админку модного театра TURDUS. После этого кода понадобится код из приложения-аутентификатора.',
     }[purpose],
     '',
     `Код: ${code}`,

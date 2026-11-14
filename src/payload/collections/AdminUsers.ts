@@ -20,7 +20,10 @@ import {
   theatreAdmins,
   type StaffUser,
 } from '../access/roles'
+import { randomBytes } from 'node:crypto'
+
 import { writeCmsAudit, type CmsAuditWriter } from '../audit'
+import { blockPasswordLogin } from '../auth/codeLogin'
 import { mfaEndpoints } from '../auth/endpoints'
 import { ADMIN_MFA_CODES_SLUG, ADMIN_MFA_SLUG } from '../auth/mfaStore'
 
@@ -186,6 +189,15 @@ export const AdminUsers: CollectionConfig = {
   },
   endpoints: mfaEndpoints(),
   hooks: {
+    // Вход только по коду из письма и коду из приложения (src/payload/auth/codeLogin.ts):
+    // пароль Payload-у нужен технически — задаём случайный, его никто не знает и не вводит.
+    beforeValidate: [
+      ({ data, operation }) =>
+        operation === 'create' && data && !data.password
+          ? { ...data, password: randomBytes(32).toString('base64url') }
+          : data,
+    ],
+    beforeLogin: [blockPasswordLogin],
     beforeChange: [guardRoleChanges],
     afterChange: [auditUserChange()],
     beforeDelete: [guardUserDelete],

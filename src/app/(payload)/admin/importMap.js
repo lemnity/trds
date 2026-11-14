@@ -4,6 +4,8 @@ import { AdminNavLinks as AdminNavLinks_6989c2b28aaa1ffaed0e1a411d06ffaa } from 
 import { RefundsNavLink as RefundsNavLink_7b11dc1e76bf6af7be00789285ef8d1f } from '../../../payload/components/refunds/RefundsNavLink'
 import { MfaNavLink as MfaNavLink_5bd747441aa4ab87badb346e980d60c4 } from '../../../payload/components/MfaNavLink'
 import { MfaGate as MfaGate_d6a0b852bad1732cd89c9176c6b9d902 } from '../../../payload/components/MfaGate'
+import { LoginCodeView as LoginCodeView_be752d599afafc8eadc8cef4cc6435ef } from '../../../payload/components/LoginCodeView'
+import { ForgotPasswordRedirect as ForgotPasswordRedirect_be752d599afafc8eadc8cef4cc6435ef } from '../../../payload/components/LoginCodeView'
 import { MfaView as MfaView_dbf05a2196efb27b67541baf318167ee } from '../../../payload/components/MfaView'
 import { LeadsView as LeadsView_c913debf737771720c4c8bde105cac74 } from '../../../payload/components/leads/LeadsView'
 import { CertificatesView as CertificatesView_6eec981a0fa7be1c78cdf0d394eb2c41 } from '../../../payload/components/certificates/CertificatesView'
@@ -18,6 +20,8 @@ export const importMap = {
   "/payload/components/refunds/RefundsNavLink#RefundsNavLink": RefundsNavLink_7b11dc1e76bf6af7be00789285ef8d1f,
   "/payload/components/MfaNavLink#MfaNavLink": MfaNavLink_5bd747441aa4ab87badb346e980d60c4,
   "/payload/components/MfaGate#MfaGate": MfaGate_d6a0b852bad1732cd89c9176c6b9d902,
+  "/payload/components/LoginCodeView#LoginCodeView": LoginCodeView_be752d599afafc8eadc8cef4cc6435ef,
+  "/payload/components/LoginCodeView#ForgotPasswordRedirect": ForgotPasswordRedirect_be752d599afafc8eadc8cef4cc6435ef,
   "/payload/components/MfaView#MfaView": MfaView_dbf05a2196efb27b67541baf318167ee,
   "/payload/components/leads/LeadsView#LeadsView": LeadsView_c913debf737771720c4c8bde105cac74,
   "/payload/components/certificates/CertificatesView#CertificatesView": CertificatesView_6eec981a0fa7be1c78cdf0d394eb2c41,

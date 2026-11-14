@@ -1,6 +1,7 @@
 import type { Access, FieldAccess, PayloadRequest, Where } from 'payload'
 
 import { MFA_COOKIE, mfaKeysFromEnv, readCookie, verifyMfaCookie } from '../auth/mfa'
+import { superAdminEmailFromEnv } from '../auth/superAdmin'
 
 /**
  * Роли сотрудников CMS (plan-main.md §7.1, T-023). Права проверяются здесь — в access layer
@@ -43,20 +44,26 @@ const staffOf = (req: ReqLike): StaffUser | null => {
   return user && user.collection === ADMIN_USERS_SLUG ? user : null
 }
 
-const systemAdminEmails = () =>
-  (process.env.CMS_SYSTEM_ADMIN_EMAILS ?? '')
+const systemAdminEmails = () => {
+  const list = (process.env.CMS_SYSTEM_ADMIN_EMAILS ?? '')
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean)
+  // Супер-админ из .env (src/payload/auth/superAdmin.ts) — всегда системный администратор.
+  const superAdmin = superAdminEmailFromEnv()
+  return superAdmin ? [...list, superAdmin] : list
+}
 
 export const isSystemAdmin = (user: StaffUser | null | undefined) =>
   !!user &&
   (user.systemAdmin === true ||
     (!!user.email && systemAdminEmails().includes(user.email.toLowerCase())))
 
-/** MFA обязательна администраторам (rules.md §4) и всем, кто включил её сам. */
-export const mfaRequired = (user: StaffUser) =>
-  user.role === 'admin' || isSystemAdmin(user) || user.mfaEnabled === true
+/**
+ * Код из приложения обязателен всем сотрудникам: вход — почта → код из письма → код из
+ * приложения, пароля нет (src/payload/auth/codeLogin.ts). Без второго шага прав нет.
+ */
+export const mfaRequired: (user: StaffUser) => boolean = () => true
 
 /** Второй фактор пройден в текущей сессии (подписанная cookie, привязанная к sid). */
 export const mfaVerified = (req: ReqLike, user: StaffUser, now = new Date()) =>

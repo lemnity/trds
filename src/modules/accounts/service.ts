@@ -25,8 +25,11 @@ export const OTP_RULES = {
   sessionDays: 30,
 } as const
 
-/** `password` — подтверждение почтой смены пароля в профиле (T-055); для входа не годится. */
-export type CodePurpose = 'login' | 'register' | 'password'
+/**
+ * `password` — подтверждение почтой смены пароля в профиле (T-055); для входа не годится.
+ * `staff` — первый шаг входа сотрудника в админку (второй — код из приложения); в кабинет не пускает.
+ */
+export type CodePurpose = 'login' | 'register' | 'password' | 'staff'
 
 export type CodeRow = {
   id: string
@@ -271,6 +274,11 @@ export function createAuthService({
     return (await store.consumeCode(latest.id, at)) ? latest : null
   }
 
+  /** Код из письма для входа в админку: погасить, если верный. Кто сотрудник — решает вызывающий. */
+  async function verifyStaffCode(input: { email: string; code: string }): Promise<boolean> {
+    return !!(await consumeLatestCode(normalizeEmail(input.email), input.code, ['staff'], now()))
+  }
+
   async function verifyCode(input: { email: string; code: string }): Promise<VerifyResult> {
     const email = normalizeEmail(input.email)
     const at = now()
@@ -485,6 +493,7 @@ export function createAuthService({
   return {
     requestCode,
     verifyCode,
+    verifyStaffCode,
     passwordLogin,
     externalSignIn,
     externalSignUp,

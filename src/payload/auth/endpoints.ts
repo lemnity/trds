@@ -88,13 +88,17 @@ const sessionStaff = (req: PayloadRequest) => {
   return user?.collection === ADMIN_USERS_SLUG && user._sid ? user : null
 }
 
-const verifiedCookie = (user: StaffUser, now: Date) => {
+/** Set-Cookie «второй фактор пройден» для сессии `sid` (нужен и входу супер-админа). */
+export const mfaVerifiedCookie = (userId: string, sid: string, now = new Date()) => {
   const expiresAt = new Date(now.getTime() + MFA_COOKIE_MAX_AGE_S * 1000)
   return mfaCookie(
-    signMfaCookie({ userId: String(user.id), sid: user._sid!, expiresAt }, mfaKeysFromEnv().cookie),
+    signMfaCookie({ userId, sid, expiresAt }, mfaKeysFromEnv().cookie),
     MFA_COOKIE_MAX_AGE_S,
   )
 }
+
+const verifiedCookie = (user: StaffUser, now: Date) =>
+  mfaVerifiedCookie(String(user.id), user._sid!, now)
 
 const ERROR_STATUS = {
   INVALID_CODE: 400,

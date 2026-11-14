@@ -12,6 +12,7 @@ import { leadsTables } from './db/schema/leads'
 import { opsTables } from './db/schema/ops'
 import { walletTables } from './db/schema/wallet'
 import { collections } from './payload/collections'
+import { codeLoginEndpoints } from './payload/auth/codeLogin'
 import { AdminUsers } from './payload/collections/AdminUsers'
 import { refundEndpoints } from './payload/components/refunds/endpoints'
 import { certificateEndpoints } from './payload/endpoints/certificates'
@@ -45,6 +46,16 @@ export default buildConfig({
         '/payload/components/MfaNavLink#MfaNavLink',
       ],
       views: {
+        // Вход без пароля: почта → код из письма → код из приложения (src/payload/auth/codeLogin.ts).
+        login: {
+          Component: '/payload/components/LoginCodeView#LoginCodeView',
+          path: '/login',
+          meta: { title: 'Вход' },
+        },
+        forgot: {
+          Component: '/payload/components/LoginCodeView#ForgotPasswordRedirect',
+          path: '/forgot',
+        },
         mfa: {
           Component: '/payload/components/MfaView#MfaView',
           path: '/mfa',
@@ -70,7 +81,12 @@ export default buildConfig({
     },
   },
   // REST своих разделов админки: /api/cms/leads…, /api/cms/certificates… (права — внутри).
-  endpoints: [...leadEndpoints(), ...certificateEndpoints(), ...refundEndpoints()],
+  endpoints: [
+    ...codeLoginEndpoints(),
+    ...leadEndpoints(),
+    ...certificateEndpoints(),
+    ...refundEndpoints(),
+  ],
   // Коллекции и настройки CMS — src/payload (роли и доступы — src/payload/access/roles.ts).
   collections,
   globals: [SiteSettings],

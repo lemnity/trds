@@ -207,3 +207,34 @@ describe('password', () => {
     )
   })
 })
+
+describe('код входа сотрудника в админку (purpose: staff)', () => {
+  it('верный код погашается один раз', async () => {
+    const { auth } = setup()
+    await auth.requestCode({ email: 'Kassa@Turdus.ru', purpose: 'staff' })
+    expect(await auth.verifyStaffCode({ email: 'kassa@turdus.ru', code: '123456' })).toBe(true)
+    expect(await auth.verifyStaffCode({ email: 'kassa@turdus.ru', code: '123456' })).toBe(false)
+  })
+
+  it('код сотрудника не открывает личный кабинет, а код кабинета — админку', async () => {
+    const { auth, tick } = setup()
+    await auth.requestCode({ email: 'a@t.ru', purpose: 'staff' })
+    const asCustomer = await auth.verifyCode({ email: 'a@t.ru', code: '123456' })
+    expect(asCustomer.ok).toBe(false)
+    tick(OTP_RULES.resendAfterSec * 1000)
+    await auth.requestCode({ email: 'a@t.ru', purpose: 'login' })
+    expect(await auth.verifyStaffCode({ email: 'a@t.ru', code: '123456' })).toBe(false)
+  })
+
+  it('после 5 неверных попыток даже верный код не принимается; истёкший — тоже', async () => {
+    const { auth, tick } = setup()
+    await auth.requestCode({ email: 'a@t.ru', purpose: 'staff' })
+    for (let i = 0; i < OTP_RULES.maxAttempts; i++)
+      expect(await auth.verifyStaffCode({ email: 'a@t.ru', code: '000000' })).toBe(false)
+    expect(await auth.verifyStaffCode({ email: 'a@t.ru', code: '123456' })).toBe(false)
+    tick(OTP_RULES.resendAfterSec * 1000)
+    await auth.requestCode({ email: 'a@t.ru', purpose: 'staff' })
+    tick(OTP_RULES.ttlSec * 1000 + 1)
+    expect(await auth.verifyStaffCode({ email: 'a@t.ru', code: '123456' })).toBe(false)
+  })
+})

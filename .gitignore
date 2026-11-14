@@ -19,3 +19,20 @@ out/
 
 # Локальные скриншоты проверки вёрстки
 .preview/
+
+# Данные: фото и файлы от театра в корне, дампы базы, бэкапы, секреты
+/*.jpg
+/*.jpeg
+/*.png
+/*.webp
+/*.heic
+/*.pdf
+/*.xlsx
+/*.docx
+*.sql
+!scripts/**/*.sql
+*.dump
+*.sql.gz
+backups/
+*.pem
+*.key
