@@ -17,6 +17,10 @@ x-app-env: &app-env
   MEDIA_DIR: /app/media
   # Необязательные интеграции: пустое значение = выключено (оплата, почта, Яндекс ID).
   PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-}
+  # Т-Банк (PAYMENT_PROVIDER=tbank): терминал и пароль из личного кабинета интернет-эквайринга.
+  TBANK_TERMINAL_KEY: ${TBANK_TERMINAL_KEY:-}
+  TBANK_PASSWORD: ${TBANK_PASSWORD:-}
+  TBANK_API_URL: ${TBANK_API_URL:-}
   EMAIL_PROVIDER: ${EMAIL_PROVIDER:-}
   SMTP_HOST: ${SMTP_HOST:-}
   SMTP_PORT: ${SMTP_PORT:-587}

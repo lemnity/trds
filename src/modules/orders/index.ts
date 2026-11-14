@@ -19,7 +19,13 @@ export {
   type PurchaseService,
 } from './purchase'
 // Для маршрутов: UI не импортирует платёжный слой напрямую (tools/boundaries.ts).
-export { FAKE_BANK_PATH, PaymentConfigError, type FakeBank } from '@/modules/payments'
+export {
+  FAKE_BANK_PATH,
+  PaymentConfigError,
+  TBANK_NOTIFICATION_ACK,
+  TBANK_PROVIDER_ID,
+  type FakeBank,
+} from '@/modules/payments'
 
 export {
   HOLD_TTL_MS,
@@ -95,7 +101,7 @@ export function getPurchase() {
       statusSecret: statusSecret(),
       log: log.child({ module: 'purchase' }),
       holdTtlMs: devHoldTtlMs(),
-      allowPlaceholderPrices: selection?.fakeBank != null,
+      allowPlaceholderPrices: selection?.testMode === true,
     })
   })()
   purchase.catch(() => {

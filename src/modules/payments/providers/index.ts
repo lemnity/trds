@@ -8,6 +8,7 @@ import {
   type FakeBank,
   type FakeBankState,
 } from './fake'
+import { TBANK_DEFAULT_API_URL, TBANK_PROVIDER_ID, createTbankProvider } from './tbank'
 
 /**
  * Выбор провайдера по `PAYMENT_PROVIDER` (T-043). Пусто — оплата не подключена: checkout честно
@@ -20,6 +21,11 @@ export type ProviderSelection = {
   provider: PaymentProvider
   /** Управление учебным банком (страница dev); у настоящего банка — null. */
   fakeBank: FakeBank | null
+  /**
+   * Деньги ненастоящие: учебный банк или тестовый терминал Т-Банка (ключ оканчивается на DEMO).
+   * Только тогда можно продавать по ценам/сбору, ещё не утверждённым театром (проверка оплаты).
+   */
+  testMode: boolean
 }
 
 export class PaymentConfigError extends Error {
@@ -48,8 +54,26 @@ export function selectPaymentProvider(env: Env = process.env): ProviderSelection
       secret,
       state: (memory.__turdusFakeBank ??= fakeBankState()),
     })
-    return { provider, fakeBank: bank }
+    return { provider, fakeBank: bank, testMode: true }
   }
-  // Адаптер банка добавляется сюда после выбора банка (T-001): providers/<bank>.ts.
+  if (id === TBANK_PROVIDER_ID) {
+    const terminalKey = env.TBANK_TERMINAL_KEY?.trim()
+    const password = env.TBANK_PASSWORD?.trim()
+    const site = (env.PUBLIC_SITE_URL || env.NEXT_PUBLIC_SITE_URL)?.trim().replace(/\/+$/, '')
+    if (!terminalKey || !password)
+      throw new PaymentConfigError(
+        'PAYMENT_PROVIDER=tbank needs TBANK_TERMINAL_KEY and TBANK_PASSWORD',
+      )
+    // Уведомления банк шлёт только на https.
+    if (!site?.startsWith('https://'))
+      throw new PaymentConfigError('PAYMENT_PROVIDER=tbank needs an https PUBLIC_SITE_URL')
+    const provider = createTbankProvider({
+      terminalKey,
+      password,
+      notificationUrl: `${site}/api/payments/webhook/${TBANK_PROVIDER_ID}`,
+      apiUrl: env.TBANK_API_URL?.trim() || TBANK_DEFAULT_API_URL,
+    })
+    return { provider, fakeBank: null, testMode: terminalKey.endsWith('DEMO') }
+  }
   throw new PaymentConfigError(`unknown PAYMENT_PROVIDER: ${id}`)
 }

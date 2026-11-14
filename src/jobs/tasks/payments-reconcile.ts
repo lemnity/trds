@@ -67,7 +67,7 @@ export const workerPurchase = ({
       provider: selection?.provider ?? null,
       statusSecret: label('turdus:order-status'),
       log: log.child({ module: 'purchase' }),
-      allowPlaceholderPrices: selection?.fakeBank != null,
+      allowPlaceholderPrices: selection?.testMode === true,
     })
     return service
   }

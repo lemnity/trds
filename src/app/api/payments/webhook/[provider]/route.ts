@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server'
 
 import { apiError, withCorrelation } from '@/lib/correlation'
 import { errorInfo } from '@/lib/log'
-import { getPurchase } from '@/modules/orders'
+import { TBANK_NOTIFICATION_ACK, TBANK_PROVIDER_ID, getPurchase } from '@/modules/orders'
 
 import { clientIp } from '../../../auth/http'
 import { noStore, readBody } from '../../../checkout/http'
@@ -49,6 +49,12 @@ export async function POST(req: NextRequest, { params }: Params) {
         'Уведомление не принято.',
         ctx.correlationId,
       )
+    // Т-Банк считает уведомление доставленным только по телу «OK», иначе повторяет его.
+    if (provider === TBANK_PROVIDER_ID)
+      return new Response(TBANK_NOTIFICATION_ACK, {
+        status: 200,
+        headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' },
+      })
     return noStore(result.body, result.status)
   })(req)
 }
