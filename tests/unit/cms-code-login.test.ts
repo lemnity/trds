@@ -24,7 +24,11 @@ const KASSA: StaffDoc = { id: 7, email: 'kassa@turdus.ru' } as StaffDoc
 const SUPER: SuperAdminConfig = { email: 'owner@turdus.ru', secret: generateTotpSecret() }
 const OWNER: StaffDoc = { id: 1, email: SUPER.email } as StaffDoc
 
-const setup = ({ superAdmin = null as SuperAdminConfig | null, failLimit = 5 } = {}) => {
+const setup = ({
+  superAdmin = null as SuperAdminConfig | null,
+  failLimit = 5,
+  enrolledCode = null as string | null,
+} = {}) => {
   const sent: string[] = []
   const auth = createAuthService({
     store: memoryAuthStore(),
@@ -38,7 +42,10 @@ const setup = ({ superAdmin = null as SuperAdminConfig | null, failLimit = 5 } =
   const sessions: StaffDoc[] = []
   const endpoints = codeLoginEndpoints({
     accounts: async () => auth,
-    findStaff: async (_req, email) => (email === KASSA.email ? KASSA : null),
+    findStaff: async (_req, email) =>
+      email === KASSA.email ? KASSA : superAdmin && email === OWNER.email ? OWNER : null,
+    verifyEnrolledCode: async (_req, userId, code) =>
+      userId === String(OWNER.id) && enrolledCode !== null && code === enrolledCode,
     issueSession: async (_req, user) => {
       sessions.push(user)
       return { cookie: 'payload-token=jwt; Path=/; HttpOnly', sid: 'sid-1' }
@@ -310,5 +317,35 @@ describe('супер-админ: единый постоянный код', () =
     expect(
       parseSuperAdminConfig({ SUPERADMIN_EMAIL: 'a@b.ru', SUPERADMIN_CODE: 'abcdefgh' }),
     ).toBeNull()
+  })
+})
+
+describe('супер-админ: код из приложения, привязанного по QR', () => {
+  it('подходит код привязанного приложения, даже если ключ в .env другой', async () => {
+    const { endpoints, sessions, audit } = setup({ superAdmin: SUPER, enrolledCode: '555111' })
+    const r = await call(
+      endpoints,
+      '/cms/auth/login',
+      reqOf({ email: SUPER.email, code: '555111' }),
+    )
+    expect(r.status).toBe(200)
+    expect(r.res.headers.getSetCookie()[1]).toContain('trds-cms-mfa=')
+    expect(sessions).toEqual([OWNER])
+    expect(audit.at(-1)).toMatchObject({
+      action: 'cms.login.superadmin',
+      result: 'ok',
+      entityId: '1',
+    })
+  })
+
+  it('чужой код не подходит ни по .env, ни по приложению', async () => {
+    const { endpoints, sessions } = setup({ superAdmin: SUPER, enrolledCode: '555111' })
+    const r = await call(
+      endpoints,
+      '/cms/auth/login',
+      reqOf({ email: SUPER.email, code: '555112' }),
+    )
+    expect(r.status).toBe(400)
+    expect(sessions).toEqual([])
   })
 })

@@ -10,6 +10,8 @@ import { ADMIN_USERS_SLUG } from '../access/roles'
 import { writeCmsAudit, type CmsAuditWriter } from '../audit'
 import { json, readBody, sameOrigin } from '../endpoints/http'
 import { mfaVerifiedCookie } from './endpoints'
+import { createMfaService, mfaKeysFromEnv } from './mfa'
+import { payloadMfaStore } from './mfaStore'
 import { createSuperAdminVerifier, superAdminFromEnv, type SuperAdminConfig } from './superAdmin'
 
 /**
@@ -37,6 +39,8 @@ export type CodeLoginDeps = {
   superAdmin: () => SuperAdminConfig | null
   /** Код из приложения супер-админа (с защитой от повтора). */
   verifySuperAdminCode: (config: SuperAdminConfig, code: string) => boolean
+  /** Код из приложения, привязанного сотрудником на /admin/mfa (по QR). */
+  verifyEnrolledCode: (req: PayloadRequest, userId: string, code: string) => Promise<boolean>
   /** Найти сотрудника супер-админа или создать его (администратор театра + системный). */
   ensureSuperAdmin: (req: PayloadRequest, email: string) => Promise<StaffDoc>
   /** Set-Cookie «второй фактор пройден». */
@@ -104,6 +108,10 @@ const defaultDeps: CodeLoginDeps = {
     if (!created) throw new Error('super admin was not created')
     return created
   },
+  verifyEnrolledCode: async (req, userId, code) => {
+    const mfa = createMfaService({ store: payloadMfaStore(req.payload), keys: mfaKeysFromEnv() })
+    return (await mfa.verify(userId, { code })).ok
+  },
   mfaCookie: (userId, sid) => mfaVerifiedCookie(userId, sid),
   superAdminFailures: sharedRateLimiter({
     name: 'cms.superadmin.fail',
@@ -134,12 +142,19 @@ export function codeLoginEndpoints(overrides: Partial<CodeLoginDeps> = {}): Endp
         result,
       })
     if (!(await deps.superAdminFailures.allowed('superadmin'))) return json(TOO_MANY, 429)
-    if (!deps.verifySuperAdminCode(config, code)) {
+    // Подходит код от ключа из .env или из приложения, привязанного на /admin/mfa по QR.
+    const existing = await deps.findStaff(req, config.email)
+    const valid =
+      deps.verifySuperAdminCode(config, code) ||
+      (!!existing &&
+        /^\d{6}$/.test(code) &&
+        (await deps.verifyEnrolledCode(req, String(existing.id), code)))
+    if (!valid) {
       await deps.superAdminFailures.hit('superadmin')
-      await audit('denied', 'superadmin')
+      await audit('denied', existing ? String(existing.id) : 'superadmin')
       return json(INVALID_CODE, 400)
     }
-    const staff = await deps.ensureSuperAdmin(req, config.email)
+    const staff = existing ?? (await deps.ensureSuperAdmin(req, config.email))
     const session = await deps.issueSession(req, staff)
     await audit('ok', String(staff.id))
     const headers = new Headers({ 'Cache-Control': 'no-store' })
