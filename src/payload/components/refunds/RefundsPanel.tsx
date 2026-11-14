@@ -4,6 +4,7 @@ import { Button } from '@payloadcms/ui'
 import { useCallback, useEffect, useState, type CSSProperties, type FormEvent } from 'react'
 
 import { formatRub } from '@/lib/money'
+import { useAdminDialog } from '../AdminDialog'
 
 /**
  * Возвраты в админке (T-053): поиск заказа, полный/частичный возврат с обязательной причиной,
@@ -106,13 +107,16 @@ const time = (iso: string | null) =>
   iso ? new Date(iso).toLocaleString('ru-RU', { timeZone: 'Asia/Yekaterinburg' }) : '—'
 const newKey = () => crypto.randomUUID()
 
-export function RefundsPanel({
-  apiUrl,
-  canEditPolicy,
-}: {
+type RefundsPanelProps = {
   apiUrl: string
   canEditPolicy: boolean
-}) {
+}
+
+function RefundsPanelView({
+  apiUrl,
+  canEditPolicy,
+  dialog,
+}: RefundsPanelProps & { dialog: AdminDialog }) {
   const [recent, setRecent] = useState<Refund[]>([])
   const [policy, setPolicy] = useState<Policy | null>(null)
   const [available, setAvailable] = useState(true)
@@ -230,8 +234,14 @@ export function RefundsPanel({
   }
 
   const retry = async (id: string) => {
-    const why = window.prompt('Причина повтора запроса в банк')
-    if (!why || why.trim().length < 3) return
+    const why = await dialog.prompt({
+      title: 'Повторить запрос в банк?',
+      label: 'Причина повтора',
+      placeholder: 'Например: банк не ответил',
+      minLength: 3,
+      confirmLabel: 'Повторить',
+    })
+    if (!why) return
     setBusy(true)
     try {
       const data = await call(`/${id}/retry`, {
@@ -546,5 +556,17 @@ export function RefundsPanel({
         </section>
       )}
     </div>
+  )
+}
+
+type AdminDialog = ReturnType<typeof useAdminDialog>
+
+export function RefundsPanel(props: RefundsPanelProps) {
+  const dialog = useAdminDialog()
+  return (
+    <>
+      {dialog.element}
+      <RefundsPanelView {...props} dialog={dialog} />
+    </>
   )
 }

@@ -4,6 +4,7 @@ import { Button } from '@payloadcms/ui'
 import { useCallback, useEffect, useState, type CSSProperties, type FormEvent } from 'react'
 
 import { certificateSerial } from '@/modules/loyalty'
+import { useAdminDialog } from '../AdminDialog'
 
 /**
  * Сертификаты в админке (T-066): список, выпуск партии, аннулирование. Полные номера приходят
@@ -66,7 +67,12 @@ const cell: CSSProperties = {
   textAlign: 'left',
 }
 
-export function CertificatesAdmin({ apiUrl }: { apiUrl: string }) {
+type CertificatesAdminProps = { apiUrl: string }
+
+function CertificatesAdminView({
+  apiUrl,
+  dialog,
+}: CertificatesAdminProps & { dialog: AdminDialog }) {
   const [filter, setFilter] = useState<Status | ''>('')
   const [page, setPage] = useState(1)
   const [data, setData] = useState<Page | null>(null)
@@ -134,13 +140,17 @@ export function CertificatesAdmin({ apiUrl }: { apiUrl: string }) {
     e.preventDefault()
     const count = Number(form.count)
     const amount = Number(form.amountRub)
-    if (
-      !window.confirm(
-        `Выпустить ${count} сертификат(ов) номиналом ${amount.toLocaleString('ru-RU')} ₽? ` +
-          'Полные номера покажутся один раз.',
-      )
-    )
-      return
+    const ok = await dialog.confirm({
+      title: 'Выпустить сертификаты?',
+      body: (
+        <p style={{ margin: 0 }}>
+          {count} шт. номиналом {amount.toLocaleString('ru-RU')} ₽. Полные номера покажутся один раз
+          — сохраните их сразу.
+        </p>
+      ),
+      confirmLabel: 'Выпустить',
+    })
+    if (!ok) return
     setIssuing(true)
     setIssueError(null)
     setFieldErrors({})
@@ -241,9 +251,14 @@ export function CertificatesAdmin({ apiUrl }: { apiUrl: string }) {
         </table>
         <p style={{ marginTop: '1.5rem' }}>
           <Button
-            onClick={() => {
-              if (window.confirm('Номера сохранены? После этого их больше не показать.'))
-                setIssued(null)
+            onClick={async () => {
+              const ok = await dialog.confirm({
+                title: 'Номера сохранены?',
+                body: <p style={{ margin: 0 }}>После этого их больше не показать.</p>,
+                confirmLabel: 'Да, сохранены',
+                cancelLabel: 'Вернуться',
+              })
+              if (ok) setIssued(null)
             }}
           >
             Готово, номера сохранены
@@ -458,5 +473,17 @@ export function CertificatesAdmin({ apiUrl }: { apiUrl: string }) {
         </div>
       )}
     </section>
+  )
+}
+
+type AdminDialog = ReturnType<typeof useAdminDialog>
+
+export function CertificatesAdmin(props: CertificatesAdminProps) {
+  const dialog = useAdminDialog()
+  return (
+    <>
+      {dialog.element}
+      <CertificatesAdminView {...props} dialog={dialog} />
+    </>
   )
 }

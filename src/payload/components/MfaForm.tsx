@@ -4,6 +4,7 @@ import { Button } from '@payloadcms/ui'
 import { useState, type FormEvent } from 'react'
 
 import { MfaQr } from './MfaQr'
+import { useAdminDialog } from './AdminDialog'
 
 type Status = {
   required: boolean
@@ -35,15 +36,18 @@ const field: React.CSSProperties = {
 }
 
 /** Форма второго фактора. Все решения принимает сервер; здесь — ввод и понятные состояния. */
-export function MfaForm({
-  apiUrl,
-  adminUrl,
-  initial,
-}: {
+type MfaFormProps = {
   apiUrl: string
   adminUrl: string
   initial: Status
-}) {
+}
+
+function MfaFormView({
+  apiUrl,
+  adminUrl,
+  initial,
+  dialog,
+}: MfaFormProps & { dialog: AdminDialog }) {
   const [status, setStatus] = useState(initial)
   const [setup, setSetup] = useState<{ secret: string; otpauthUrl: string } | null>(null)
   const [codes, setCodes] = useState<string[] | null>(null)
@@ -111,7 +115,18 @@ export function MfaForm({
   }
 
   const reset = async () => {
-    if (!window.confirm('Отключить второй фактор и настроить его заново на новом телефоне?')) return
+    const ok = await dialog.confirm({
+      title: 'Отключить второй фактор?',
+      body: (
+        <p style={{ margin: 0 }}>
+          Текущее приложение и коды восстановления перестанут работать. Затем настройте второй
+          фактор заново на новом телефоне.
+        </p>
+      ),
+      confirmLabel: 'Отключить',
+      danger: true,
+    })
+    if (!ok) return
     if (await post('/reset')) {
       setStatus((s) => ({ ...s, enrolled: false, verified: false, recoveryCodesLeft: 0 }))
       setSetup(null)
@@ -239,5 +254,17 @@ export function MfaForm({
         Перенастроить на новом телефоне
       </Button>
     </section>
+  )
+}
+
+type AdminDialog = ReturnType<typeof useAdminDialog>
+
+export function MfaForm(props: MfaFormProps) {
+  const dialog = useAdminDialog()
+  return (
+    <>
+      {dialog.element}
+      <MfaFormView {...props} dialog={dialog} />
+    </>
   )
 }
