@@ -12,7 +12,12 @@ import { json, readBody, sameOrigin } from '../endpoints/http'
 import { mfaVerifiedCookie } from './endpoints'
 import { createMfaService, mfaKeysFromEnv } from './mfa'
 import { payloadMfaStore } from './mfaStore'
-import { createSuperAdminVerifier, superAdminFromEnv, type SuperAdminConfig } from './superAdmin'
+import {
+  checkSuperAdminPassword,
+  createSuperAdminVerifier,
+  superAdminFromEnv,
+  type SuperAdminConfig,
+} from './superAdmin'
 
 /**
  * Вход сотрудника без пароля: почта → код из письма (здесь) → код из приложения (экран /admin/mfa,
@@ -57,6 +62,7 @@ const clientIp = (req: PayloadRequest) =>
 const emailSchema = z.string().trim().toLowerCase().pipe(z.email())
 // 6 цифр — код из письма или приложения; до 12 — постоянный код супер-админа.
 const loginSchema = z.object({ email: emailSchema, code: z.string().regex(/^\d{6,12}$/) })
+const passwordSchema = z.object({ email: emailSchema, password: z.string().min(1).max(256) })
 
 const defaultDeps: CodeLoginDeps = {
   // Динамический импорт: модуль аккаунтов тянет payload.config (цикл с конфигом).
@@ -127,20 +133,35 @@ const defaultDeps: CodeLoginDeps = {
 }
 
 const INVALID_CODE = { code: 'invalid_code', message: 'Неверный или устаревший код.' }
+const INVALID_PASSWORD = { code: 'invalid_credentials', message: 'Неверная почта или пароль.' }
 const TOO_MANY = { code: 'too_many', message: 'Слишком много попыток. Попробуйте позже.' }
 const FORBIDDEN = { code: 'forbidden', message: 'Запрещено.' }
 
 export function codeLoginEndpoints(overrides: Partial<CodeLoginDeps> = {}): Endpoint[] {
   const deps = { ...defaultDeps, ...overrides }
 
+  const superAdminAudit =
+    (req: PayloadRequest, action: string) => (result: 'ok' | 'denied', entityId: string) =>
+      deps.audit(req, { action, entity: ADMIN_USERS_SLUG, entityId, result })
+
+  /** Сессия супер-админа сразу с пройденным вторым фактором. */
+  const grantSuperAdmin = async (
+    req: PayloadRequest,
+    config: SuperAdminConfig,
+    existing: StaffDoc | null,
+    audit: (result: 'ok', entityId: string) => Promise<void>,
+  ) => {
+    const staff = existing ?? (await deps.ensureSuperAdmin(req, config.email))
+    const session = await deps.issueSession(req, staff)
+    await audit('ok', String(staff.id))
+    const headers = new Headers({ 'Cache-Control': 'no-store' })
+    headers.append('Set-Cookie', session.cookie)
+    headers.append('Set-Cookie', deps.mfaCookie(String(staff.id), session.sid))
+    return Response.json({ ok: true }, { headers })
+  }
+
   const superAdminLogin = async (req: PayloadRequest, config: SuperAdminConfig, code: string) => {
-    const audit = (result: 'ok' | 'denied', entityId: string) =>
-      deps.audit(req, {
-        action: 'cms.login.superadmin',
-        entity: ADMIN_USERS_SLUG,
-        entityId,
-        result,
-      })
+    const audit = superAdminAudit(req, 'cms.login.superadmin')
     if (!(await deps.superAdminFailures.allowed('superadmin'))) return json(TOO_MANY, 429)
     // Подходит код от ключа из .env или из приложения, привязанного на /admin/mfa по QR.
     const existing = await deps.findStaff(req, config.email)
@@ -154,13 +175,7 @@ export function codeLoginEndpoints(overrides: Partial<CodeLoginDeps> = {}): Endp
       await audit('denied', existing ? String(existing.id) : 'superadmin')
       return json(INVALID_CODE, 400)
     }
-    const staff = existing ?? (await deps.ensureSuperAdmin(req, config.email))
-    const session = await deps.issueSession(req, staff)
-    await audit('ok', String(staff.id))
-    const headers = new Headers({ 'Cache-Control': 'no-store' })
-    headers.append('Set-Cookie', session.cookie)
-    headers.append('Set-Cookie', deps.mfaCookie(String(staff.id), session.sid))
-    return Response.json({ ok: true }, { headers })
+    return grantSuperAdmin(req, config, existing, audit)
   }
 
   return [
@@ -224,6 +239,30 @@ export function codeLoginEndpoints(overrides: Partial<CodeLoginDeps> = {}): Endp
           { ok: true },
           { headers: { 'Cache-Control': 'no-store', 'Set-Cookie': cookie } },
         )
+      },
+    },
+    {
+      // Вход супер-админа «почта + пароль» (SUPERADMIN_PASSWORD в .env). Другим сотрудникам
+      // пароль не подходит никогда — у них вход только по кодам.
+      path: '/cms/auth/password',
+      method: 'post',
+      handler: async (req) => {
+        if (!sameOrigin(req)) return json(FORBIDDEN, 403)
+        if (!(await deps.loginsByIp.hit(clientIp(req)))) return json(TOO_MANY, 429)
+        const input = passwordSchema.safeParse(await readBody(req))
+        if (!input.success) return json(INVALID_PASSWORD, 400)
+        const config = deps.superAdmin()
+        if (!config?.password || input.data.email !== config.email)
+          return json(INVALID_PASSWORD, 400)
+        const audit = superAdminAudit(req, 'cms.login.superadmin_password')
+        if (!(await deps.superAdminFailures.allowed('superadmin'))) return json(TOO_MANY, 429)
+        const existing = await deps.findStaff(req, config.email)
+        if (!checkSuperAdminPassword(config, input.data.password)) {
+          await deps.superAdminFailures.hit('superadmin')
+          await audit('denied', existing ? String(existing.id) : 'superadmin')
+          return json(INVALID_PASSWORD, 400)
+        }
+        return grantSuperAdmin(req, config, existing, audit)
       },
     },
   ]

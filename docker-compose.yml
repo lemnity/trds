@@ -17,6 +17,7 @@ x-app-env: &app-env
   SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-}
   SUPERADMIN_TOTP_SECRET: ${SUPERADMIN_TOTP_SECRET:-}
   SUPERADMIN_CODE: ${SUPERADMIN_CODE:-}
+  SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-}
   # Медиа админки — на томе media (входит в бэкап).
   MEDIA_DIR: /app/media
   # Необязательные интеграции: пустое значение = выключено (оплата, почта, Яндекс ID).

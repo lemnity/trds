@@ -18,7 +18,8 @@ const minutes = (seconds: number) => Math.max(1, Math.ceil(seconds / 60))
  * (туда переводит MfaGate). Решения принимает сервер (src/payload/auth/codeLogin.ts).
  */
 export function LoginCodeForm({ apiUrl, nextUrl }: { apiUrl: string; nextUrl: string }) {
-  const [step, setStep] = useState<'email' | 'code'>('email')
+  const [step, setStep] = useState<'email' | 'code' | 'password'>('email')
+  const [password, setPassword] = useState('')
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [notice, setNotice] = useState<string | null>(null)
@@ -73,6 +74,14 @@ export function LoginCodeForm({ apiUrl, nextUrl }: { apiUrl: string; nextUrl: st
     else setError(String(r.data.message ?? 'Код не подошёл. Попробуйте ещё раз.'))
   }
 
+  const loginWithPassword = async (e: FormEvent) => {
+    e.preventDefault()
+    const r = await post('/password', { email, password })
+    if (!r) return
+    if (r.ok) window.location.assign(nextUrl)
+    else setError(String(r.data.message ?? 'Неверная почта или пароль.'))
+  }
+
   const errorBox = error && (
     <p id="login-error" role="alert" style={{ color: 'var(--theme-error-500)' }}>
       {error}
@@ -106,6 +115,70 @@ export function LoginCodeForm({ apiUrl, nextUrl }: { apiUrl: string; nextUrl: st
             {busy ? 'Отправляем…' : 'Получить код'}
           </Button>
         </form>
+        <p>
+          <button
+            type="button"
+            className="btn btn--style-none"
+            onClick={() => {
+              setStep('password')
+              setError(null)
+            }}
+          >
+            Войти по паролю (супер-админ)
+          </button>
+        </p>
+      </section>
+    )
+
+  if (step === 'password')
+    return (
+      <section aria-labelledby="login-title">
+        <h1 id="login-title">Вход по паролю</h1>
+        <form onSubmit={loginWithPassword}>
+          <label style={{ display: 'block', margin: '1rem 0' }}>
+            Почта
+            <input
+              style={field}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
+              required
+              autoFocus={!email}
+            />
+          </label>
+          <label style={{ display: 'block', margin: '1rem 0' }}>
+            Пароль
+            <input
+              style={field}
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+              autoFocus={!!email}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? 'login-error' : undefined}
+            />
+          </label>
+          {errorBox}
+          <Button type="submit" disabled={busy}>
+            {busy ? 'Проверяем…' : 'Войти'}
+          </Button>
+        </form>
+        <p>
+          <button
+            type="button"
+            className="btn btn--style-none"
+            onClick={() => {
+              setStep('email')
+              setError(null)
+              setPassword('')
+            }}
+          >
+            Войти по коду
+          </button>
+        </p>
       </section>
     )
 

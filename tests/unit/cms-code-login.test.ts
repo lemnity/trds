@@ -177,7 +177,7 @@ describe('blockPasswordLogin', () => {
 })
 
 describe('супер-админ: почта + код из приложения', () => {
-  const now = () => totpAt(SUPER.secret, new Date())
+  const now = () => totpAt(SUPER.secret!, new Date())
 
   it('письмо не отправляется, ответ тот же', async () => {
     const { endpoints, sent } = setup({ superAdmin: SUPER })
@@ -347,5 +347,83 @@ describe('супер-админ: код из приложения, привяз�
     )
     expect(r.status).toBe(400)
     expect(sessions).toEqual([])
+  })
+})
+
+describe('супер-админ: почта + пароль', () => {
+  const WITH_PW: SuperAdminConfig = { email: SUPER.email, password: 'correct-horse-battery' }
+
+  it('верный пароль — сессия сразу с пройденным вторым фактором', async () => {
+    const { endpoints, sessions, audit } = setup({ superAdmin: WITH_PW })
+    const r = await call(
+      endpoints,
+      '/cms/auth/password',
+      reqOf({ email: 'Owner@Turdus.ru', password: 'correct-horse-battery' }),
+    )
+    expect(r.status).toBe(200)
+    const cookies = r.res.headers.getSetCookie()
+    expect(cookies[0]).toContain('payload-token=')
+    expect(cookies[1]).toContain('trds-cms-mfa=')
+    expect(sessions).toEqual([OWNER])
+    expect(audit.at(-1)).toMatchObject({ action: 'cms.login.superadmin_password', result: 'ok' })
+  })
+
+  it('неверный пароль — 400; после 5 ошибок блокировка даже с верным паролем', async () => {
+    const { endpoints, sessions } = setup({ superAdmin: WITH_PW })
+    for (let i = 0; i < 5; i++) {
+      const r = await call(
+        endpoints,
+        '/cms/auth/password',
+        reqOf({ email: SUPER.email, password: `nope-${i}` }),
+      )
+      expect(r).toMatchObject({ status: 400, body: { code: 'invalid_credentials' } })
+    }
+    const locked = await call(
+      endpoints,
+      '/cms/auth/password',
+      reqOf({ email: SUPER.email, password: 'correct-horse-battery' }),
+    )
+    expect(locked.status).toBe(429)
+    expect(sessions).toEqual([])
+  })
+
+  it('другому сотруднику и при пустом SUPERADMIN_PASSWORD пароль не подходит', async () => {
+    const { endpoints, sessions } = setup({ superAdmin: WITH_PW })
+    const kassa = await call(
+      endpoints,
+      '/cms/auth/password',
+      reqOf({ email: KASSA.email, password: 'correct-horse-battery' }),
+    )
+    expect(kassa.status).toBe(400)
+    const noPw = setup({ superAdmin: SUPER })
+    const r = await call(
+      noPw.endpoints,
+      '/cms/auth/password',
+      reqOf({ email: SUPER.email, password: 'anything-long-enough' }),
+    )
+    expect(r.status).toBe(400)
+    expect([...sessions, ...noPw.sessions]).toEqual([])
+  })
+
+  it('чужой origin — 403', async () => {
+    const { endpoints } = setup({ superAdmin: WITH_PW })
+    const r = await call(
+      endpoints,
+      '/cms/auth/password',
+      reqOf({ email: SUPER.email, password: 'correct-horse-battery' }, 'https://evil.test'),
+    )
+    expect(r.status).toBe(403)
+  })
+
+  it('пароль короче 12 символов не включается', () => {
+    expect(
+      parseSuperAdminConfig({ SUPERADMIN_EMAIL: 'a@b.ru', SUPERADMIN_PASSWORD: 'short' }),
+    ).toBeNull()
+    expect(
+      parseSuperAdminConfig({
+        SUPERADMIN_EMAIL: 'a@b.ru',
+        SUPERADMIN_PASSWORD: 'long-enough-pass',
+      }),
+    ).toEqual({ email: 'a@b.ru', password: 'long-enough-pass' })
   })
 })
