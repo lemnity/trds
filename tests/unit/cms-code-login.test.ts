@@ -258,3 +258,57 @@ describe('parseSuperAdminConfig', () => {
     ).toEqual({ email: 'owner@turdus.ru', secret })
   })
 })
+
+describe('супер-админ: единый постоянный код', () => {
+  const STATIC: SuperAdminConfig = { email: SUPER.email, code: '73915824' }
+
+  it('верный код — сессия с пройденным вторым фактором, и код работает повторно', async () => {
+    const { endpoints, sessions } = setup({ superAdmin: STATIC })
+    for (let i = 0; i < 2; i++) {
+      const r = await call(
+        endpoints,
+        '/cms/auth/login',
+        reqOf({ email: SUPER.email, code: '73915824' }),
+      )
+      expect(r.status).toBe(200)
+      expect(r.res.headers.getSetCookie()[1]).toContain('trds-cms-mfa=')
+    }
+    expect(sessions).toHaveLength(2)
+  })
+
+  it('неверный код и код из приложения не подходят; 5 ошибок — блокировка', async () => {
+    const { endpoints, sessions } = setup({ superAdmin: STATIC })
+    for (const code of ['73915825', '7391582', '000000', '11111111', '22222222']) {
+      const r = await call(endpoints, '/cms/auth/login', reqOf({ email: SUPER.email, code }))
+      expect(r.status).toBe(400)
+    }
+    const locked = await call(
+      endpoints,
+      '/cms/auth/login',
+      reqOf({ email: SUPER.email, code: '73915824' }),
+    )
+    expect(locked.status).toBe(429)
+    expect(sessions).toEqual([])
+  })
+
+  it('SUPERADMIN_CODE важнее секрета; неверный формат кода — откат на приложение', () => {
+    const secret = generateTotpSecret()
+    expect(
+      parseSuperAdminConfig({
+        SUPERADMIN_EMAIL: 'a@b.ru',
+        SUPERADMIN_CODE: ' 12345678 ',
+        SUPERADMIN_TOTP_SECRET: secret,
+      }),
+    ).toEqual({ email: 'a@b.ru', code: '12345678' })
+    expect(
+      parseSuperAdminConfig({
+        SUPERADMIN_EMAIL: 'a@b.ru',
+        SUPERADMIN_CODE: '123456',
+        SUPERADMIN_TOTP_SECRET: secret,
+      }),
+    ).toEqual({ email: 'a@b.ru', secret })
+    expect(
+      parseSuperAdminConfig({ SUPERADMIN_EMAIL: 'a@b.ru', SUPERADMIN_CODE: 'abcdefgh' }),
+    ).toBeNull()
+  })
+})

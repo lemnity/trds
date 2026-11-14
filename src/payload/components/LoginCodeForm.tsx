@@ -115,14 +115,14 @@ export function LoginCodeForm({ apiUrl, nextUrl }: { apiUrl: string; nextUrl: st
       {notice && <p role="status">{notice}</p>}
       <form onSubmit={login}>
         <label style={{ display: 'block', margin: '1rem 0' }}>
-          Код из письма или приложения (6 цифр)
+          Код из письма или приложения
           <input
             style={{ ...field, fontSize: '1.25rem', letterSpacing: '0.2em' }}
             value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 12))}
             inputMode="numeric"
             autoComplete="one-time-code"
-            pattern="\d{6}"
+            pattern="\d{6,12}"
             required
             autoFocus
             aria-invalid={error ? true : undefined}

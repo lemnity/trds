@@ -16,6 +16,7 @@ x-app-env: &app-env
   # Супер-админ: почта + код из приложения-аутентификатора (src/payload/auth/superAdmin.ts).
   SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-}
   SUPERADMIN_TOTP_SECRET: ${SUPERADMIN_TOTP_SECRET:-}
+  SUPERADMIN_CODE: ${SUPERADMIN_CODE:-}
   # Медиа админки — на томе media (входит в бэкап).
   MEDIA_DIR: /app/media
   # Необязательные интеграции: пустое значение = выключено (оплата, почта, Яндекс ID).

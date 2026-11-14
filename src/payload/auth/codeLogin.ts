@@ -51,7 +51,8 @@ const clientIp = (req: PayloadRequest) =>
   req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local'
 
 const emailSchema = z.string().trim().toLowerCase().pipe(z.email())
-const loginSchema = z.object({ email: emailSchema, code: z.string().regex(/^\d{6}$/) })
+// 6 цифр — код из письма или приложения; до 12 — постоянный код супер-админа.
+const loginSchema = z.object({ email: emailSchema, code: z.string().regex(/^\d{6,12}$/) })
 
 const defaultDeps: CodeLoginDeps = {
   // Динамический импорт: модуль аккаунтов тянет payload.config (цикл с конфигом).
