@@ -7,7 +7,7 @@ import { base32Decode, matchTotp } from './totp'
  *
  *   SUPERADMIN_EMAIL=owner@example.ru
  *   SUPERADMIN_TOTP_SECRET=<base32, добавляется в приложение-аутентификатор>
- *   SUPERADMIN_CODE=<8–12 цифр>  — единый постоянный код; если задан, вместо кода из приложения
+ *   SUPERADMIN_CODE=<6–12 цифр>  — единый постоянный код; если задан, вместо кода из приложения
  *
  * Вход: почта → сразу код из приложения (без письма и без отдельного экрана /admin/mfa). Код
  * из приложения и есть второй фактор: сессия выдаётся уже подтверждённой. Сотрудник с этой
@@ -19,8 +19,8 @@ export type SuperAdminConfig =
   | { email: string; secret: string; code?: undefined }
   | { email: string; code: string; secret?: undefined }
 
-/** Постоянный код: только цифры, 8–12 знаков (6 цифр подобрать слишком легко). */
-export const SUPERADMIN_CODE_RE = /^\d{8,12}$/
+/** Постоянный код: только цифры, 6–12 знаков (решение заказчика; от подбора — лимит неудач). */
+export const SUPERADMIN_CODE_RE = /^\d{6,12}$/
 
 /** Не меньше 128 бит: короче — слишком легко подобрать. */
 const MIN_SECRET_BYTES = 16
@@ -35,7 +35,7 @@ export function parseSuperAdminConfig(
   const code = (env.SUPERADMIN_CODE ?? '').trim()
   if (code) {
     if (SUPERADMIN_CODE_RE.test(code)) return { email, code }
-    console.warn('SUPERADMIN_CODE: нужны только цифры, 8–12 знаков — постоянный код не включён')
+    console.warn('SUPERADMIN_CODE: нужны только цифры, 6–12 знаков — постоянный код не включён')
   }
   const secret = normalizeTotpSecret(env.SUPERADMIN_TOTP_SECRET ?? '')
   if (!secret) return null

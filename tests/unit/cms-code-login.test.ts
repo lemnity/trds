@@ -303,7 +303,7 @@ describe('супер-админ: единый постоянный код', () =
     expect(
       parseSuperAdminConfig({
         SUPERADMIN_EMAIL: 'a@b.ru',
-        SUPERADMIN_CODE: '123456',
+        SUPERADMIN_CODE: '12345',
         SUPERADMIN_TOTP_SECRET: secret,
       }),
     ).toEqual({ email: 'a@b.ru', secret })
