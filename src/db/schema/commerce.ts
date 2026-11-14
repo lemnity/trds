@@ -1,6 +1,7 @@
 import { sql } from '@payloadcms/db-postgres/drizzle'
 import {
   bigint,
+  boolean,
   check,
   foreignKey,
   index,
@@ -47,6 +48,14 @@ export const REFUND_STATUSES = [
   'MANUAL_REVIEW',
 ] as const
 export const REFUND_KINDS = ['customer', 'staff'] as const
+export const CLAIM_STATUSES = ['SUBMITTED', 'APPROVED', 'REJECTED', 'CANCELLED'] as const
+export const CLAIM_REASON_CODES = [
+  'CHANGED_MIND',
+  'ILLNESS',
+  'RELATIVE_DEATH',
+  'EVENT_CHANGED',
+  'OTHER',
+] as const
 export const OUTBOX_STATUSES = ['pending', 'processing', 'done', 'dead'] as const
 
 const createdAt = () => timestamp('created_at', { withTimezone: true }).notNull()
@@ -474,6 +483,105 @@ export const commerceAuditLog = pgTable(
   ],
 )
 
+/**
+ * Заявка зрителя на возврат (ст. 52.1 Закона о культуре, ПП № 1491): причина, комментарий, что
+ * положено по закону на момент подачи (`legal_percent`, `basis`) и решение сотрудника. Деньги
+ * не трогает: одобрение создаёт обычный возврат (`refund_id`) с процентом `decided_percent`.
+ */
+export const commerceRefundClaims = pgTable(
+  'commerce_refund_claims',
+  {
+    id: uuid('id').primaryKey(),
+    number: text('number').notNull().unique(),
+    orderId: uuid('order_id')
+      .notNull()
+      .references(() => commerceOrders.id, { onDelete: 'restrict' }),
+    customerId: uuid('customer_id')
+      .notNull()
+      .references(() => customers.id, { onDelete: 'restrict' }),
+    reason: text('reason', { enum: CLAIM_REASON_CODES }).notNull(),
+    comment: text('comment'),
+    status: text('status', { enum: CLAIM_STATUSES }).notNull(),
+    /** Начало спектакля на момент подачи (по нему считались сроки). */
+    startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+    legalPercent: integer('legal_percent').notNull(),
+    basis: text('basis').notNull(),
+    includeFee: boolean('include_fee').notNull(),
+    documentRequired: boolean('document_required').notNull(),
+    documentDeadline: timestamp('document_deadline', { withTimezone: true }),
+    decidedPercent: integer('decided_percent'),
+    decisionComment: text('decision_comment'),
+    decidedBy: text('decided_by'),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    refundId: uuid('refund_id').references(() => commerceRefunds.id, { onDelete: 'restrict' }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index('commerce_refund_claims_status_idx').on(t.status, t.createdAt),
+    index('commerce_refund_claims_customer_idx').on(t.customerId, t.createdAt),
+    index('commerce_refund_claims_order_idx').on(t.orderId),
+    check(
+      'commerce_refund_claims_percent',
+      sql`${t.legalPercent} BETWEEN 0 AND 100 AND (${t.decidedPercent} IS NULL OR ${t.decidedPercent} BETWEEN 1 AND 100)`,
+    ),
+    check(
+      'commerce_refund_claims_decided_shape',
+      sql`(${t.status} IN ('APPROVED', 'REJECTED')) = (${t.decidedAt} IS NOT NULL) AND (${t.status} = 'APPROVED') = (${t.refundId} IS NOT NULL)`,
+    ),
+  ],
+)
+
+/** Билеты заявки. Один билет — не больше одной открытой заявки (`open`). */
+export const commerceRefundClaimTickets = pgTable(
+  'commerce_refund_claim_tickets',
+  {
+    claimId: uuid('claim_id').notNull(),
+    ticketId: uuid('ticket_id')
+      .notNull()
+      .references(() => commerceTickets.id, { onDelete: 'restrict' }),
+    open: boolean('open').notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.claimId, t.ticketId] }),
+    // Явное имя: сгенерированное длиннее 63 символов и обрезалось бы PostgreSQL.
+    foreignKey({
+      name: 'commerce_refund_claim_tickets_claim_fk',
+      columns: [t.claimId],
+      foreignColumns: [commerceRefundClaims.id],
+    }).onDelete('cascade'),
+    uniqueIndex('commerce_refund_claim_tickets_open_uq')
+      .on(t.ticketId)
+      .where(sql`${t.open}`),
+  ],
+)
+
+/**
+ * Подтверждающие документы заявки (больничный, свидетельство). Медицинские персональные данные:
+ * файлы лежат вне публичной папки (`PRIVATE_FILES_DIR`), отдаются только сотрудникам.
+ */
+export const commerceRefundClaimFiles = pgTable(
+  'commerce_refund_claim_files',
+  {
+    id: uuid('id').primaryKey(),
+    claimId: uuid('claim_id').notNull(),
+    originalName: text('original_name').notNull(),
+    mimeType: text('mime_type').notNull(),
+    sizeBytes: integer('size_bytes').notNull(),
+    storageKey: text('storage_key').notNull().unique(),
+    uploadedAt: timestamp('uploaded_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    index('commerce_refund_claim_files_claim_idx').on(t.claimId),
+    foreignKey({
+      name: 'commerce_refund_claim_files_claim_fk',
+      columns: [t.claimId],
+      foreignColumns: [commerceRefundClaims.id],
+    }).onDelete('cascade'),
+    check('commerce_refund_claim_files_size', sql`${t.sizeBytes} > 0`),
+  ],
+)
+
 export const commerceTables = {
   commerce_inventory: commerceInventory,
   commerce_orders: commerceOrders,
@@ -484,6 +592,9 @@ export const commerceTables = {
   commerce_payment_events: commercePaymentEvents,
   commerce_refunds: commerceRefunds,
   commerce_refund_tickets: commerceRefundTickets,
+  commerce_refund_claims: commerceRefundClaims,
+  commerce_refund_claim_tickets: commerceRefundClaimTickets,
+  commerce_refund_claim_files: commerceRefundClaimFiles,
   commerce_outbox: commerceOutbox,
   commerce_settings: commerceSettings,
   commerce_audit_log: commerceAuditLog,

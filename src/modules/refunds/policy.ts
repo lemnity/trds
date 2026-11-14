@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { LEGAL_MIN_TIERS } from './claims-policy'
+
 /**
  * Политика возвратов (T-052/T-053/T-064, PRD §5.4, architecture.md §10). Правила театр ещё
  * НЕ утвердил (PRD §11 п.3, п.5): срок, частичный возврат, сервисный сбор, судьба места. Поэтому
@@ -23,6 +25,10 @@ export type RefundPolicy = {
   refundServiceFee: boolean
   /** После возврата место/квота снова в продаже (иначе остаётся проданным). */
   returnToSale: boolean
+  /** Заявка за 5–10 дней до спектакля: процент номинала (закон — не меньше 50). */
+  halfPercent: number
+  /** Заявка за 3–5 дней до спектакля: процент номинала (закон — не меньше 30). */
+  lowPercent: number
 }
 
 export const REFUND_POLICY_KEY = 'refund_policy'
@@ -34,6 +40,8 @@ export const DEFAULT_REFUND_POLICY: RefundPolicy = {
   allowPartial: true,
   refundServiceFee: false,
   returnToSale: true,
+  halfPercent: LEGAL_MIN_TIERS.halfPercent,
+  lowPercent: LEGAL_MIN_TIERS.lowPercent,
 }
 
 export const REFUND_POLICY_PLACEHOLDER = true
@@ -46,6 +54,9 @@ export const refundPolicySchema = z.object({
   allowPartial: z.boolean(),
   refundServiceFee: z.boolean(),
   returnToSale: z.boolean(),
+  // Ниже минимума закона (ст. 52.1, ПП № 1491) проценты не опускаются.
+  halfPercent: z.number().int().min(LEGAL_MIN_TIERS.halfPercent).max(100),
+  lowPercent: z.number().int().min(LEGAL_MIN_TIERS.lowPercent).max(100),
 })
 
 /**

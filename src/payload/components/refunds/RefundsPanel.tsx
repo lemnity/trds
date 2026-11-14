@@ -41,6 +41,8 @@ type Policy = {
   allowPartial: boolean
   refundServiceFee: boolean
   returnToSale: boolean
+  halfPercent: number
+  lowPercent: number
 }
 
 type OrderInfo = {
@@ -488,54 +490,42 @@ function RefundsPanelView({
         <section style={box} aria-label="Политика возвратов">
           <h2>Политика возвратов</h2>
           <p>
-            <b>Значения — заглушки:</b> правила возврата театр ещё не утвердил (срок, частичный
-            возврат, сервисный сбор, повторная продажа места). Возврат сотрудником работает всегда и
-            не ограничен сроком.
+            Зритель подаёт заявку в личном кабинете, решение принимает сотрудник (очередь выше).
+            Проценты — от номинала билета без сервисного сбора; ниже минимума закона их не опустить.
+            Сбор возвращается только при переносе, отмене или замене спектакля.
           </p>
           <form onSubmit={savePolicy} style={{ display: 'grid', gap: '0.5rem' }}>
             <fieldset
               disabled={!canEditPolicy || busy}
               style={{ border: 0, padding: 0, display: 'grid', gap: '0.5rem' }}
             >
+              <p style={{ margin: 0 }}>Больше 10 дней до спектакля — 100% (по закону).</p>
               <label>
-                <input
-                  type="checkbox"
-                  checked={policy.customerRefundsEnabled}
-                  onChange={(e) =>
-                    setPolicy({ ...policy, customerRefundsEnabled: e.target.checked })
-                  }
-                />{' '}
-                Возврат в личном кабинете (выключено — «через кассу театра / по почте»)
-              </label>
-              <label>
-                Не позже чем за, часов до начала
+                От 5 до 10 дней, % (не меньше 50)
                 <input
                   style={{ ...input, maxWidth: '10rem' }}
                   type="number"
-                  min={0}
-                  max={2160}
-                  value={policy.deadlineHoursBeforeStart}
-                  onChange={(e) =>
-                    setPolicy({ ...policy, deadlineHoursBeforeStart: Number(e.target.value) })
-                  }
+                  min={50}
+                  max={100}
+                  value={policy.halfPercent}
+                  onChange={(e) => setPolicy({ ...policy, halfPercent: Number(e.target.value) })}
                 />
               </label>
               <label>
+                От 3 до 5 дней, % (не меньше 30)
                 <input
-                  type="checkbox"
-                  checked={policy.allowPartial}
-                  onChange={(e) => setPolicy({ ...policy, allowPartial: e.target.checked })}
-                />{' '}
-                Зритель может вернуть часть билетов заказа
+                  style={{ ...input, maxWidth: '10rem' }}
+                  type="number"
+                  min={30}
+                  max={100}
+                  value={policy.lowPercent}
+                  onChange={(e) => setPolicy({ ...policy, lowPercent: Number(e.target.value) })}
+                />
               </label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={policy.refundServiceFee}
-                  onChange={(e) => setPolicy({ ...policy, refundServiceFee: e.target.checked })}
-                />{' '}
-                Возвращать сервисный сбор зрителю
-              </label>
+              <p style={{ margin: 0 }}>
+                Меньше 3 дней — только болезнь зрителя или смерть близкого, с документом (до 14 дней
+                после спектакля).
+              </p>
               <label>
                 <input
                   type="checkbox"

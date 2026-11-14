@@ -119,6 +119,7 @@ export const ticketTypeFromCms = (doc: CmsTicketType): TicketType => ({
   priceKopecks: doc.priceKopecks,
   capacity: doc.capacity,
   ...(doc.placeholder && { placeholder: true }),
+  ...(doc.promo && { promo: true }),
 })
 
 export const performanceFromCms = (

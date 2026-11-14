@@ -15,6 +15,7 @@ import { collections } from './payload/collections'
 import { codeLoginEndpoints } from './payload/auth/codeLogin'
 import { AdminUsers } from './payload/collections/AdminUsers'
 import { refundEndpoints } from './payload/components/refunds/endpoints'
+import { refundClaimEndpoints } from './payload/components/refunds/claimEndpoints'
 import { certificateEndpoints } from './payload/endpoints/certificates'
 import { leadEndpoints } from './payload/endpoints/leads'
 import { SiteSettings } from './payload/globals/SiteSettings'
@@ -86,6 +87,7 @@ export default buildConfig({
     ...leadEndpoints(),
     ...certificateEndpoints(),
     ...refundEndpoints(),
+    ...refundClaimEndpoints(),
   ],
   // Коллекции и настройки CMS — src/payload (роли и доступы — src/payload/access/roles.ts).
   collections,

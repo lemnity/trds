@@ -124,6 +124,16 @@ export const TicketTypes: CollectionConfig = {
       type: 'checkbox',
       label: 'Цена не утверждена театром (на сайте — «предварительно»)',
     },
+    {
+      name: 'promo',
+      type: 'checkbox',
+      label: 'Акционный билет',
+      defaultValue: false,
+      admin: {
+        description:
+          'Акционные билеты не возвращаются, кроме переноса/отмены спектакля, болезни зрителя или смерти близкого (ст. 52.1 Закона о культуре).',
+      },
+    },
     { name: 'sortOrder', type: 'number', label: 'Порядок', defaultValue: 0 },
   ],
 }

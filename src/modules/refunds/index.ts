@@ -9,6 +9,16 @@ import { createRefundService, type RefundService } from './service'
 
 export { refundAmounts, reversalShare, type RefundAmounts, type TicketShare } from './amounts'
 export {
+  CLAIM_BASIS_TEXT,
+  CLAIM_REASON_LABELS,
+  CLAIM_REASONS,
+  LEGAL_MIN_TIERS,
+  assessClaim,
+  type ClaimAssessment,
+  type ClaimBasis,
+  type ClaimReason,
+} from './claims-policy'
+export {
   DEFAULT_REFUND_POLICY,
   MAX_DEADLINE_HOURS,
   REFUND_POLICY_KEY,

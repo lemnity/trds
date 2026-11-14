@@ -27,19 +27,27 @@ export type RefundAmounts = {
 
 type ShareSource = Pick<TicketRow, 'id' | 'cashKopecks' | 'bonusKopecks' | 'feeKopecks'>
 
-/** Доли и итог возврата по билетам (сбор — по политике или решению сотрудника). */
+/**
+ * Доли и итог возврата по билетам (сбор — по политике или решению сотрудника). `percent` —
+ * какая часть номинала возвращается (заявка за 3–10 дней до спектакля: 30–50% и больше по
+ * настройке театра); деньги и потраченные бонусы уменьшаются в одной пропорции, копейки — вниз
+ * (возврат не превышает положенного). Сбор не делится: либо целиком, либо нет.
+ */
 export const refundAmounts = (
   tickets: readonly ShareSource[],
-  { includeFee }: { includeFee: boolean },
+  { includeFee, percent = 100 }: { includeFee: boolean; percent?: number },
 ): RefundAmounts => {
+  if (!Number.isInteger(percent) || percent < 1 || percent > 100)
+    throw new RangeError('refund percent must be 1..100')
+  const part = (kopecks: number) => Math.floor((kopecks * percent) / 100)
   const shares = [...tickets]
     .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
     .map((t) => {
       const fee = includeFee ? t.feeKopecks : 0
       return {
         ticketId: t.id,
-        cashKopecks: t.cashKopecks + fee,
-        bonusKopecks: t.bonusKopecks,
+        cashKopecks: part(t.cashKopecks) + fee,
+        bonusKopecks: part(t.bonusKopecks),
         feeKopecks: fee,
       }
     })

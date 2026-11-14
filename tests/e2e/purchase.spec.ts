@@ -96,67 +96,53 @@ test('покупка с бонусами, QR в кабинете и возвра
   await expect(dialog).toContainText(`Оплачено бонусами−${formatRub(spend)}`)
   const ticketNumber = (await qr.getAttribute('alt'))!.replace('QR-код билета ', '')
 
-  // Возврат: по умолчанию в кабинете выключен (заглушка политики) — включаем, как сделал бы
-  // администратор в /admin/refunds; срок 0 ч, чтобы показ через 30 дней точно подходил.
+  // Возврат — заявка (ст. 52.1 Закона о культуре): показ через 30 дней, значит по закону 100%
+  // номинала, сбор не возвращается. Деньги уходят после решения театра — до него билет действует.
   const db = openDb()
   try {
-    await db.execute(sql`
-      insert into commerce_settings (key, value, updated_by, updated_at)
-      values ('refund_policy', ${JSON.stringify({
-        customerRefundsEnabled: true,
-        deadlineHoursBeforeStart: 0,
-        allowPartial: true,
-        refundServiceFee: false,
-        returnToSale: true,
-      })}::jsonb, 'e2e', now())
-      on conflict (key) do update
-      set value = excluded.value, updated_by = excluded.updated_by, updated_at = now()`)
-
     await dialog.getByRole('button', { name: 'Вернуть билет' }).click()
-    const refund = dialog.getByRole('region', { name: 'Возврат билета' })
-    // Сумма и последствия — до подтверждения (rules.md §7). Билет — половина заказа:
-    // половина денег и половина бонусов; сбор по правилам-заглушке не возвращается.
-    await expect(refund).toContainText('Вернётся на карту')
-    await expect(refund).toContainText('Сервисный сбор не возвращается')
-    await refund.getByRole('button', { name: /^Подтвердить возврат/ }).click()
-    await expect(dialog.getByText(/^Возврат (выполнен|оформлен)$/)).toBeVisible()
+    const claim = dialog.getByRole('region', { name: 'Заявка на возврат' })
+    await claim.getByRole('radio', { name: 'Не смогу пойти / передумал' }).check()
+    await expect(claim).toContainText('По закону вернётся на карту (100%)')
+    await expect(claim).toContainText('Сервисный сбор не возвращается')
+    await claim.getByRole('button', { name: 'Отправить заявку' }).click()
+    await expect(dialog.getByText(/^Заявка на возврат ВЗ-/)).toBeVisible()
+    await expect(dialog).toContainText('На рассмотрении')
     await dialog.getByRole('button', { name: 'Закрыть' }).click()
 
-    // Статус в кабинете: билет переехал во «Возвраты».
-    await page.getByRole('tab', { name: /Возвраты/ }).click()
-    const refunded = page
-      .getByRole('tabpanel')
-      .getByRole('listitem')
-      .filter({ hasText: ticketNumber })
-    await expect(refunded).toContainText(/Возвращён|Возврат обрабатывается/)
-    await page.getByRole('tab', { name: /Будущие/ }).click()
-    await expect(page.getByRole('tabpanel').getByRole('listitem')).toHaveCount(1)
+    // Билет действует, пока заявку не одобрили: оба билета — в «Будущих».
+    await expect(page.getByRole('tabpanel').getByRole('listitem')).toHaveCount(2)
 
-    // Кнопка «Вернуть» на карточке действующего билета открывает его сразу с расчётом возврата.
-    await page
+    // Кнопка «Вернуть» на карточке другого билета сразу открывает форму заявки, без QR.
+    const other = page
       .getByRole('tabpanel')
       .getByRole('listitem')
+      .filter({ hasNotText: ticketNumber })
       .first()
-      .getByRole('button', { name: /^Вернуть билет/ })
-      .click()
+    await other.getByRole('button', { name: /^Вернуть билет/ }).click()
     const second = page.getByRole('dialog')
-    await expect(second.getByRole('region', { name: 'Возврат билета' })).toContainText(
-      'Вернётся на карту',
+    await expect(second.getByRole('region', { name: 'Заявка на возврат' })).toContainText(
+      'Почему возвращаете билет?',
     )
-    // В режиме возврата QR не показывается — только данные билета и расчёт.
     await expect(second.getByRole('img', { name: /QR-код билета/ })).toHaveCount(0)
     await second.getByRole('button', { name: 'Отмена' }).click()
     await second.getByRole('button', { name: 'Закрыть' }).click()
 
-    // В базе — один возврат одного билета (деньги вернул учебный банк).
-    const refunds = await rows<{ status: string; tickets: number }>(
+    // В базе — одна открытая заявка на 100%, возвратов через банк ещё нет.
+    const claims = await rows<{ status: string; legal_percent: number }>(
       db,
-      sql`select r.status, count(rt.*)::int as tickets
-          from commerce_refunds r join commerce_refund_tickets rt on rt.refund_id = r.id
-          join commerce_tickets t on t.id = rt.ticket_id
-          where t.number = ${ticketNumber} group by r.id`,
+      sql`select c.status, c.legal_percent from commerce_refund_claims c
+          join commerce_refund_claim_tickets ct on ct.claim_id = c.id
+          join commerce_tickets t on t.id = ct.ticket_id
+          where t.number = ${ticketNumber}`,
     )
-    expect(refunds).toEqual([{ status: 'SUCCEEDED', tickets: 1 }])
+    expect(claims).toEqual([{ status: 'SUBMITTED', legal_percent: 100 }])
+    const refunds = await rows<{ n: number }>(
+      db,
+      sql`select count(*)::int as n from commerce_refund_tickets rt
+          join commerce_tickets t on t.id = rt.ticket_id where t.number = ${ticketNumber}`,
+    )
+    expect(refunds).toEqual([{ n: 0 }])
   } finally {
     await closeDb(db)
   }

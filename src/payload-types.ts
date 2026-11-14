@@ -508,6 +508,10 @@ export interface TicketType {
    */
   capacity: number;
   placeholder?: boolean | null;
+  /**
+   * Акционные билеты не возвращаются, кроме переноса/отмены спектакля, болезни зрителя или смерти близкого (ст. 52.1 Закона о культуре).
+   */
+  promo?: boolean | null;
   sortOrder?: number | null;
   updatedAt: string;
   createdAt: string;
@@ -990,6 +994,7 @@ export interface TicketTypesSelect<T extends boolean = true> {
   priceKopecks?: T;
   capacity?: T;
   placeholder?: T;
+  promo?: T;
   sortOrder?: T;
   updatedAt?: T;
   createdAt?: T;

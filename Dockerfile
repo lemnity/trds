@@ -42,8 +42,9 @@ WORKDIR /app
 # чтобы Docker при первом монтировании скопировал права в пустой том.
 RUN groupadd --system --gid 1001 nodejs \
  && useradd --system --uid 1001 --gid nodejs nextjs \
- && mkdir -p /app/state /app/media \
- && chown nextjs:nodejs /app/state /app/media
+ && mkdir -p /app/state /app/media /app/private \
+ && chown nextjs:nodejs /app/state /app/media \
+ && chown nextjs:nodejs /app/private && chmod 700 /app/private
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Worker: тот же образ, отдельная команда `node worker.mjs` (docker-compose.yml).

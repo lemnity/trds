@@ -20,6 +20,8 @@ x-app-env: &app-env
   SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-}
   # Медиа админки — на томе media (входит в бэкап).
   MEDIA_DIR: /app/media
+  # Документы заявок на возврат (медицинские ПД) — отдельный закрытый том, не публичные медиа.
+  PRIVATE_FILES_DIR: /app/private
   # Необязательные интеграции: пустое значение = выключено (оплата, почта, Яндекс ID).
   PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-}
   # Т-Банк (PAYMENT_PROVIDER=tbank): терминал и пароль из личного кабинета интернет-эквайринга.
@@ -93,6 +95,7 @@ services:
     volumes:
       - ops-state:/app/state:ro
       - media:/app/media
+      - private-files:/app/private
     # edge — исходящий доступ к API банка/почты и вход от caddy.
     networks:
       - backend
@@ -193,3 +196,5 @@ volumes:
   ops-state:
   # Загрузки админки (обложки, портреты) до подключения S3 (src/payload/storage.ts).
   media:
+  # Документы заявок на возврат (больничные, свидетельства): только для сотрудников.
+  private-files:

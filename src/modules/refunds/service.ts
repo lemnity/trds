@@ -97,6 +97,8 @@ export type RefundError =
   | 'NOT_FOUND'
   | 'INVALID_KEY'
   | 'INVALID_REASON'
+  /** Процент возврата вне 1–100. */
+  | 'INVALID_PERCENT'
   /** У билета уже есть живой возврат (повторный клик/параллельный запрос). */
   | 'IN_PROGRESS'
   /** Билет не действует или заказ не в оплаченном статусе. */
@@ -249,6 +251,8 @@ export function createRefundService({
     clientKey: string
     reason: string
     includeFee: boolean
+    /** Часть номинала, 1–100 (заявка зрителя по ст. 52.1); по умолчанию 100. */
+    percent?: number
     correlationId?: string | null
   }
 
@@ -358,7 +362,7 @@ export function createRefundService({
               bonusKopecks: order.bonusKopecks,
               feeKopecks: order.feeKopecks,
             }
-          : refundAmounts(chosen, { includeFee: input.includeFee })
+          : refundAmounts(chosen, { includeFee: input.includeFee, percent: input.percent })
         if (amounts.cashKopecks > 0 && (!order.providerPaymentId || !order.paymentProvider))
           return { ok: false, error: 'PAYMENT_UNAVAILABLE' }
 
@@ -940,10 +944,15 @@ export function createRefundService({
     ticketNumbers: string[]
     reason: string
     includeFee: boolean
+    /** Часть номинала, 1–100 (решение по заявке зрителя); по умолчанию 100. */
+    percent?: number
     clientKey: string
     correlationId?: string | null
   }): Promise<RefundRequestResult> {
     if (!CLIENT_KEY.test(input.clientKey)) return { ok: false, error: 'INVALID_KEY' }
+    const percent = input.percent ?? 100
+    if (!Number.isInteger(percent) || percent < 1 || percent > 100)
+      return { ok: false, error: 'INVALID_PERCENT' }
     const reason = input.reason.trim()
     if (reason.length < 3 || reason.length > REASON_MAX)
       return { ok: false, error: 'INVALID_REASON' }
@@ -970,6 +979,7 @@ export function createRefundService({
         clientKey: input.clientKey,
         reason,
         includeFee: input.includeFee,
+        percent,
         correlationId: input.correlationId,
       },
       await policy(),
