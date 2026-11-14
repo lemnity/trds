@@ -262,11 +262,15 @@ export function RefundClaimsQueue({ apiUrl }: { apiUrl: string }) {
   }, [fetchList, apply])
 
   return (
-    <section style={{ marginTop: '2rem' }} aria-label="Заявки на возврат">
+    <section aria-label="Заявки на возврат">
       {dialog.element}
-      <h2 style={{ marginBottom: '0.5rem' }}>
-        Заявки на возврат{data ? ` · ${data.open.length} на рассмотрении` : ''}
-      </h2>
+      {data && (
+        <p style={{ margin: '0 0 0.5rem' }}>
+          <b>
+            {data.open.length === 0 ? 'Новых заявок нет' : `На рассмотрении: ${data.open.length}`}
+          </b>
+        </p>
+      )}
       <p style={{ ...muted, marginTop: 0 }}>
         Правила — ст. 52.1 Закона о культуре и ПП № 1491: больше 10 дней — 100%, 5–10 дней — не
         меньше 50%, 3–5 дней — не меньше 30%, меньше 3 дней — только болезнь или смерть близкого с
@@ -278,7 +282,6 @@ export function RefundClaimsQueue({ apiUrl }: { apiUrl: string }) {
         </p>
       )}
       {notice && <p role="status">{notice}</p>}
-      {data && data.open.length === 0 && <p>Новых заявок нет.</p>}
       {data?.open.map((c) => (
         <ClaimCard
           key={c.id}

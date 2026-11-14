@@ -12,10 +12,11 @@ export function RefundsView(props: AdminViewServerProps) {
   return (
     <AdminPage props={props} roles={REFUNDS_ROLES} path="/refunds">
       {({ apiUrl }) => (
-        <>
-          <RefundClaimsQueue apiUrl={`${apiUrl}/cms/refund-claims`} />
-          <RefundsPanel apiUrl={`${apiUrl}/cms/refunds`} canEditPolicy={canEditPolicy} />
-        </>
+        <RefundsPanel
+          apiUrl={`${apiUrl}/cms/refunds`}
+          canEditPolicy={canEditPolicy}
+          claims={<RefundClaimsQueue apiUrl={`${apiUrl}/cms/refund-claims`} />}
+        />
       )}
     </AdminPage>
   )

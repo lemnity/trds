@@ -1,7 +1,14 @@
 'use client'
 
 import { Button } from '@payloadcms/ui'
-import { useCallback, useEffect, useState, type CSSProperties, type FormEvent } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+  type ReactNode,
+} from 'react'
 
 import { formatRub } from '@/lib/money'
 import { useAdminDialog } from '../AdminDialog'
@@ -112,15 +119,39 @@ const newKey = () => crypto.randomUUID()
 type RefundsPanelProps = {
   apiUrl: string
   canEditPolicy: boolean
+  /** Очередь заявок зрителей — первая вкладка. */
+  claims?: ReactNode
 }
+
+const TABS = [
+  { id: 'claims', label: 'Заявки' },
+  { id: 'new', label: 'Новый возврат' },
+  { id: 'recent', label: 'Последние возвраты' },
+  { id: 'policy', label: 'Политика' },
+] as const
+type Tab = (typeof TABS)[number]['id']
+
+const tabStyle = (active: boolean): CSSProperties => ({
+  padding: '0.6rem 1rem',
+  border: 0,
+  borderBottom: `2px solid ${active ? 'var(--theme-text)' : 'transparent'}`,
+  background: 'none',
+  color: active ? 'var(--theme-text)' : 'var(--theme-elevation-600)',
+  fontWeight: active ? 600 : 400,
+  font: 'inherit',
+  cursor: 'pointer',
+  marginBottom: '-1px',
+})
 
 function RefundsPanelView({
   apiUrl,
   canEditPolicy,
+  claims,
   dialog,
 }: RefundsPanelProps & { dialog: AdminDialog }) {
   const [recent, setRecent] = useState<Refund[]>([])
   const [policy, setPolicy] = useState<Policy | null>(null)
+  const [tab, setTab] = useState<Tab>(claims ? 'claims' : 'new')
   const [available, setAvailable] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -288,8 +319,58 @@ function RefundsPanelView({
       )}
       {notice && <p role="status">{notice}</p>}
 
-      <section style={box} aria-label="Новый возврат">
-        <h2>Новый возврат</h2>
+      <div
+        role="tablist"
+        aria-label="Разделы возвратов"
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '0.25rem',
+          borderBottom: '1px solid var(--theme-elevation-150)',
+          marginBottom: '1.25rem',
+        }}
+        onKeyDown={(e) => {
+          // Стрелки переключают вкладки (паттерн WAI-ARIA Tabs).
+          if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
+          const i = TABS.findIndex((t) => t.id === tab)
+          const next = TABS[(i + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length]!
+          setTab(next.id)
+          document.getElementById(`refunds-tab-${next.id}`)?.focus()
+        }}
+      >
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            id={`refunds-tab-${t.id}`}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.id}
+            aria-controls={`refunds-panel-${t.id}`}
+            tabIndex={tab === t.id ? 0 : -1}
+            style={tabStyle(tab === t.id)}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div
+        id="refunds-panel-claims"
+        role="tabpanel"
+        aria-labelledby="refunds-tab-claims"
+        hidden={tab !== 'claims'}
+      >
+        {claims}
+      </div>
+
+      <section
+        id="refunds-panel-new"
+        role="tabpanel"
+        aria-labelledby="refunds-tab-new"
+        hidden={tab !== 'new'}
+        style={box}
+      >
         <form onSubmit={findOrder} style={{ display: 'flex', gap: '0.5rem', alignItems: 'end' }}>
           <label style={{ flex: 1 }}>
             Номер заказа
@@ -411,8 +492,13 @@ function RefundsPanelView({
         )}
       </section>
 
-      <section style={box} aria-label="Последние возвраты">
-        <h2>Последние возвраты</h2>
+      <section
+        id="refunds-panel-recent"
+        role="tabpanel"
+        aria-labelledby="refunds-tab-recent"
+        hidden={tab !== 'recent'}
+        style={box}
+      >
         {recent.length === 0 ? (
           <p>Возвратов пока нет.</p>
         ) : (
@@ -487,10 +573,15 @@ function RefundsPanelView({
       </section>
 
       {policy && (
-        <section style={box} aria-label="Политика возвратов">
-          <h2>Политика возвратов</h2>
+        <section
+          id="refunds-panel-policy"
+          role="tabpanel"
+          aria-labelledby="refunds-tab-policy"
+          hidden={tab !== 'policy'}
+          style={box}
+        >
           <p>
-            Зритель подаёт заявку в личном кабинете, решение принимает сотрудник (очередь выше).
+            Зритель подаёт заявку в личном кабинете, решение принимает сотрудник (вкладка «Заявки»).
             Проценты — от номинала билета без сервисного сбора; ниже минимума закона их не опустить.
             Сбор возвращается только при переносе, отмене или замене спектакля.
           </p>
