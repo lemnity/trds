@@ -5,6 +5,8 @@ import { useRef, useState, type KeyboardEvent } from 'react'
 import { formatRub } from '@/lib/money'
 import {
   SEAT_ZONE_COLORS,
+  blockSlots,
+  seatCategoryColor,
   type PerformanceSeating,
   type Seat,
   type SeatRow,
@@ -78,7 +80,7 @@ export function SeatMap({ seating, selectedIds, interactive, maxSeats, onToggle 
   }
 
   const renderSeat = (seat: Seat, rowIndex: number) => {
-    const color = SEAT_CATEGORY_COLORS[seat.categoryId]
+    const color = seatCategoryColor(plan, seat.categoryId)
     const price = pricesKopecks[seat.categoryId]
     const taken = unavailable.has(seat.id)
     const isSelected = selected.has(seat.id)
@@ -138,7 +140,13 @@ export function SeatMap({ seating, selectedIds, interactive, maxSeats, onToggle 
         {blocks.length > 1 ? (
           blocks.map((b) => (
             <span key={b.section} className={`${styles.block} ${styles[b.section]}`}>
-              {b.seats.map((s) => renderSeat(s, rowIndex))}
+              {blockSlots(b).map((s, i) =>
+                s ? (
+                  renderSeat(s, rowIndex)
+                ) : (
+                  <span key={`gap-${i}`} className={styles.gap} aria-hidden="true" />
+                ),
+              )}
             </span>
           ))
         ) : (
@@ -160,7 +168,7 @@ export function SeatMap({ seating, selectedIds, interactive, maxSeats, onToggle 
           <li key={c.id}>
             <span
               className={styles.swatch}
-              style={{ '--seat-color': SEAT_CATEGORY_COLORS[c.id] } as React.CSSProperties}
+              style={{ '--seat-color': seatCategoryColor(plan, c.id) } as React.CSSProperties}
               aria-hidden="true"
             />
             {c.title}
@@ -182,10 +190,13 @@ export function SeatMap({ seating, selectedIds, interactive, maxSeats, onToggle 
         <div className={styles.hall} role="group" aria-label={plan.title}>
           <p className={styles.stage}>Сцена</p>
           <div className={styles.upper}>{upper.map(renderRow)}</div>
-          <div className={styles.lower}>
-            {lower.map(renderRow)}
-            <p className={styles.zone}>Партер</p>
-          </div>
+          {/* Узкая нижняя часть есть только у Т-образных залов (Дом актёра); у Белинского нет. */}
+          {lower.length > 0 && (
+            <div className={styles.lower}>
+              {lower.map(renderRow)}
+              <p className={styles.zone}>Партер</p>
+            </div>
+          )}
         </div>
       </div>
 

@@ -19,7 +19,7 @@ export type SeatPricingZone = {
   priceKopecks: number | null
   /** Только зонные схемы: сколько билетов в зоне (без мест). Пусто — зона не продаётся. */
   capacity?: number | null
-  /** Только зонные схемы: свой цвет зоны «#rrggbb»; пусто — цвет схемы. */
+  /** Свой цвет зоны «#rrggbb»; пусто — цвет схемы (или палитры зон). */
   color?: string | null
 }
 export type SeatPricing = { zones: SeatPricingZone[]; seats: Record<string, string> }
@@ -86,7 +86,7 @@ export const parseSeatPricing = (
       title,
       priceKopecks: price,
       ...(zonePlan && { capacity }),
-      ...(zonePlan && color && { color: color.toLowerCase() }),
+      ...(color && { color: color.toLowerCase() }),
     })
   }
   if (zonePlan) return { ok: true, pricing: { zones, seats: {} } }
@@ -117,7 +117,11 @@ export const pricesOf = (pricing: SeatPricing | null): Record<string, number> =>
 export const layoutOfPricing = (pricing: SeatPricing | null): SeatLayout | undefined =>
   pricing && (pricing.zones.length > 0 || Object.keys(pricing.seats).length > 0)
     ? {
-        categories: pricing.zones.map((z) => ({ id: z.categoryId, title: z.title })),
+        categories: pricing.zones.map((z) => ({
+          id: z.categoryId,
+          title: z.title,
+          ...(z.color && { color: z.color }),
+        })),
         seatCategories: pricing.seats,
       }
     : undefined

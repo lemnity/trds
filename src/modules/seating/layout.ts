@@ -1,4 +1,4 @@
-import type { SeatCategory, SeatingPlan } from './types'
+import type { Seat, SeatBlock, SeatCategory, SeatingPlan } from './types'
 
 /**
  * Ценовая раскладка зала: какие ценовые зоны есть и к какой зоне относится каждое место.
@@ -42,7 +42,8 @@ export const applySeatLayout = (plan: SeatingPlan, layout?: SeatLayout | null): 
   if (custom.length === 0 && Object.keys(overrides).length === 0) return plan
 
   const known = new Map<string, SeatCategory>(plan.categories.map((c) => [c.id, c]))
-  for (const c of custom) known.set(c.id, c)
+  // Название — из раскладки, цвет схемы сохраняется.
+  for (const c of custom) known.set(c.id, { ...known.get(c.id), ...c })
   const zoneOf = (seatId: string, fallback: string) => {
     const zone = overrides[seatId]
     return zone && known.has(zone) ? zone : fallback
@@ -60,7 +61,7 @@ export const applySeatLayout = (plan: SeatingPlan, layout?: SeatLayout | null): 
   )
   const customIds = new Set(custom.map((c) => c.id))
   const categories = [
-    ...custom,
+    ...custom.map((c) => known.get(c.id)!),
     ...plan.categories.filter((c) => !customIds.has(c.id) && used.has(c.id)),
   ]
   return { ...plan, categories, rows }
@@ -75,3 +76,17 @@ export const layoutOf = (
     plan.rows.flatMap((r) => r.blocks.flatMap((b) => b.seats.map((s) => [s.id, s.categoryId]))),
   ),
 })
+
+/** Цвет категории/зоны: со схемы театра, иначе палитра зон. */
+export const seatCategoryColor = (plan: SeatingPlan, categoryId: string): string =>
+  plan.categories.find((c) => c.id === categoryId)?.color ??
+  SEAT_ZONE_COLORS[categoryId] ??
+  '#888888'
+
+/** Позиции блока слева направо: место или пропуск (null) — для отрисовки схемы. */
+export const blockSlots = (block: SeatBlock): (Seat | null)[] => {
+  if (!block.seats.some((s) => s.col !== undefined)) return block.seats
+  const width = block.width ?? Math.max(...block.seats.map((s) => s.col ?? 0))
+  const byCol = new Map(block.seats.map((s) => [s.col, s]))
+  return Array.from({ length: width }, (_, i) => byCol.get(i + 1) ?? null)
+}

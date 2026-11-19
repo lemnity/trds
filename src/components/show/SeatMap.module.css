@@ -140,7 +140,8 @@ button.seat:focus-visible .seatNumber {
 }
 
 .seat[aria-pressed='true'] {
-  background: var(--color-ink);
+  background: var(--color-ink, #15171c);
+  color: #ffffff;
   box-shadow:
     0 0 0 2px var(--color-surface),
     0 0 0 4px var(--seat-color);
@@ -220,4 +221,20 @@ button.seat:focus-visible .seatNumber {
 .wrap[data-inactive='true'] .upper,
 .wrap[data-inactive='true'] .lower {
   box-shadow: none;
+}
+
+/* «Места нет» на схеме театра (Белинского): маленькая точка, позиция сохраняется. */
+.gap {
+  display: grid;
+  place-items: center;
+  width: var(--seat);
+  height: var(--seat);
+}
+
+.gap::after {
+  content: '';
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--color-hairline);
 }

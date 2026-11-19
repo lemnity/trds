@@ -6,12 +6,15 @@ export type {
   SeatRow,
   SeatingPlan,
 } from './types'
+export { belinskogoPlan } from './belinskogo'
 export { domAkteraPlan, domKulturyPlan } from './dom-aktera'
 export {
   MAX_SEAT_ZONES,
   SEAT_ZONE_COLORS,
   SEAT_ZONE_IDS,
   applySeatLayout,
+  blockSlots,
+  seatCategoryColor,
   layoutOf,
   type SeatLayout,
 } from './layout'

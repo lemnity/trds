@@ -429,7 +429,7 @@ export interface Performance {
     /**
      * Подставляется из площадки. Пусто — продажа по категориям без мест.
      */
-    planId?: ('dom-aktera' | 'dom-kultury' | 'khlebozavod') | null;
+    planId?: ('dom-aktera' | 'dom-kultury' | 'belinskogo' | 'khlebozavod') | null;
     pricing?:
       | {
           [k: string]: unknown;
@@ -477,7 +477,7 @@ export interface Venue {
   /**
    * Пусто — продажа по категориям без мест. Новые показы на площадке берут эту схему.
    */
-  seatingPlanId?: ('dom-aktera' | 'dom-kultury' | 'khlebozavod') | null;
+  seatingPlanId?: ('dom-aktera' | 'dom-kultury' | 'belinskogo' | 'khlebozavod') | null;
   directions?: string | null;
   accessibilityNotes?: string | null;
   /**
@@ -537,7 +537,7 @@ export interface SeatPriceTemplate {
   /**
    * Пусто — схема площадки.
    */
-  planId: 'dom-aktera' | 'dom-kultury' | 'khlebozavod';
+  planId: 'dom-aktera' | 'dom-kultury' | 'belinskogo' | 'khlebozavod';
   pricing?:
     | {
         [k: string]: unknown;

@@ -1,10 +1,11 @@
+import { belinskogoPlan } from './belinskogo'
 import { domAkteraPlan, domKulturyPlan } from './dom-aktera'
 import type { SeatingPlan } from './types'
 import { khlebozavodPlan, type ZonePlan } from './zone-plans'
 
 // Утверждённые схемы залов. Площадки без схемы продают билеты по категориям.
 /** Схемы с нумерованными местами. */
-export const SEATING_PLANS: readonly SeatingPlan[] = [domAkteraPlan, domKulturyPlan]
+export const SEATING_PLANS: readonly SeatingPlan[] = [domAkteraPlan, domKulturyPlan, belinskogoPlan]
 /** Зонные схемы: зоны без мест, каждая — категория билетов с ценой и вместимостью. */
 export const ZONE_PLANS: readonly ZonePlan[] = [khlebozavodPlan]
 

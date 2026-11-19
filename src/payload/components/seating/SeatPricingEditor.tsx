@@ -5,7 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { formatRub } from '@/lib/money'
 import {
   MAX_SEAT_ZONES,
-  SEAT_ZONE_COLORS,
+  blockSlots,
+  seatCategoryColor,
   SEAT_ZONE_IDS,
   pricingSummary,
   seatsOf,
@@ -118,6 +119,12 @@ export function SeatPricingEditor({
     [plan, pricing, closedSeatIds],
   )
   const freeZoneId = SEAT_ZONE_IDS.find((id) => !zoneById.has(id))
+  const colorOf = (zoneId: string) => zoneById.get(zoneId)?.color ?? seatCategoryColor(plan, zoneId)
+  /** Секции, которые есть в этом зале (у Белинского нет центра). */
+  const usedSections = (['left', 'center', 'right'] as const).filter((section) =>
+    plan.rows.some((r) => r.blocks.some((b) => b.section === section)),
+  )
+  const rowColumns = `24px repeat(${usedSections.length}, auto) 24px`
 
   useEffect(() => {
     const stop = () => (drag.current = null)
@@ -196,7 +203,7 @@ export function SeatPricingEditor({
 
   const updateZone = (
     zoneId: string,
-    patch: Partial<{ title: string; priceKopecks: number | null }>,
+    patch: Partial<{ title: string; priceKopecks: number | null; color: string }>,
   ) =>
     onChange({
       ...pricing,
@@ -286,7 +293,11 @@ export function SeatPricingEditor({
             {plan.rows.map((row) => {
               const sections = new Map(row.blocks.map((b) => [b.section, b]))
               return (
-                <div key={row.number} className={styles.row}>
+                <div
+                  key={row.number}
+                  className={styles.row}
+                  style={{ gridTemplateColumns: rowColumns }}
+                >
                   <button
                     type="button"
                     className={styles.rowNum}
@@ -296,43 +307,53 @@ export function SeatPricingEditor({
                   >
                     {row.number}
                   </button>
-                  {(['left', 'center', 'right'] as const).map((section) => (
-                    <span key={section} className={`${styles.block} ${styles[section]}`}>
-                      {sections.get(section)?.seats.map((seat) => {
-                        const zoneId = pricing.seats[seat.id] ?? seat.categoryId
-                        const zone = zoneById.get(zoneId)
-                        const isClosed = closed.has(seat.id)
-                        const isSelected = selected.has(seat.id)
-                        const price =
-                          zone?.priceKopecks != null ? formatRub(zone.priceKopecks) : 'без цены'
-                        return (
-                          <button
-                            key={seat.id}
-                            type="button"
-                            data-seat={seat.id}
-                            className={styles.seat}
-                            data-closed={isClosed}
-                            data-unpriced={zone?.priceKopecks == null}
-                            aria-pressed={isSelected}
-                            disabled={readOnly}
-                            style={
-                              {
-                                '--zone': SEAT_ZONE_COLORS[zoneId] ?? '#888',
-                              } as React.CSSProperties
-                            }
-                            title={`Ряд ${seat.row}, место ${seat.number} · ${zone?.title ?? zoneId} · ${price}${isClosed ? ' · закрыто' : ''}`}
-                            onPointerDown={(e) => onPointerDown(e, seat.id)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault()
-                                apply([seat.id], 'toggle')
+                  {usedSections.map((section) => (
+                    <span
+                      key={section}
+                      className={`${styles.block} ${usedSections.length === 3 ? styles[section] : ''}`}
+                      data-section={section}
+                    >
+                      {(sections.get(section) ? blockSlots(sections.get(section)!) : []).map(
+                        (seat, i) => {
+                          if (!seat)
+                            return (
+                              <span key={`gap-${i}`} className={styles.gap} title="Места нет" />
+                            )
+                          const zoneId = pricing.seats[seat.id] ?? seat.categoryId
+                          const zone = zoneById.get(zoneId)
+                          const isClosed = closed.has(seat.id)
+                          const isSelected = selected.has(seat.id)
+                          const price =
+                            zone?.priceKopecks != null ? formatRub(zone.priceKopecks) : 'без цены'
+                          return (
+                            <button
+                              key={seat.id}
+                              type="button"
+                              data-seat={seat.id}
+                              className={styles.seat}
+                              data-closed={isClosed}
+                              data-unpriced={zone?.priceKopecks == null}
+                              aria-pressed={isSelected}
+                              disabled={readOnly}
+                              style={
+                                {
+                                  '--zone': colorOf(zoneId),
+                                } as React.CSSProperties
                               }
-                            }}
-                          >
-                            {seat.number}
-                          </button>
-                        )
-                      })}
+                              title={`Ряд ${seat.row}, место ${seat.number} · ${zone?.title ?? zoneId} · ${price}${isClosed ? ' · закрыто' : ''}`}
+                              onPointerDown={(e) => onPointerDown(e, seat.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  apply([seat.id], 'toggle')
+                                }
+                              }}
+                            >
+                              {seat.number}
+                            </button>
+                          )
+                        },
+                      )}
                     </span>
                   ))}
                   <span className={styles.rowNum} aria-hidden="true">
@@ -388,11 +409,21 @@ export function SeatPricingEditor({
                 className={styles.zone}
                 data-active={zoneDraft?.zoneId === z.categoryId}
               >
-                <span
-                  className={styles.swatch}
-                  style={{ '--zone': SEAT_ZONE_COLORS[z.categoryId] } as React.CSSProperties}
-                  aria-hidden="true"
-                />
+                <label
+                  className={styles.colorPicker}
+                  style={{ '--zone': colorOf(z.categoryId) } as React.CSSProperties}
+                  title="Цвет зоны"
+                >
+                  <input
+                    type="color"
+                    aria-label={`Цвет зоны «${z.title}»`}
+                    value={colorOf(z.categoryId)}
+                    disabled={readOnly}
+                    onChange={(e) =>
+                      updateZone(z.categoryId, { color: e.target.value.toLowerCase() })
+                    }
+                  />
+                </label>
                 <input
                   className={styles.zoneTitle}
                   aria-label="Название зоны"
@@ -495,7 +526,7 @@ export function SeatPricingEditor({
             {draftZoneId && (
               <span
                 className={styles.swatch}
-                style={{ '--zone': SEAT_ZONE_COLORS[draftZoneId] } as React.CSSProperties}
+                style={{ '--zone': colorOf(draftZoneId) } as React.CSSProperties}
                 aria-hidden="true"
               />
             )}
@@ -546,7 +577,7 @@ export function SeatPricingEditor({
                 key={z.categoryId}
                 type="button"
                 className={styles.chip}
-                style={{ '--zone': SEAT_ZONE_COLORS[z.categoryId] } as React.CSSProperties}
+                style={{ '--zone': colorOf(z.categoryId) } as React.CSSProperties}
                 onClick={() => assign(z.categoryId)}
               >
                 <span className={styles.swatch} aria-hidden="true" />
