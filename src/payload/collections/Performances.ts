@@ -86,6 +86,14 @@ export const Performances: CollectionConfig = {
         description: 'Собирается само: спектакль · дата и время · площадка.',
       },
     },
+    {
+      name: 'readiness',
+      type: 'ui',
+      admin: {
+        position: 'sidebar',
+        components: { Field: '/payload/components/performances/ReadinessPanel#ReadinessPanel' },
+      },
+    },
     codeField('Не меняется: на него ссылаются заказы и билеты. Пусто — заполнится сам.', {
       required: false,
       immutable: true,
