@@ -2,6 +2,7 @@
 
 import { Button } from '@payloadcms/ui'
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 /**
  * Окна подтверждения и ввода в стиле админки — вместо системных window.confirm / window.prompt.
@@ -12,6 +13,10 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNod
  *   if (!(await dialog.confirm({ title: 'Выпустить сертификаты?' }))) return
  *   const reason = await dialog.prompt({ title: 'Причина', minLength: 3 })
  *   return <>{dialog.element}…</>
+ *
+ * Окно рендерится порталом в document.body: хук часто вызывают внутри формы документа Payload, а
+ * вложенный <form> недопустим — Enter и «Подтвердить» отправили бы форму документа. Порталы
+ * пропускают события React вверх по дереву компонентов, поэтому submit окна ещё и останавливается.
  */
 
 type ConfirmOptions = {
@@ -95,10 +100,12 @@ export function useAdminDialog() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
+    // Событие React всплывает через портал к onSubmit внешней формы документа — не пускаем.
+    e.stopPropagation()
     if (canSubmit) close(true)
   }
 
-  const element = (
+  const dialogNode = (
     <dialog
       ref={ref}
       aria-labelledby="admin-dialog-title"
@@ -154,6 +161,10 @@ export function useAdminDialog() {
       )}
     </dialog>
   )
+
+  // Пока окно не открыто, ничего не рендерим (и на сервере document нет — pending там не бывает).
+  const element =
+    pending && typeof document !== 'undefined' ? createPortal(dialogNode, document.body) : null
 
   return { element, confirm, prompt }
 }
