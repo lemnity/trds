@@ -413,6 +413,10 @@ export interface Archive {
 export interface Performance {
   id: number;
   /**
+   * Собирается само: спектакль · дата и время · площадка.
+   */
+  title?: string | null;
+  /**
    * Не меняется: на него ссылаются заказы и билеты. Пусто — заполнится сам.
    */
   code?: string | null;
@@ -943,6 +947,7 @@ export interface ShowsSelect<T extends boolean = true> {
  * via the `definition` "performances_select".
  */
 export interface PerformancesSelect<T extends boolean = true> {
+  title?: T;
   code?: T;
   show?: T;
   venue?: T;

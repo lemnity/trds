@@ -11,6 +11,7 @@ import {
   guardPerformanceDelete,
   syncPerformanceSeating,
 } from '../hooks/inventorySync'
+import { setPerformanceTitle } from '../hooks/performanceTitle'
 
 /**
  * Дата и время в админке: react-datepicker разбирает ввод тем же форматом, что и показывает,
@@ -62,18 +63,29 @@ export const Performances: CollectionConfig = {
   labels: { singular: 'Показ', plural: 'Показы' },
   admin: {
     group: 'Афиша',
-    useAsTitle: 'code',
-    defaultColumns: ['code', 'show', 'startsAt', 'venue', '_status'],
+    useAsTitle: 'title',
+    defaultColumns: ['title', 'startsAt', 'venue', '_status'],
   },
   access: { ...contentAccess, delete: theatreAdmins },
   versions: { drafts: true, maxPerDoc: 30 },
   defaultSort: 'startsAt',
   hooks: {
     beforeValidate: [defaultCode],
+    beforeChange: [setPerformanceTitle],
     afterChange: [syncPerformanceSeating()],
     beforeDelete: [guardPerformanceDelete()],
   },
   fields: [
+    {
+      name: 'title',
+      type: 'text',
+      label: 'Название',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: 'Собирается само: спектакль · дата и время · площадка.',
+      },
+    },
     codeField('Не меняется: на него ссылаются заказы и билеты. Пусто — заполнится сам.', {
       required: false,
       immutable: true,
