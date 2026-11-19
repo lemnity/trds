@@ -63,6 +63,8 @@ export function ReadinessPanel() {
   const salesEndAt = str(useFormFields(([f]) => f.salesEndAt?.value))
   const planId = str(useFormFields(([f]) => f['seating.planId']?.value))
   const pricing = useFormFields(([f]) => f['seating.pricing']?.value)
+  const status = useFormFields(([f]) => f._status?.value)
+  const closed = useFormFields(([f]) => f['seating.unavailableSeatIds']?.value)
 
   const [remote, setRemote] = useState<Remote | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -101,6 +103,8 @@ export function ReadinessPanel() {
         ticketTypes: remote.ticketTypes,
         showStatus: remote.showStatus,
         venueStatus: remote.venueStatus,
+        performanceStatus: status === 'published' ? 'published' : 'draft',
+        closedSeatIds: Array.isArray(closed) ? closed.map(String) : [],
         now: new Date(),
       })
     : null

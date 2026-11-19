@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { getSeatingPlan, seatsOf } from '@/modules/seating'
 import { performanceReadiness } from '@/payload/components/performances/readiness'
 
 const now = new Date('2026-11-19T10:00:00Z')
@@ -8,6 +9,7 @@ const base = {
   ticketTypes: [{ code: 'standard' }],
   showStatus: 'published' as const,
   venueStatus: 'published' as const,
+  performanceStatus: 'published' as const,
   now,
 }
 const state = (r: ReturnType<typeof performanceReadiness>, id: string) =>
@@ -73,5 +75,62 @@ describe('performanceReadiness', () => {
       performance: { ...base.performance, salesStartAt: null, salesEndAt: '2026-11-18T00:00:00Z' },
     })
     expect(r.problems).toContain('окно продаж закрыто')
+  })
+
+  it('draft performance is never ready', () => {
+    const r = performanceReadiness({ ...base, performanceStatus: 'draft' })
+    expect(r.ready).toBe(false)
+    expect(r.problems).toEqual(['показ не опубликован'])
+    expect(r.items.find((i) => i.id === 'performance')?.hint).toBe(
+      'Опубликуйте показ — черновики на сайте не видны.',
+    )
+  })
+
+  describe('seat scheme prices', () => {
+    const seatPerf = (pricing: unknown) => ({
+      ...base.performance,
+      seating: { planId: 'belinskogo', pricing },
+    })
+    const plan = getSeatingPlan('belinskogo')!
+    const allSeats = seatsOf(plan).map((s) => s.id)
+    const priced = {
+      zones: [{ categoryId: 'cat-1', title: 'Партер', priceKopecks: 150000 }],
+      seats: {},
+    }
+    const pricedAll = {
+      ...priced,
+      seats: Object.fromEntries(allSeats.map((id) => [id, 'cat-1'])),
+    }
+
+    it('priced zone with open seats — ok', () => {
+      const r = performanceReadiness({
+        ...base,
+        ticketTypes: [],
+        performance: seatPerf(pricedAll),
+      })
+      expect(state(r, 'prices')).toBe('ok')
+    })
+
+    it('priced zone with every seat closed — fails with a hint', () => {
+      const r = performanceReadiness({
+        ...base,
+        ticketTypes: [],
+        performance: seatPerf(pricedAll),
+        closedSeatIds: allSeats,
+      })
+      expect(state(r, 'prices')).toBe('fail')
+      expect(r.items.find((i) => i.id === 'prices')?.hint).toBe(
+        'У зон с ценой нет мест в продаже — откройте места на схеме.',
+      )
+    })
+
+    it('priced zone without seats — fails', () => {
+      const empty = {
+        zones: [{ categoryId: 'cat-9', title: 'Пусто', priceKopecks: 1000 }],
+        seats: {},
+      }
+      const r = performanceReadiness({ ...base, ticketTypes: [], performance: seatPerf(empty) })
+      expect(state(r, 'prices')).toBe('fail')
+    })
   })
 })
