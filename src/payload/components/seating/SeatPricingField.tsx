@@ -35,6 +35,7 @@ const idOf = (v: unknown): Id | null =>
 export function SeatPricingField(props: Props) {
   const { path, field, readOnly, planPath, venuePath, closedPath, templates } = props
   const { config } = useConfig()
+  const dialog = useAdminDialog()
   const apiUrl = `${config.serverURL}${config.routes.api}`
 
   const { value, setValue, errorMessage, showError } = useField<SeatPricing | null>({ path })
@@ -105,6 +106,7 @@ export function SeatPricingField(props: Props) {
     <div className={styles.root}>
       {label}
       {showError && errorMessage && <div className={styles.error}>{errorMessage}</div>}
+      {dialog.element}
       <HallPricingEditor
         key={hall.plan.id}
         hall={hall}
@@ -114,6 +116,12 @@ export function SeatPricingField(props: Props) {
         {...(closedPath && {
           closedSeatIds: closed.value ?? [],
           onClosedChange: (ids: string[]) => closed.setValue(ids),
+          confirmOpenAll: (count: number) =>
+            dialog.confirm({
+              title: `Открыть все закрытые места (${count})?`,
+              body: 'Все закрытые места вернутся в продажу. Изменение вступит в силу после сохранения показа.',
+              confirmLabel: 'Открыть все',
+            }),
         })}
         toolbar={
           templates ? (

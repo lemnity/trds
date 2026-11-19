@@ -338,6 +338,18 @@ button.rowNum:hover:not(:disabled) {
   color: var(--warn);
 }
 
+.closedNote {
+  display: grid;
+  justify-items: start;
+  gap: var(--sp-1, 4px);
+  font-size: 12px;
+}
+
+.closedNote p {
+  margin: 0;
+  color: var(--muted);
+}
+
 .summary .revenue {
   grid-column: 1 / -1;
 }

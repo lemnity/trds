@@ -137,6 +137,11 @@ export const Performances: CollectionConfig = {
           },
         },
         {
+          name: 'pricesPlaceholder',
+          type: 'checkbox',
+          label: 'Цены не утверждены театром (на сайте — «предварительно»)',
+        },
+        {
           name: 'pricing',
           type: 'json',
           label: 'Цены по схеме зала',
@@ -157,11 +162,6 @@ export const Performances: CollectionConfig = {
               },
             },
           },
-        },
-        {
-          name: 'pricesPlaceholder',
-          type: 'checkbox',
-          label: 'Цены не утверждены театром (на сайте — «предварительно»)',
         },
         {
           name: 'unavailableSeatIds',

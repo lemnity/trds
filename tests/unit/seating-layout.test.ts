@@ -132,6 +132,16 @@ describe('seat pricing (CMS JSON)', () => {
     expect(summary.revenueKopecks).toBe(135 * 100_000)
   })
 
+  it('counts closed seats per zone', () => {
+    const all = Object.fromEntries(seatsOf(domAkteraPlan).map((s) => [s.id, 'cat-1']))
+    const summary = pricingSummary(
+      domAkteraPlan,
+      { zones: [{ categoryId: 'cat-1', title: 'Все', priceKopecks: 100_000 }], seats: all },
+      ['r1-s1', 'r1-s2'],
+    )
+    expect(summary.zones[0]).toMatchObject({ seats: 134, closed: 2 })
+  })
+
   it('layout of pricing drives the performance plan', () => {
     const plan = applySeatLayout(domAkteraPlan, layoutOfPricing(pricing))
     expect(seatsOf(plan).find((s) => s.id === 'r12-s9')!.categoryId).toBe('cat-2')

@@ -150,12 +150,17 @@ export const pricingSummary = (
 ) => {
   const closed = new Set(closedSeatIds)
   const counts = new Map<string, number>()
+  const closedCounts = new Map<string, number>()
   for (const seat of seatsOf(plan)) {
-    if (closed.has(seat.id)) continue
     const zone = pricing.seats[seat.id] ?? seat.categoryId
-    counts.set(zone, (counts.get(zone) ?? 0) + 1)
+    const target = closed.has(seat.id) ? closedCounts : counts
+    target.set(zone, (target.get(zone) ?? 0) + 1)
   }
-  const zones = pricing.zones.map((z) => ({ ...z, seats: counts.get(z.categoryId) ?? 0 }))
+  const zones = pricing.zones.map((z) => ({
+    ...z,
+    seats: counts.get(z.categoryId) ?? 0,
+    closed: closedCounts.get(z.categoryId) ?? 0,
+  }))
   return {
     zones,
     onSale: zones.filter((z) => z.priceKopecks !== null).reduce((n, z) => n + z.seats, 0),

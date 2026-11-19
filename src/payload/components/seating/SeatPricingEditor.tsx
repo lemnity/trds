@@ -33,6 +33,8 @@ type Props = {
   /** Закрытые места показа; без `onClosedChange` закрывать места нельзя (шаблон). */
   closedSeatIds?: readonly string[]
   onClosedChange?: (next: string[]) => void
+  /** Подтверждение «Открыть все закрытые» (окно хозяина формы); без него кнопки нет. */
+  confirmOpenAll?: (count: number) => Promise<boolean>
   readOnly?: boolean
   /** Панель над схемой — шаблоны. */
   toolbar?: ReactNode
@@ -87,6 +89,7 @@ export function SeatPricingEditor({
   onChange,
   closedSeatIds,
   onClosedChange,
+  confirmOpenAll,
   readOnly,
   toolbar,
 }: Props) {
@@ -277,6 +280,14 @@ export function SeatPricingEditor({
       : [...pricing.zones, { categoryId: draftZoneId, title, priceKopecks }]
     onChange({ zones, seats })
     cancelZoneDraft()
+  }
+
+  const openAllClosed = async () => {
+    if (!onClosedChange || !confirmOpenAll || closed.size === 0) return
+    const ok = await confirmOpenAll?.(closed.size)
+    if (!ok) return
+    onClosedChange([])
+    setSelected(new Set())
   }
 
   const selectedClosed = [...selected].filter((id) => closed.has(id)).length
@@ -499,6 +510,7 @@ export function SeatPricingEditor({
                 />
                 <span className={styles.zoneMeta}>
                   {z.seats} {seatWord(z.seats)}
+                  {z.closed > 0 && ` · ${z.closed} закрыто`}
                   {z.priceKopecks === null && z.seats > 0 && (
                     <span className={styles.warn}> · не продаётся</span>
                   )}
@@ -560,6 +572,16 @@ export function SeatPricingEditor({
               <dd>{formatRub(summary.revenueKopecks)}</dd>
             </div>
           </dl>
+          {canClose && summary.closed > 0 && (
+            <div className={styles.closedNote}>
+              <p>Закрыты с продажи. Выделите места и нажмите «Вернуть в продажу».</p>
+              {!readOnly && confirmOpenAll && (
+                <button type="button" className={styles.link} onClick={openAllClosed}>
+                  Открыть все закрытые
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
