@@ -97,6 +97,8 @@ export type StaffClaimView = ClaimView & {
   showTitle: string | null
   /** Что вернётся при решении «по закону» (подсказка сотруднику). */
   legalAmounts: { cashKopecks: number; bonusKopecks: number; feeKopecks: number }
+  /** Доли билетов (деньги без сбора, бонусы, сбор) — админка пересчитывает сумму при другом %. */
+  ticketAmounts: { cashKopecks: number; bonusKopecks: number; feeKopecks: number }[]
 }
 
 type Result<T> = { ok: true; value: T } | { ok: false; error: ClaimError; refundError?: string }
@@ -420,6 +422,11 @@ export function createClaimService(deps: Deps) {
       showTitle: show?.showTitle ?? null,
       legalAmounts: amountsFor(tickets, { percent: c.legalPercent, includeFee: c.includeFee })
         .amounts,
+      ticketAmounts: tickets.map((t) => ({
+        cashKopecks: t.cashKopecks,
+        bonusKopecks: t.bonusKopecks,
+        feeKopecks: t.feeKopecks,
+      })),
     }
   }
 

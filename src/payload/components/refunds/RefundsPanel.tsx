@@ -1,17 +1,12 @@
 'use client'
 
 import { Button } from '@payloadcms/ui'
-import {
-  useCallback,
-  useEffect,
-  useState,
-  type CSSProperties,
-  type FormEvent,
-  type ReactNode,
-} from 'react'
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
 
 import { formatRub } from '@/lib/money'
 import { useAdminDialog } from '../AdminDialog'
+import { CLAIMS_COUNT_EVENT } from './RefundClaimsQueue'
+import s from './refunds.module.css'
 
 /**
  * Возвраты в админке (T-053): поиск заказа, полный/частичный возврат с обязательной причиной,
@@ -99,19 +94,6 @@ const ERRORS: Record<string, string> = {
   unauthorized: 'Сессия истекла — войдите снова.',
 }
 
-const box: CSSProperties = {
-  padding: '1rem',
-  border: '1px solid var(--theme-elevation-150)',
-  marginBottom: '1.5rem',
-}
-const input: CSSProperties = { display: 'block', width: '100%', padding: '0.4rem 0.5rem' }
-const table: CSSProperties = { width: '100%', borderCollapse: 'collapse' }
-const cell: CSSProperties = {
-  padding: '0.35rem 0.5rem',
-  borderBottom: '1px solid var(--theme-elevation-100)',
-  textAlign: 'left',
-  verticalAlign: 'top',
-}
 const time = (iso: string | null) =>
   iso ? new Date(iso).toLocaleString('ru-RU', { timeZone: 'Asia/Yekaterinburg' }) : '—'
 const newKey = () => crypto.randomUUID()
@@ -131,18 +113,6 @@ const TABS = [
 ] as const
 type Tab = (typeof TABS)[number]['id']
 
-const tabStyle = (active: boolean): CSSProperties => ({
-  padding: '0.6rem 1rem',
-  border: 0,
-  borderBottom: `2px solid ${active ? 'var(--theme-text)' : 'transparent'}`,
-  background: 'none',
-  color: active ? 'var(--theme-text)' : 'var(--theme-elevation-600)',
-  fontWeight: active ? 600 : 400,
-  font: 'inherit',
-  cursor: 'pointer',
-  marginBottom: '-1px',
-})
-
 function RefundsPanelView({
   apiUrl,
   canEditPolicy,
@@ -152,6 +122,13 @@ function RefundsPanelView({
   const [recent, setRecent] = useState<Refund[]>([])
   const [policy, setPolicy] = useState<Policy | null>(null)
   const [tab, setTab] = useState<Tab>(claims ? 'claims' : 'new')
+  // Счётчик открытых заявок на вкладке — его сообщает очередь после загрузки.
+  const [openClaims, setOpenClaims] = useState(0)
+  useEffect(() => {
+    const onCount = (e: Event) => setOpenClaims(Number((e as CustomEvent<number>).detail) || 0)
+    window.addEventListener(CLAIMS_COUNT_EVENT, onCount)
+    return () => window.removeEventListener(CLAIMS_COUNT_EVENT, onCount)
+  }, [])
   const [available, setAvailable] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -305,7 +282,7 @@ function RefundsPanelView({
   }
 
   return (
-    <div style={{ marginTop: '2rem', marginBottom: '3rem' }}>
+    <div className={s.root}>
       <h1>Возвраты</h1>
       {!available && (
         <p role="alert">
@@ -313,22 +290,20 @@ function RefundsPanelView({
         </p>
       )}
       {error && (
-        <p role="alert" style={{ color: 'var(--theme-error-500)' }}>
+        <p role="alert" className={s.alert}>
           {error}
         </p>
       )}
-      {notice && <p role="status">{notice}</p>}
+      {notice && (
+        <p role="status" className={s.notice}>
+          {notice}
+        </p>
+      )}
 
       <div
         role="tablist"
         aria-label="Разделы возвратов"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '0.25rem',
-          borderBottom: '1px solid var(--theme-elevation-150)',
-          marginBottom: '1.25rem',
-        }}
+        className={s.tabs}
         onKeyDown={(e) => {
           // Стрелки переключают вкладки (паттерн WAI-ARIA Tabs).
           if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
@@ -347,10 +322,15 @@ function RefundsPanelView({
             aria-selected={tab === t.id}
             aria-controls={`refunds-panel-${t.id}`}
             tabIndex={tab === t.id ? 0 : -1}
-            style={tabStyle(tab === t.id)}
+            className={s.tab}
             onClick={() => setTab(t.id)}
           >
             {t.label}
+            {t.id === 'claims' && openClaims > 0 && (
+              <span className={s.count} aria-label={`${openClaims} на рассмотрении`}>
+                {openClaims}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -369,13 +349,13 @@ function RefundsPanelView({
         role="tabpanel"
         aria-labelledby="refunds-tab-new"
         hidden={tab !== 'new'}
-        style={box}
+        className={s.card}
       >
-        <form onSubmit={findOrder} style={{ display: 'flex', gap: '0.5rem', alignItems: 'end' }}>
-          <label style={{ flex: 1 }}>
+        <form onSubmit={findOrder} className={s.row}>
+          <label className={s.grow}>
             Номер заказа
             <input
-              style={input}
+              className={s.input}
               value={orderNumber}
               onChange={(e) => setOrderNumber(e.target.value)}
               placeholder="TRD-XXXXXXXX"
@@ -388,7 +368,7 @@ function RefundsPanelView({
         </form>
 
         {info && (
-          <div style={{ marginTop: '1rem' }}>
+          <div className={s.section}>
             <p>
               Заказ <b>{info.order.number}</b> · {info.order.status}
               {info.order.guest ? ' · гость' : ''} · оплачено деньгами{' '}
@@ -397,21 +377,21 @@ function RefundsPanelView({
               {info.order.reviewReason && ` · причина проверки: ${info.order.reviewReason}`}
             </p>
             {info.tickets.length > 0 && (
-              <table style={table}>
+              <table className={s.table}>
                 <thead>
                   <tr>
-                    <th style={cell}>Вернуть</th>
-                    <th style={cell}>Билет</th>
-                    <th style={cell}>Статус</th>
-                    <th style={cell}>Деньгами</th>
-                    <th style={cell}>Бонусами</th>
-                    <th style={cell}>Сбор</th>
+                    <th>Вернуть</th>
+                    <th>Билет</th>
+                    <th>Статус</th>
+                    <th>Деньгами</th>
+                    <th>Бонусами</th>
+                    <th>Сбор</th>
                   </tr>
                 </thead>
                 <tbody>
                   {info.tickets.map((t) => (
                     <tr key={t.number}>
-                      <td style={cell}>
+                      <td>
                         <input
                           type="checkbox"
                           aria-label={`Вернуть билет ${t.number}`}
@@ -426,18 +406,18 @@ function RefundsPanelView({
                           }}
                         />
                       </td>
-                      <td style={cell}>{t.number}</td>
-                      <td style={cell}>{TICKET_LABEL[t.status]}</td>
-                      <td style={cell}>{formatRub(t.cashKopecks)}</td>
-                      <td style={cell}>{formatRub(t.bonusKopecks)}</td>
-                      <td style={cell}>{formatRub(t.feeKopecks)}</td>
+                      <td>{t.number}</td>
+                      <td>{TICKET_LABEL[t.status]}</td>
+                      <td>{formatRub(t.cashKopecks)}</td>
+                      <td>{formatRub(t.bonusKopecks)}</td>
+                      <td>{formatRub(t.feeKopecks)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             )}
             {(chosen.length > 0 || whole) && (
-              <div style={{ marginTop: '1rem', display: 'grid', gap: '0.75rem' }}>
+              <div className={s.section}>
                 {!whole && (
                   <label>
                     <input
@@ -454,7 +434,7 @@ function RefundsPanelView({
                 <label>
                   Причина (обязательно, попадёт в журнал)
                   <textarea
-                    style={input}
+                    className={s.input}
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     maxLength={500}
@@ -473,7 +453,7 @@ function RefundsPanelView({
                   билеты бонусы будут сторнированы.
                 </p>
                 {confirming ? (
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <div className={s.row}>
                     <Button onClick={submit} disabled={busy}>
                       {busy ? 'Оформляем…' : `Подтвердить возврат ${formatRub(total.cash)}`}
                     </Button>
@@ -497,32 +477,32 @@ function RefundsPanelView({
         role="tabpanel"
         aria-labelledby="refunds-tab-recent"
         hidden={tab !== 'recent'}
-        style={box}
+        className={s.card}
       >
         {recent.length === 0 ? (
           <p>Возвратов пока нет.</p>
         ) : (
-          <table style={table}>
+          <table className={s.table}>
             <thead>
               <tr>
-                <th style={cell}>Когда</th>
-                <th style={cell}>Заказ / билеты</th>
-                <th style={cell}>Сумма</th>
-                <th style={cell}>Статус</th>
-                <th style={cell}>Кто и почему</th>
-                <th style={cell} />
+                <th>Когда</th>
+                <th>Заказ / билеты</th>
+                <th>Сумма</th>
+                <th>Статус</th>
+                <th>Кто и почему</th>
+                <th />
               </tr>
             </thead>
             <tbody>
               {recent.map((r) => (
                 <tr key={r.id}>
-                  <td style={cell}>{time(r.createdAt)}</td>
-                  <td style={cell}>
+                  <td>{time(r.createdAt)}</td>
+                  <td>
                     {r.orderNumber}
                     <br />
                     <small>{r.ticketNumbers.join(', ') || 'весь платёж'}</small>
                   </td>
-                  <td style={cell}>
+                  <td>
                     {formatRub(r.cashKopecks)}
                     {r.bonusKopecks > 0 && (
                       <>
@@ -537,7 +517,7 @@ function RefundsPanelView({
                       </>
                     )}
                   </td>
-                  <td style={cell}>
+                  <td>
                     {STATUS_LABEL[r.status]}
                     {r.lastError && (
                       <>
@@ -548,12 +528,12 @@ function RefundsPanelView({
                       </>
                     )}
                   </td>
-                  <td style={cell}>
+                  <td>
                     {r.requestedBy}
                     <br />
                     <small>{r.reason}</small>
                   </td>
-                  <td style={cell}>
+                  <td>
                     {(r.status === 'MANUAL_REVIEW' || r.status === 'REQUESTED') && (
                       <Button
                         buttonStyle="secondary"
@@ -578,23 +558,20 @@ function RefundsPanelView({
           role="tabpanel"
           aria-labelledby="refunds-tab-policy"
           hidden={tab !== 'policy'}
-          style={box}
+          className={s.card}
         >
           <p>
             Зритель подаёт заявку в личном кабинете, решение принимает сотрудник (вкладка «Заявки»).
             Проценты — от номинала билета без сервисного сбора; ниже минимума закона их не опустить.
             Сбор возвращается только при переносе, отмене или замене спектакля.
           </p>
-          <form onSubmit={savePolicy} style={{ display: 'grid', gap: '0.5rem' }}>
-            <fieldset
-              disabled={!canEditPolicy || busy}
-              style={{ border: 0, padding: 0, display: 'grid', gap: '0.5rem' }}
-            >
-              <p style={{ margin: 0 }}>Больше 10 дней до спектакля — 100% (по закону).</p>
+          <form onSubmit={savePolicy} className={s.stack}>
+            <fieldset disabled={!canEditPolicy || busy} className={s.fieldset}>
+              <p className={s.flush}>Больше 10 дней до спектакля — 100% (по закону).</p>
               <label>
                 От 5 до 10 дней, % (не меньше 50)
                 <input
-                  style={{ ...input, maxWidth: '10rem' }}
+                  className={`${s.input} ${s.inputShort}`}
                   type="number"
                   min={50}
                   max={100}
@@ -605,7 +582,7 @@ function RefundsPanelView({
               <label>
                 От 3 до 5 дней, % (не меньше 30)
                 <input
-                  style={{ ...input, maxWidth: '10rem' }}
+                  className={`${s.input} ${s.inputShort}`}
                   type="number"
                   min={30}
                   max={100}
@@ -613,7 +590,7 @@ function RefundsPanelView({
                   onChange={(e) => setPolicy({ ...policy, lowPercent: Number(e.target.value) })}
                 />
               </label>
-              <p style={{ margin: 0 }}>
+              <p className={s.flush}>
                 Меньше 3 дней — только болезнь зрителя или смерть близкого, с документом (до 14 дней
                 после спектакля).
               </p>

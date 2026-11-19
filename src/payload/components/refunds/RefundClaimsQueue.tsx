@@ -1,16 +1,19 @@
 'use client'
 
 import { Button } from '@payloadcms/ui'
-import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { formatRub } from '@/lib/money'
 
 import { useAdminDialog } from '../AdminDialog'
+import s from './refunds.module.css'
 
 /**
- * Очередь заявок на возврат (/admin/refunds). Каждую заявку решает сотрудник: одобрить с процентом
- * номинала (подставлено, что положено по закону) — деньги уходят через банк обычным возвратом;
- * или отказать с объяснением, которое увидит зритель. Документы открываются в новой вкладке.
+ * Очередь заявок на возврат (/admin/refunds, вкладка «Заявки»). Каждую заявку решает сотрудник:
+ * одобрить с процентом номинала (подставлено, что положено по закону) — деньги уходят через банк
+ * обычным возвратом; или отказать с объяснением, которое увидит зритель. На карточке — главное для
+ * решения: сколько дней было до спектакля при подаче (шкала сроков закона) и сумма к возврату,
+ * которая пересчитывается сразу при смене процента.
  */
 
 type Amounts = { cashKopecks: number; bonusKopecks: number; feeKopecks: number }
@@ -33,6 +36,7 @@ type Claim = {
   documentDeadline: string | null
   files: { id: string; name: string; mimeType: string; sizeBytes: number; uploadedAt: string }[]
   legalAmounts: Amounts
+  ticketAmounts: Amounts[]
   decidedPercent: number | null
   decisionComment: string | null
   decidedBy: string | null
@@ -40,38 +44,137 @@ type Claim = {
   createdAt: string
 }
 
-const box: CSSProperties = {
-  padding: '1rem',
-  border: '1px solid var(--theme-elevation-150)',
-  marginBottom: '1rem',
-}
-const muted: CSSProperties = { color: 'var(--theme-elevation-600)' }
-const input: CSSProperties = { padding: '0.4rem 0.5rem', width: '6rem' }
-const time = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleString('ru-RU', { timeZone: 'Asia/Yekaterinburg' }) : '—'
+type List = { open: Claim[]; closed: Claim[] }
 
-const STATUS: Record<Claim['status'], string> = {
-  SUBMITTED: 'на рассмотрении',
-  APPROVED: 'одобрена',
-  REJECTED: 'отказ',
-  CANCELLED: 'отозвана зрителем',
+/** Событие для счётчика на вкладке «Заявки». */
+export const CLAIMS_COUNT_EVENT = 'refund-claims:count'
+
+const DAY = 24 * 60 * 60_000
+const TZ = 'Asia/Yekaterinburg'
+
+const dateTime = (iso: string | null) =>
+  iso
+    ? new Date(iso).toLocaleString('ru-RU', {
+        timeZone: TZ,
+        day: 'numeric',
+        month: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '—'
+
+const plural = (n: number, one: string, few: string, many: string) => {
+  const m10 = n % 10
+  const m100 = n % 100
+  if (m10 === 1 && m100 !== 11) return one
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
+  return many
+}
+
+/** «8 дней», «2 дня», «5 часов» — понятная длительность для шкалы. */
+const span = (ms: number) => {
+  if (ms < DAY) {
+    const h = Math.max(0, Math.floor(ms / 3_600_000))
+    return `${h} ${plural(h, 'час', 'часа', 'часов')}`
+  }
+  const d = Math.floor(ms / DAY)
+  return `${d} ${plural(d, 'день', 'дня', 'дней')}`
+}
+
+/** Сумма как на сервере (refundAmounts): по билету, копейки вниз; сбор — целиком или нет. */
+const amountsAt = (tickets: Amounts[], percent: number, includeFee: boolean): Amounts => {
+  const part = (k: number) => Math.floor((k * percent) / 100)
+  return tickets.reduce(
+    (sum, t) => {
+      const fee = includeFee ? t.feeKopecks : 0
+      return {
+        cashKopecks: sum.cashKopecks + part(t.cashKopecks) + fee,
+        bonusKopecks: sum.bonusKopecks + part(t.bonusKopecks),
+        feeKopecks: sum.feeKopecks + fee,
+      }
+    },
+    { cashKopecks: 0, bonusKopecks: 0, feeKopecks: 0 },
+  )
+}
+
+const STATUS: Record<Claim['status'], { label: string; className: string }> = {
+  SUBMITTED: { label: 'На рассмотрении', className: s.chipWarn! },
+  APPROVED: { label: 'Одобрена', className: s.chipOk! },
+  REJECTED: { label: 'Отказ', className: s.chipBad! },
+  CANCELLED: { label: 'Отозвана зрителем', className: '' },
+}
+
+/** Шкала сроков закона (14+ → 0 дней) и отметка «когда подана заявка». */
+function Timeline({ claim, now }: { claim: Claim; now: number }) {
+  const start = new Date(claim.startsAt).getTime()
+  const before = start - new Date(claim.createdAt).getTime()
+  const left = start - now
+  // 14 дней — ширина шкалы; всё, что раньше, — у левого края.
+  const position = Math.min(1, Math.max(0, 1 - before / (14 * DAY)))
+  return (
+    <div className={s.timeline}>
+      <div className={s.timelineHead}>
+        <span>
+          Подана за <b>{span(before)}</b> до спектакля
+        </span>
+        <span className={s.muted}>
+          {left > 0 ? (
+            <>
+              До спектакля: <b>{span(left)}</b>
+            </>
+          ) : (
+            'Спектакль прошёл'
+          )}
+        </span>
+      </div>
+      <div
+        className={s.track}
+        role="img"
+        aria-label={`Заявка подана за ${span(before)} до спектакля`}
+      >
+        <span className={`${s.seg} ${s.seg100}`}>100%</span>
+        <span className={`${s.seg} ${s.seg50}`}>≥ 50%</span>
+        <span className={`${s.seg} ${s.seg30}`}>≥ 30%</span>
+        <span className={`${s.seg} ${s.seg0}`}>док.</span>
+        <span className={s.marker} style={{ left: `${position * 100}%` }} />
+      </div>
+      <div className={s.scale} aria-hidden="true">
+        <span>14+ дн.</span>
+        <span>10 дн.</span>
+        <span>5</span>
+        <span>3 · спектакль</span>
+      </div>
+    </div>
+  )
 }
 
 function ClaimCard({
   claim,
   apiUrl,
   dialog,
+  now,
   onDone,
 }: {
   claim: Claim
   apiUrl: string
   dialog: ReturnType<typeof useAdminDialog>
+  now: number
   onDone: (message: string) => void
 }) {
-  const [percent, setPercent] = useState(claim.legalPercent > 0 ? String(claim.legalPercent) : '')
+  const [percent, setPercent] = useState(claim.legalPercent > 0 ? claim.legalPercent : 0)
   const [includeFee, setIncludeFee] = useState(claim.includeFee)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const open = claim.status === 'SUBMITTED'
+
+  const shown = open ? percent : (claim.decidedPercent ?? 0)
+  const preview = useMemo(
+    () => amountsAt(claim.ticketAmounts, shown, open ? includeFee : claim.includeFee),
+    [claim.ticketAmounts, claim.includeFee, shown, includeFee, open],
+  )
+  const feeTotal = claim.ticketAmounts.reduce((n, t) => n + t.feeKopecks, 0)
+  const valid = Number.isInteger(percent) && percent >= 1 && percent <= 100
+  const below = claim.legalPercent > 0 && percent < claim.legalPercent
 
   const post = async (path: string, body: unknown) => {
     setBusy(true)
@@ -83,7 +186,7 @@ function ClaimCard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
-      const data = (await res.json().catch(() => ({}))) as { message?: string; error?: string }
+      const data = (await res.json().catch(() => ({}))) as { message?: string }
       if (!res.ok) setError(data.message ?? 'Не получилось. Обновите страницу и повторите.')
       return res.ok
     } catch {
@@ -95,34 +198,37 @@ function ClaimCard({
   }
 
   const approve = async () => {
-    const p = Number(percent)
-    if (!Number.isInteger(p) || p < 1 || p > 100) {
+    if (!valid) {
       setError('Процент — целое число от 1 до 100.')
       return
     }
-    const below = claim.legalPercent > 0 && p < claim.legalPercent
     const ok = await dialog.confirm({
-      title: `Вернуть ${p}% по заявке ${claim.number}?`,
+      title: `Вернуть ${formatRub(preview.cashKopecks)}?`,
       body: (
-        <div style={{ display: 'grid', gap: '0.5rem' }}>
+        <div className={s.stack}>
           <p style={{ margin: 0 }}>
-            Деньги уйдут через банк на карту зрителя
-            {includeFee ? ', вместе с сервисным сбором' : ', без сервисного сбора'}. Билеты{' '}
-            {claim.ticketNumbers.join(', ')} перестанут действовать.
+            {percent}% номинала{includeFee ? ' и сервисный сбор' : ''} по заявке {claim.number}.
+            Деньги уйдут через банк на карту зрителя, билеты {claim.ticketNumbers.join(', ')}{' '}
+            перестанут действовать.
           </p>
+          {preview.bonusKopecks > 0 && (
+            <p style={{ margin: 0 }}>Бонусами вернётся {formatRub(preview.bonusKopecks)}.</p>
+          )}
           {below && (
             <p style={{ margin: 0, color: 'var(--theme-error-500)' }}>
-              Меньше, чем положено по закону ({claim.legalPercent}%).
+              Это меньше, чем положено по закону ({claim.legalPercent}%).
             </p>
           )}
         </div>
       ),
-      confirmLabel: `Вернуть ${p}%`,
+      confirmLabel: 'Вернуть',
       danger: below,
     })
     if (!ok) return
-    if (await post('approve', { percent: p, includeFee }))
-      onDone(`Заявка ${claim.number} одобрена: возврат ${p}% отправлен в банк.`)
+    if (await post('approve', { percent, includeFee }))
+      onDone(
+        `Заявка ${claim.number} одобрена: ${formatRub(preview.cashKopecks)} отправлено в банк.`,
+      )
   }
 
   const reject = async () => {
@@ -139,87 +245,142 @@ function ClaimCard({
     if (await post('reject', { comment })) onDone(`По заявке ${claim.number} — отказ.`)
   }
 
-  const open = claim.status === 'SUBMITTED'
-  return (
-    <article style={box} aria-label={`Заявка ${claim.number}`}>
-      <p style={{ margin: '0 0 0.25rem' }}>
-        <b>{claim.number}</b> · {STATUS[claim.status]} · подана {time(claim.createdAt)}
-      </p>
-      <p style={{ margin: '0 0 0.25rem' }}>
-        {claim.showTitle ?? 'Спектакль'}, {time(claim.startsAt)} · заказ {claim.orderNumber} ·
-        билеты {claim.ticketNumbers.join(', ')}
-        {claim.customerEmail && ` · ${claim.customerEmail}`}
-      </p>
-      <p style={{ margin: '0 0 0.25rem' }}>
-        Причина: <b>{claim.reasonLabel}</b>
-        {claim.comment && <> — «{claim.comment}»</>}
-      </p>
-      <p style={{ margin: '0 0 0.5rem', ...muted }}>
-        По закону: <b>{claim.legalPercent}%</b>
-        {claim.legalPercent > 0 &&
-          ` (${formatRub(claim.legalAmounts.cashKopecks)} на карту${claim.legalAmounts.bonusKopecks ? `, ${formatRub(claim.legalAmounts.bonusKopecks)} бонусами` : ''})`}
-        . {claim.basisText}
-      </p>
+  const status = STATUS[claim.status]
+  const presets = [...new Set([claim.legalPercent, 50, 100].filter((p) => p > 0))]
 
-      {(claim.documentRequired || claim.files.length > 0) && (
-        <div style={{ margin: '0 0 0.5rem' }}>
-          Документы:{' '}
-          {claim.files.length === 0 ? (
-            <span style={{ color: 'var(--theme-warning-500, #b26a00)' }}>
-              ещё не прислали (можно до {time(claim.documentDeadline)})
-            </span>
-          ) : (
-            claim.files.map((f, i) => (
-              <span key={f.id}>
-                {i > 0 && ', '}
-                <a href={`${apiUrl}/files/${f.id}`} target="_blank" rel="noopener noreferrer">
-                  {f.name}
-                </a>
-              </span>
-            ))
+  return (
+    <article
+      className={`${s.claim} ${open ? s.claimOpen : ''}`}
+      aria-label={`Заявка ${claim.number}`}
+    >
+      <header className={s.claimHead}>
+        <span className={s.claimNumber}>{claim.number}</span>
+        <span className={`${s.chip} ${status.className}`}>{status.label}</span>
+        <span className={s.meta}>подана {dateTime(claim.createdAt)}</span>
+      </header>
+
+      <div className={s.claimBody}>
+        <div className={s.stack}>
+          <div>
+            <p className={s.show}>{claim.showTitle ?? 'Спектакль'}</p>
+            <p className={s.meta}>
+              {dateTime(claim.startsAt)} · заказ {claim.orderNumber} ·{' '}
+              {claim.ticketNumbers.length > 1
+                ? `билеты ${claim.ticketNumbers.join(', ')}`
+                : `билет ${claim.ticketNumbers[0] ?? '—'}`}
+              {claim.customerEmail && ` · ${claim.customerEmail}`}
+            </p>
+          </div>
+          <div>
+            <p className={s.reason}>
+              Причина: <b>{claim.reasonLabel}</b>
+            </p>
+            {claim.comment && <p className={s.quote}>«{claim.comment}»</p>}
+          </div>
+          <Timeline claim={claim} now={now} />
+          {(claim.documentRequired || claim.files.length > 0) && (
+            <div className={s.files}>
+              <span className={s.muted}>Документы:</span>
+              {claim.files.length === 0 ? (
+                <span className={`${s.chip} ${s.chipWarn}`}>
+                  ещё не прислали · до {dateTime(claim.documentDeadline)}
+                </span>
+              ) : (
+                claim.files.map((f) => (
+                  <a
+                    key={f.id}
+                    className={s.file}
+                    href={`${apiUrl}/files/${f.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {f.mimeType === 'application/pdf' ? 'PDF' : 'Фото'} · {f.name}
+                  </a>
+                ))
+              )}
+            </div>
           )}
         </div>
-      )}
+
+        <aside className={s.money} aria-label="Сумма возврата">
+          <span className={s.moneyLabel}>
+            {open ? 'Вернётся на карту' : claim.status === 'APPROVED' ? 'Возвращено' : 'Возврат'}
+          </span>
+          <span className={`${s.moneyValue} ${shown === 0 ? s.moneyZero : ''}`}>
+            {formatRub(preview.cashKopecks)}
+          </span>
+          <span className={s.moneyNote}>
+            {shown}% номинала
+            {preview.bonusKopecks > 0 && ` + ${formatRub(preview.bonusKopecks)} бонусами`}
+          </span>
+          {feeTotal > 0 && (
+            <span className={s.moneyNote}>
+              Сбор {formatRub(feeTotal)} —{' '}
+              {(open ? includeFee : claim.includeFee) ? 'возвращается' : 'не возвращается'}
+            </span>
+          )}
+          <span className={s.moneyNote} style={{ marginTop: 8 }}>
+            По закону: <b>{claim.legalPercent}%</b>. {claim.basisText}
+          </span>
+        </aside>
+      </div>
 
       {open ? (
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          <label>
-            Вернуть,{' '}
+        <div className={s.decision}>
+          <label className={s.percent} title="Процент номинала к возврату">
             <input
-              style={input}
               type="number"
               min={1}
               max={100}
-              value={percent}
-              placeholder="%"
-              onChange={(e) => setPercent(e.target.value)}
-            />{' '}
-            %
+              inputMode="numeric"
+              aria-label="Процент к возврату"
+              value={percent || ''}
+              placeholder="0"
+              onChange={(e) => setPercent(Math.round(Number(e.target.value) || 0))}
+            />
+            <span>%</span>
           </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={includeFee}
-              onChange={(e) => setIncludeFee(e.target.checked)}
-            />{' '}
-            со сбором
-          </label>
-          <Button buttonStyle="primary" disabled={busy || !percent} onClick={approve}>
-            Одобрить
-          </Button>
+          <div className={s.presets} role="group" aria-label="Быстрый выбор процента">
+            {presets.map((p) => (
+              <button
+                key={p}
+                type="button"
+                className={s.preset}
+                aria-pressed={percent === p}
+                onClick={() => setPercent(p)}
+              >
+                {p === claim.legalPercent ? `по закону ${p}%` : `${p}%`}
+              </button>
+            ))}
+          </div>
+          {feeTotal > 0 && (
+            <label className={s.check}>
+              <input
+                type="checkbox"
+                checked={includeFee}
+                onChange={(e) => setIncludeFee(e.target.checked)}
+              />
+              вернуть сбор
+            </label>
+          )}
+          <span className={s.spacer} />
           <Button buttonStyle="secondary" disabled={busy} onClick={reject}>
             Отказать
           </Button>
+          <Button buttonStyle="primary" disabled={busy || !valid} onClick={approve}>
+            {valid ? `Вернуть ${formatRub(preview.cashKopecks)}` : 'Укажите %'}
+          </Button>
         </div>
       ) : (
-        <p style={{ margin: 0, ...muted }}>
-          {claim.status === 'APPROVED' && `Возвращено ${claim.decidedPercent}%. `}
-          {claim.decisionComment && `«${claim.decisionComment}» `}
-          {claim.decidedBy && `— ${claim.decidedBy}, ${time(claim.decidedAt)}`}
-        </p>
+        (claim.decisionComment || claim.decidedBy) && (
+          <p className={s.decided}>
+            {claim.decisionComment && <>«{claim.decisionComment}» </>}
+            {claim.decidedBy && `— ${claim.decidedBy}, ${dateTime(claim.decidedAt)}`}
+          </p>
+        )
       )}
       {error && (
-        <p role="alert" style={{ color: 'var(--theme-error-500)', margin: '0.5rem 0 0' }}>
+        <p role="alert" className={s.alert}>
           {error}
         </p>
       )}
@@ -229,12 +390,13 @@ function ClaimCard({
 
 export function RefundClaimsQueue({ apiUrl }: { apiUrl: string }) {
   const dialog = useAdminDialog()
-  const [data, setData] = useState<{ open: Claim[]; closed: Claim[] } | null>(null)
+  const [data, setData] = useState<List | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  const [showClosed, setShowClosed] = useState(false)
+  const [openId, setOpenId] = useState<string | null>(null)
+  // «Сейчас» — один раз на загрузку списка: шкала и «до спектакля» не дёргаются при вводе.
+  const [now, setNow] = useState(() => Date.now())
 
-  type List = { open: Claim[]; closed: Claim[] }
   const fetchList = useCallback(async (): Promise<List | null> => {
     try {
       const res = await fetch(apiUrl, { credentials: 'include', cache: 'no-store' })
@@ -245,7 +407,11 @@ export function RefundClaimsQueue({ apiUrl }: { apiUrl: string }) {
   }, [apiUrl])
 
   const apply = useCallback((list: List | null) => {
-    if (list) setData(list)
+    if (list) {
+      setData(list)
+      setNow(Date.now())
+      window.dispatchEvent(new CustomEvent(CLAIMS_COUNT_EVENT, { detail: list.open.length }))
+    }
     setError(list ? null : 'Не удалось загрузить заявки.')
   }, [])
 
@@ -262,32 +428,33 @@ export function RefundClaimsQueue({ apiUrl }: { apiUrl: string }) {
   }, [fetchList, apply])
 
   return (
-    <section aria-label="Заявки на возврат">
+    <section className={s.stack} aria-label="Заявки на возврат">
       {dialog.element}
-      {data && (
-        <p style={{ margin: '0 0 0.5rem' }}>
-          <b>
-            {data.open.length === 0 ? 'Новых заявок нет' : `На рассмотрении: ${data.open.length}`}
-          </b>
+      <div className={s.queueHead}>
+        <p className={s.rules}>
+          Ст. 52.1 Закона о культуре, ПП № 1491: больше 10 дней — 100%, 5–10 дней — не меньше 50%,
+          3–5 дней — не меньше 30%, меньше 3 дней — только болезнь или смерть близкого с документом.
+          Акционные билеты — только по уважительной причине.
         </p>
-      )}
-      <p style={{ ...muted, marginTop: 0 }}>
-        Правила — ст. 52.1 Закона о культуре и ПП № 1491: больше 10 дней — 100%, 5–10 дней — не
-        меньше 50%, 3–5 дней — не меньше 30%, меньше 3 дней — только болезнь или смерть близкого с
-        документом. Акционные билеты не возвращаются, кроме уважительных причин.
-      </p>
+      </div>
       {error && (
-        <p role="alert" style={{ color: 'var(--theme-error-500)' }}>
+        <p role="alert" className={s.alert}>
           {error}
         </p>
       )}
-      {notice && <p role="status">{notice}</p>}
+      {notice && (
+        <p role="status" className={s.notice}>
+          {notice}
+        </p>
+      )}
+      {data && data.open.length === 0 && <div className={s.empty}>Новых заявок нет</div>}
       {data?.open.map((c) => (
         <ClaimCard
           key={c.id}
           claim={c}
           apiUrl={apiUrl}
           dialog={dialog}
+          now={now}
           onDone={(m) => {
             setNotice(m)
             void load()
@@ -295,20 +462,52 @@ export function RefundClaimsQueue({ apiUrl }: { apiUrl: string }) {
         />
       ))}
       {data && data.closed.length > 0 && (
-        <p>
-          <button
-            type="button"
-            className="btn btn--style-none"
-            onClick={() => setShowClosed((v) => !v)}
-          >
-            {showClosed ? 'Скрыть решённые' : `Показать решённые (${data.closed.length})`}
-          </button>
-        </p>
+        <div className={s.closed}>
+          <h3 className={s.closedTitle}>Решённые · {data.closed.length}</h3>
+          <ul className={s.list}>
+            {data.closed.map((c) => {
+              const expanded = openId === c.id
+              const status = STATUS[c.status]
+              const sum = amountsAt(c.ticketAmounts, c.decidedPercent ?? 0, c.includeFee)
+              return (
+                <li key={c.id} className={s.listItem}>
+                  <button
+                    type="button"
+                    className={s.listRow}
+                    aria-expanded={expanded}
+                    aria-controls={`claim-${c.id}`}
+                    onClick={() => setOpenId(expanded ? null : c.id)}
+                  >
+                    <span className={s.claimNumber}>{c.number}</span>
+                    <span className={`${s.chip} ${status.className}`}>{status.label}</span>
+                    <span className={s.listShow}>{c.showTitle ?? 'Спектакль'}</span>
+                    <span className={`${s.num} ${s.listSum}`}>
+                      {c.status === 'APPROVED'
+                        ? `${formatRub(sum.cashKopecks)} · ${c.decidedPercent}%`
+                        : '—'}
+                    </span>
+                    <span className={s.meta}>{dateTime(c.decidedAt ?? c.createdAt)}</span>
+                    <span className={s.chevron} aria-hidden="true">
+                      {expanded ? '▴' : '▾'}
+                    </span>
+                  </button>
+                  {expanded && (
+                    <div id={`claim-${c.id}`} className={s.listDetail}>
+                      <ClaimCard
+                        claim={c}
+                        apiUrl={apiUrl}
+                        dialog={dialog}
+                        now={now}
+                        onDone={() => {}}
+                      />
+                    </div>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       )}
-      {showClosed &&
-        data?.closed.map((c) => (
-          <ClaimCard key={c.id} claim={c} apiUrl={apiUrl} dialog={dialog} onDone={() => {}} />
-        ))}
     </section>
   )
 }
