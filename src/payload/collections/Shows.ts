@@ -14,6 +14,7 @@ import {
   seoField,
   slugField,
   requireImageOnPublish,
+  withTabNav,
 } from '../fields'
 
 /**
@@ -40,7 +41,7 @@ export const Shows: CollectionConfig = {
     slugField(),
     {
       type: 'tabs',
-      tabs: [
+      tabs: withTabNav([
         {
           label: 'Основное',
           fields: [
@@ -121,7 +122,7 @@ export const Shows: CollectionConfig = {
           ],
         },
         { label: 'SEO', fields: [seoField] },
-      ],
+      ]),
     },
   ],
 }

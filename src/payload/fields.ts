@@ -178,3 +178,31 @@ export const requireImageOnPublish =
       )
     return data
   }
+
+/**
+ * Кнопки «Назад» / «Далее» внизу каждой вкладки (TabNav): по форме из нескольких вкладок
+ * можно пройти по порядку, не возвращаясь к заголовкам наверху. Поле ui — в БД не попадает.
+ */
+export const withTabNav = <T extends { label: string; fields: Field[] }>(tabs: T[]): T[] =>
+  tabs.map((tab, index) => ({
+    ...tab,
+    fields: [
+      ...tab.fields,
+      {
+        name: `tabNav${index}`,
+        type: 'ui',
+        admin: {
+          components: {
+            Field: {
+              path: '/payload/components/TabNav#TabNav',
+              clientProps: {
+                index,
+                ...(tabs[index - 1] && { prevLabel: tabs[index - 1]!.label }),
+                ...(tabs[index + 1] && { nextLabel: tabs[index + 1]!.label }),
+              },
+            },
+          },
+        },
+      } satisfies Field,
+    ],
+  }))

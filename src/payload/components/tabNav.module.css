@@ -1,0 +1,14 @@
+/* Навигация между вкладками формы: «Назад» слева, «Далее» справа. */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--theme-elevation-150);
+}
+
+.nav :global(.btn) {
+  margin: 0;
+}
