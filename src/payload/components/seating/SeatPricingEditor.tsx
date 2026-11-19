@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import { FloorSvg, hasFloor } from '@/components/show/FloorSvg'
-import { formatRub } from '@/lib/money'
+import { formatRub, parseRub, rubInput } from '@/lib/money'
 import {
   MAX_SEAT_ZONES,
   blockSlots,
@@ -44,16 +44,6 @@ const seatWord = (n: number) => {
   if (m10 === 1 && m100 !== 11) return 'место'
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'места'
   return 'мест'
-}
-
-const rubInput = (kopecks: number | null) => (kopecks === null ? '' : String(kopecks / 100))
-
-/** «1500», «1 500,50» → копейки; пусто — без цены; мусор — undefined (не менять). */
-const parseRub = (raw: string): number | null | undefined => {
-  const s = raw.replace(/\s/g, '').replace(',', '.')
-  if (s === '') return null
-  if (!/^\d+(\.\d{0,2})?$/.test(s)) return undefined
-  return Math.round(Number(s) * 100)
 }
 
 export function PriceInput({

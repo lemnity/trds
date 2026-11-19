@@ -1,0 +1,45 @@
+.root {
+  min-width: 0;
+}
+
+.input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input input {
+  width: 100%;
+  min-width: 0;
+  height: var(--base, 40px);
+  padding: 0 28px 0 12px;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-s, 3px);
+  background: var(--theme-input-bg, var(--theme-bg));
+  color: var(--theme-elevation-800);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.input input:focus {
+  outline: none;
+  border-color: var(--theme-elevation-400);
+}
+
+.input[data-invalid='true'] input {
+  border-color: var(--theme-error-500);
+  background: var(--theme-error-50);
+}
+
+.input > span {
+  position: absolute;
+  right: 12px;
+  color: var(--theme-elevation-500);
+  pointer-events: none;
+}
+
+.error {
+  margin-top: 4px;
+  color: var(--theme-error-500);
+  font-size: 0.85em;
+}

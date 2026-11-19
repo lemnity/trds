@@ -64,8 +64,7 @@ export const TicketTypes: CollectionConfig = {
     group: 'Продажи',
     useAsTitle: 'title',
     defaultColumns: ['title', 'performance', 'priceKopecks', 'capacity'],
-    description:
-      'Цены в копейках. Вместимость нельзя поставить ниже уже проданного и забронированного.',
+    description: 'Вместимость нельзя поставить ниже уже проданного и забронированного.',
   },
   access: salesAccess,
   defaultSort: 'sortOrder',
@@ -102,11 +101,16 @@ export const TicketTypes: CollectionConfig = {
         {
           name: 'priceKopecks',
           type: 'number',
-          label: 'Цена, коп.',
+          label: 'Цена, ₽',
           required: true,
           min: 0,
-          validate: (v: number | null | undefined) => isCount(v) || 'Целое число копеек',
-          admin: { description: '1 000 ₽ = 100000' },
+          validate: (v: number | null | undefined) => isCount(v) || 'Укажите цену в рублях',
+          admin: {
+            components: {
+              Field: '/payload/components/tickets/PriceRubField#PriceRubField',
+              Cell: '/payload/components/tickets/PriceRubCell#PriceRubCell',
+            },
+          },
         },
         {
           name: 'capacity',
