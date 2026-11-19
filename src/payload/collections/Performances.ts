@@ -4,7 +4,7 @@ import { HALL_PLAN_OPTIONS, validateSeatPricing } from '@/modules/seating'
 import { THEATRE_TIME_ZONE } from '@/modules/shows'
 
 import { contentAccess, fieldTheatreAdmins, theatreAdmins } from '../access/roles'
-import { codeField } from '../fields'
+import { RU_DATE_TIME, codeField } from '../fields'
 import {
   PERFORMANCES_SLUG,
   TICKET_TYPES_SLUG,
@@ -12,17 +12,6 @@ import {
   syncPerformanceSeating,
 } from '../hooks/inventorySync'
 import { setPerformanceTitle } from '../hooks/performanceTitle'
-
-/**
- * Дата и время в админке: react-datepicker разбирает ввод тем же форматом, что и показывает,
- * поэтому без displayFormat ручной ввод «15.03.2027 19:00» не принимался (формат по умолчанию — американский 12-часовой).
- */
-export const RU_DATE_TIME = {
-  pickerAppearance: 'dayAndTime',
-  displayFormat: 'dd.MM.yyyy HH:mm',
-  timeFormat: 'HH:mm',
-  timeIntervals: 15,
-} as const
 
 const dayTime = new Intl.DateTimeFormat('ru-RU', {
   timeZone: THEATRE_TIME_ZONE,

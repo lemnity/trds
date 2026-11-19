@@ -12,6 +12,23 @@ import { personSlug } from '@/modules/people'
  * HTML: сайт выводит их как текст, санитизация на границе CMS не нужна (rules.md §4).
  */
 
+/**
+ * Дата и время в админке: react-datepicker разбирает ввод тем же форматом, что и показывает,
+ * поэтому без displayFormat ручной ввод «15.03.2027 19:00» не принимался (формат по умолчанию — американский 12-часовой).
+ */
+export const RU_DATE_TIME = {
+  pickerAppearance: 'dayAndTime',
+  displayFormat: 'dd.MM.yyyy HH:mm',
+  timeFormat: 'HH:mm',
+  timeIntervals: 15,
+} as const
+
+/** Только дата (без времени): тот же русский формат отображения и ввода. */
+export const RU_DATE_ONLY = {
+  pickerAppearance: 'dayOnly',
+  displayFormat: 'dd.MM.yyyy',
+} as const
+
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 const validSlug: TextFieldSingleValidation = (value) =>

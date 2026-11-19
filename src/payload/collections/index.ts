@@ -18,10 +18,10 @@ import { Venues } from './Venues'
 export const collections = [
   Shows,
   Performances,
-  Venues,
   Archive,
-  TicketTypes,
+  Venues,
   SeatPriceTemplates,
+  TicketTypes,
   People,
   News,
   Reviews,

@@ -115,18 +115,18 @@ export function LoginCodeForm({ apiUrl, nextUrl }: { apiUrl: string; nextUrl: st
             {busy ? 'Отправляем…' : 'Получить код'}
           </Button>
         </form>
-        <p>
-          <button
+        <div style={{ marginTop: '1rem' }}>
+          <Button
             type="button"
-            className="btn btn--style-none"
+            buttonStyle="secondary"
             onClick={() => {
               setStep('password')
               setError(null)
             }}
           >
             Войти по паролю (супер-админ)
-          </button>
-        </p>
+          </Button>
+        </div>
       </section>
     )
 

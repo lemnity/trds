@@ -30,7 +30,7 @@ export const SeatPriceTemplates: CollectionConfig = {
   slug: SEAT_PRICE_TEMPLATES_SLUG,
   labels: { singular: 'Шаблон цен зала', plural: 'Шаблоны цен зала' },
   admin: {
-    group: 'Продажи',
+    group: 'Залы',
     useAsTitle: 'title',
     defaultColumns: ['title', 'venue', 'planId', 'updatedAt'],
     description: 'Удобнее править в карточке площадки: «Схема зала и шаблоны цен».',

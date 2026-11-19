@@ -5,6 +5,7 @@ import { EVENT_TYPE_LABELS } from '@/modules/shows'
 import { contentAccess } from '../access/roles'
 import { guardShowDelete } from '../hooks/inventorySync'
 import {
+  RU_DATE_ONLY,
   creditsField,
   galleryField,
   imageFields,
@@ -69,12 +70,13 @@ export const Shows: CollectionConfig = {
                 { name: 'studentOffer', type: 'checkbox', label: 'Студенческие условия' },
               ],
             },
+            { name: 'lead', type: 'textarea', label: 'Анонс (1–2 предложения)', required: true },
             {
               name: 'announcedAt',
               type: 'date',
               label: 'Дата анонса',
               admin: {
-                date: { pickerAppearance: 'dayOnly' },
+                date: RU_DATE_ONLY,
                 description: 'Новее — раньше в слайдере главной. Пусто — дата создания записи.',
               },
             },
@@ -82,11 +84,7 @@ export const Shows: CollectionConfig = {
         },
         {
           label: 'Описание и состав',
-          fields: [
-            { name: 'lead', type: 'textarea', label: 'Анонс (1–2 предложения)', required: true },
-            paragraphsField('description', 'Описание'),
-            creditsField,
-          ],
+          fields: [paragraphsField('description', 'Описание'), creditsField],
         },
         {
           label: 'Медиа',

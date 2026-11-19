@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { contentAccess } from '../access/roles'
-import { imageFields, paragraphsField, seoField, slugField } from '../fields'
+import { RU_DATE_ONLY, imageFields, paragraphsField, seoField, slugField } from '../fields'
 
 /** Новости и анонсы (главная, /news). */
 export const News: CollectionConfig = {
@@ -48,7 +48,7 @@ export const News: CollectionConfig = {
       label: 'Дата',
       required: true,
       defaultValue: () => new Date().toISOString(),
-      admin: { position: 'sidebar', date: { pickerAppearance: 'dayOnly' } },
+      admin: { position: 'sidebar', date: RU_DATE_ONLY },
     },
     seoField,
   ],

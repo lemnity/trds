@@ -10,7 +10,7 @@ import { codeField, seoField, sortOrderField } from '../fields'
 export const Venues: CollectionConfig = {
   slug: 'venues',
   labels: { singular: 'Площадка', plural: 'Площадки' },
-  admin: { group: 'Афиша', useAsTitle: 'title', defaultColumns: ['title', 'kind', 'address'] },
+  admin: { group: 'Залы', useAsTitle: 'title', defaultColumns: ['title', 'kind', 'address'] },
   access: contentAccess,
   versions: { drafts: true, maxPerDoc: 20 },
   defaultSort: 'sortOrder',
