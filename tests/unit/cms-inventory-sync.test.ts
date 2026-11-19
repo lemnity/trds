@@ -275,6 +275,26 @@ describe('performance delete: by sales, inventory removed with it', () => {
   })
 })
 
+describe('performance delete: ticket categories cannot be removed', () => {
+  it('surfaces as a public 400 with a Russian message and logs the cause', async () => {
+    const { req, inventoryFor } = setup([type(1, 'standard', 20)])
+    const logged: unknown[] = []
+    const payload = req.payload as unknown as Record<string, unknown>
+    payload.logger = { error: (...a: unknown[]) => logged.push(a) }
+    payload.delete = async () => ({ docs: [], errors: [{ id: 1, message: 'db down' }] })
+    const error = (await guardPerformanceDelete(inventoryFor)({ id: 1, req } as never).catch(
+      (e: unknown) => e,
+    )) as APIError
+    expect(error).toBeInstanceOf(APIError)
+    expect(error.status).toBe(400)
+    expect(error.isPublic).toBe(true)
+    expect(error.message).toBe(
+      'Не удалось удалить категории билетов показа — повторите или удалите их вручную.',
+    )
+    expect(JSON.stringify(logged)).toContain('db down')
+  })
+})
+
 describe('show delete', () => {
   it('a show with performances cannot be deleted; the message counts them', async () => {
     const { req, counted } = setup([], undefined, 3)

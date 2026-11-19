@@ -110,6 +110,12 @@ export function useAdminDialog() {
       ref={ref}
       aria-labelledby="admin-dialog-title"
       style={box}
+      // Payload (@faceless-ui/modal) слушает Esc на document и закрывает верхнюю панель — вместе
+      // с несохранённым показом. Событие React уже на корне, ниже document: не пускаем его выше.
+      // Сам диалог закроет нативный cancel ниже.
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') e.stopPropagation()
+      }}
       // Esc — как «Отмена».
       onCancel={(e) => {
         e.preventDefault()

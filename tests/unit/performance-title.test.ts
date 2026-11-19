@@ -3,7 +3,9 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   buildPerformanceTitle,
   formatPerformanceMoment,
+  refreshPerformanceTitles,
   setPerformanceTitle,
+  titleChanged,
 } from '@/payload/hooks/performanceTitle'
 
 describe('название показа', () => {
@@ -42,5 +44,35 @@ describe('название показа', () => {
       expect.objectContaining({ collection: 'shows', id: 3, draft: true, overrideAccess: true }),
     )
     expect(findByID).toHaveBeenCalledWith(expect.objectContaining({ collection: 'venues', id: 7 }))
+  })
+})
+
+describe('пересборка названий показов при переименовании', () => {
+  it('решение: только если название реально изменилось', () => {
+    expect(titleChanged({ title: 'Гости' }, { title: 'Гости' })).toBe(false)
+    expect(titleChanged({ title: 'Гости' }, { title: 'Гости на ужин' })).toBe(true)
+    expect(titleChanged(undefined, { title: 'Гости' })).toBe(false)
+  })
+
+  it('хук не ходит в базу без изменения названия и снимает флаг после обновления', async () => {
+    const find = vi.fn(async () => ({ docs: [{ id: 5, title: 'x', _status: 'draft' }] }))
+    const update = vi.fn(async () => ({}))
+    const req = { payload: { find, update }, context: {} }
+    const hook = refreshPerformanceTitles('show')
+    await hook({
+      doc: { id: 1, title: 'A' },
+      previousDoc: { title: 'A' },
+      operation: 'update',
+      req,
+    } as never)
+    expect(find).not.toHaveBeenCalled()
+    await hook({
+      doc: { id: 1, title: 'B' },
+      previousDoc: { title: 'A' },
+      operation: 'update',
+      req,
+    } as never)
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ id: 5, draft: true }))
+    expect(req.context).toEqual({})
   })
 })

@@ -574,7 +574,11 @@ export function SeatPricingEditor({
           </dl>
           {canClose && summary.closed > 0 && (
             <div className={styles.closedNote}>
-              <p>Закрыты с продажи. Выделите места и нажмите «Вернуть в продажу».</p>
+              <p>
+                {readOnly
+                  ? 'Закрыты с продажи. Открыть их может администратор театра.'
+                  : 'Закрыты с продажи. Выделите места и нажмите «Вернуть в продажу».'}
+              </p>
               {!readOnly && confirmOpenAll && (
                 <button type="button" className={styles.link} onClick={openAllClosed}>
                   Открыть все закрытые

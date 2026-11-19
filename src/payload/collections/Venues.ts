@@ -4,6 +4,7 @@ import { HALL_PLAN_OPTIONS } from '@/modules/seating'
 import { VENUE_KIND_LABELS } from '@/modules/shows'
 
 import { contentAccess, fieldTheatreAdmins } from '../access/roles'
+import { refreshPerformanceTitles } from '../hooks/performanceTitle'
 import { codeField, seoField, sortOrderField } from '../fields'
 
 /** Площадки (T-021). Ключ совпадает с id площадки в схемах залов (`dom-aktera`, `dk`). */
@@ -12,6 +13,7 @@ export const Venues: CollectionConfig = {
   labels: { singular: 'Площадка', plural: 'Площадки' },
   admin: { group: 'Залы', useAsTitle: 'title', defaultColumns: ['title', 'kind', 'address'] },
   access: contentAccess,
+  hooks: { afterChange: [refreshPerformanceTitles('venue')] },
   versions: { drafts: true, maxPerDoc: 20 },
   defaultSort: 'sortOrder',
   fields: [

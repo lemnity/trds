@@ -4,6 +4,7 @@ import { EVENT_TYPE_LABELS } from '@/modules/shows'
 
 import { contentAccess } from '../access/roles'
 import { guardShowDelete } from '../hooks/inventorySync'
+import { refreshPerformanceTitles } from '../hooks/performanceTitle'
 import {
   RU_DATE_ONLY,
   creditsField,
@@ -30,6 +31,7 @@ export const Shows: CollectionConfig = {
   access: contentAccess,
   hooks: {
     beforeValidate: [requireImageOnPublish('shows', 'poster', 'Афиша')],
+    afterChange: [refreshPerformanceTitles('show')],
     beforeDelete: [guardShowDelete],
   },
   versions: { drafts: true, maxPerDoc: 30 },

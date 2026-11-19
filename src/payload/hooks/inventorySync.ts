@@ -18,6 +18,7 @@ import { getZonePlan, layoutOfPricing, parseSeatPricing, zoneTicketTypes } from 
 import type { Performance } from '@/modules/shows'
 
 import { transactionDb } from '../db'
+import { TITLE_REFRESH_CONTEXT } from './performanceTitle'
 
 /**
  * CMS → inventory (rules.md §2, architecture.md §5). CMS хранит цену и квоту категории, но
@@ -210,8 +211,8 @@ export const guardTicketTypeDelete =
 /** Опубликованный показ со схемой зала → места в inventory (добавить, закрыть снятые). */
 export const syncPerformanceSeating =
   (inventoryFor: InventoryFor = defaultInventory): CollectionAfterChangeHook<PerformanceDoc> =>
-  async ({ doc, req }) => {
-    if (doc._status === 'draft') return doc
+  async ({ doc, req, context }) => {
+    if (doc._status === 'draft' || context?.[TITLE_REFRESH_CONTEXT]) return doc
     const types = await loadTypes(req, doc.id)
     if (!doc.seating?.planId && types.length === 0) return doc
     await sync(
@@ -256,7 +257,15 @@ export const guardPerformanceDelete =
       context: { [PERFORMANCE_DELETE_CONTEXT]: true },
     })
     // Массовое удаление не бросает — ошибки по документам в ответе.
-    if (types.errors.length) throw new APIError(types.errors.map((e) => e.message).join('; '))
+    if (types.errors.length) {
+      req.payload.logger.error(
+        { errors: types.errors, performance: id },
+        'Не удалось удалить категории билетов показа',
+      )
+      throw refuseDelete(
+        'Не удалось удалить категории билетов показа — повторите или удалите их вручную.',
+      )
+    }
   }
 
 /** Спектакль с показами не удаляется: иначе показы остаются без спектакля (`show` = null). */

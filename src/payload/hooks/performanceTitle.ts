@@ -1,4 +1,4 @@
-import type { CollectionBeforeChangeHook } from 'payload'
+import type { CollectionAfterChangeHook, CollectionBeforeChangeHook } from 'payload'
 
 import { THEATRE_TIME_ZONE } from '@/modules/shows'
 
@@ -79,3 +79,53 @@ export const setPerformanceTitle: CollectionBeforeChangeHook = async ({
     }),
   }
 }
+
+/** Ключ `req.context`: пересборка названий не трогает продажи (хуки синхронизации пропускают). */
+export const TITLE_REFRESH_CONTEXT = 'performanceTitle.refresh'
+
+/** Названия показов пересобираются, только если название спектакля/площадки реально изменилось. */
+export const titleChanged = (
+  previous: { title?: string | null } | null | undefined,
+  next: { title?: string | null } | null | undefined,
+): boolean => !!previous && !!next && (previous.title ?? '') !== (next.title ?? '')
+
+/**
+ * После переименования спектакля/площадки обновляет сохранённое название их показов: оно
+ * собирается только в `beforeChange` показа. Обновление идёт тем же `req` (одна транзакция),
+ * последняя версия — черновик или основной документ.
+ */
+export const refreshPerformanceTitles =
+  (relation: 'show' | 'venue'): CollectionAfterChangeHook =>
+  async ({ doc, previousDoc, operation, req }) => {
+    if (operation !== 'update' || !titleChanged(previousDoc, doc)) return doc
+    const { payload } = req
+    const performances = await payload.find({
+      collection: 'performances',
+      where: { [relation]: { equals: doc.id } },
+      draft: true,
+      depth: 0,
+      pagination: false,
+      overrideAccess: true,
+      req,
+    })
+    const hadFlag = req.context?.[TITLE_REFRESH_CONTEXT]
+    req.context = { ...req.context, [TITLE_REFRESH_CONTEXT]: true }
+    try {
+      for (const perf of performances.docs) {
+        // `title` пересоберёт beforeChange показа из актуальных спектакля и площадки.
+        await payload.update({
+          collection: 'performances',
+          id: perf.id,
+          data: { title: perf.title },
+          draft: perf._status === 'draft',
+          depth: 0,
+          overrideAccess: true,
+          req,
+        })
+      }
+    } finally {
+      if (hadFlag) req.context[TITLE_REFRESH_CONTEXT] = hadFlag
+      else delete req.context[TITLE_REFRESH_CONTEXT]
+    }
+    return doc
+  }
