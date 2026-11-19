@@ -1,4 +1,5 @@
 import { SeatPricingField as SeatPricingField_6c1dd99f130615d13f3dabbf75fedfe9 } from '../../../payload/components/seating/SeatPricingField'
+import { CategoriesHint as CategoriesHint_a623f829d08e8c367a0ca0d681b5c813 } from '../../../payload/components/tickets/CategoriesHint'
 import { VenueSeatingTemplates as VenueSeatingTemplates_a94205021fbed17a449d3e23eb59f555 } from '../../../payload/components/seating/VenueSeatingTemplates'
 import { PriceRubCell as PriceRubCell_708d6fd7d4399aa050974d8410326837 } from '../../../payload/components/tickets/PriceRubCell'
 import { PriceRubField as PriceRubField_3caeba515ba1bb81d7f55502fecc634a } from '../../../payload/components/tickets/PriceRubField'
@@ -19,6 +20,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 /** @type import('payload').ImportMap */
 export const importMap = {
   "/payload/components/seating/SeatPricingField#SeatPricingField": SeatPricingField_6c1dd99f130615d13f3dabbf75fedfe9,
+  "/payload/components/tickets/CategoriesHint#CategoriesHint": CategoriesHint_a623f829d08e8c367a0ca0d681b5c813,
   "/payload/components/seating/VenueSeatingTemplates#VenueSeatingTemplates": VenueSeatingTemplates_a94205021fbed17a449d3e23eb59f555,
   "/payload/components/tickets/PriceRubCell#PriceRubCell": PriceRubCell_708d6fd7d4399aa050974d8410326837,
   "/payload/components/tickets/PriceRubField#PriceRubField": PriceRubField_3caeba515ba1bb81d7f55502fecc634a,

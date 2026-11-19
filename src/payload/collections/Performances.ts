@@ -168,6 +168,19 @@ export const Performances: CollectionConfig = {
       ],
     },
     {
+      name: 'ticketTypesHint',
+      type: 'ui',
+      admin: { components: { Field: '/payload/components/tickets/CategoriesHint#CategoriesHint' } },
+    },
+    {
+      name: 'ticketTypes',
+      type: 'join',
+      collection: TICKET_TYPES_SLUG,
+      on: 'performance',
+      label: 'Билеты (категории)',
+      admin: { allowCreate: true, defaultColumns: ['title', 'priceKopecks', 'capacity'] },
+    },
+    {
       type: 'collapsible',
       label: 'Продажи',
       admin: {
@@ -198,14 +211,6 @@ export const Performances: CollectionConfig = {
           ],
         },
       ],
-    },
-    {
-      name: 'ticketTypes',
-      type: 'join',
-      collection: TICKET_TYPES_SLUG,
-      on: 'performance',
-      label: 'Категории билетов',
-      admin: { defaultColumns: ['title', 'priceKopecks', 'capacity'] },
     },
   ],
 }

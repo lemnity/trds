@@ -449,16 +449,16 @@ export interface Performance {
      */
     unavailableSeatIds?: string[] | null;
   };
-  salesStartAt?: string | null;
-  /**
-   * Пусто — до начала показа.
-   */
-  salesEndAt?: string | null;
   ticketTypes?: {
     docs?: (number | TicketType)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  salesStartAt?: string | null;
+  /**
+   * Пусто — до начала показа.
+   */
+  salesEndAt?: string | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -498,7 +498,7 @@ export interface Venue {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * Цены в копейках. Вместимость нельзя поставить ниже уже проданного и забронированного.
+ * Вместимость нельзя поставить ниже уже проданного и забронированного.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ticket-types".
@@ -511,9 +511,6 @@ export interface TicketType {
    */
   code: string;
   title: string;
-  /**
-   * 1 000 ₽ = 100000
-   */
   priceKopecks: number;
   /**
    * Не ниже проданного и забронированного.
@@ -960,9 +957,9 @@ export interface PerformancesSelect<T extends boolean = true> {
         pricesPlaceholder?: T;
         unavailableSeatIds?: T;
       };
+  ticketTypes?: T;
   salesStartAt?: T;
   salesEndAt?: T;
-  ticketTypes?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
