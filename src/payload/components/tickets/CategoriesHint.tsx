@@ -37,8 +37,8 @@ export function CategoriesHint() {
   const showId = showIdOf(showValue)
   const [seatsFor, setSeatsFor] = useState<{ key: unknown; value: number | null } | null>(null)
   const [catsFor, setCatsFor] = useState<{ key: unknown; value: boolean } | null>(null)
-  const seats = seatsFor?.key === showId ? seatsFor.value : null
-  const hasCategories = catsFor?.key === id ? catsFor.value : null
+  const seats = seatsFor && seatsFor.key === showId ? seatsFor.value : null
+  const hasCategories = catsFor && catsFor.key === id ? catsFor.value : null
   const [Drawer, , { openDrawer }] = useDocumentDrawer({ collectionSlug: 'ticket-types' })
 
   useEffect(() => {
