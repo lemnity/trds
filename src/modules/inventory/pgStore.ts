@@ -149,6 +149,46 @@ function pgTx(db: Db): CommerceTx {
         .returning({ id: commerceSeats.seatId })
       return rows.length
     },
+    async lockPerformanceInventory(performanceId) {
+      const rows = await db
+        .select()
+        .from(commerceInventory)
+        .where(eq(commerceInventory.performanceId, performanceId))
+        .orderBy(asc(commerceInventory.ticketTypeId))
+        .for('no key update')
+      return rows as InventoryRow[]
+    },
+    async hasOrderItems(performanceId) {
+      // Индекс commerce_order_items_ticket_type_idx (performance_id, ticket_type_id).
+      const rows = await db
+        .select({ id: commerceOrderItems.id })
+        .from(commerceOrderItems)
+        .where(eq(commerceOrderItems.performanceId, performanceId))
+        .limit(1)
+      return rows.length > 0
+    },
+    async deletePerformanceInventory(performanceId) {
+      const seats = await db
+        .delete(commerceSeats)
+        .where(
+          and(
+            eq(commerceSeats.performanceId, performanceId),
+            inArray(commerceSeats.status, ['free', 'blocked']),
+          ),
+        )
+        .returning({ id: commerceSeats.seatId })
+      const categories = await db
+        .delete(commerceInventory)
+        .where(
+          and(
+            eq(commerceInventory.performanceId, performanceId),
+            eq(commerceInventory.sold, 0),
+            eq(commerceInventory.held, 0),
+          ),
+        )
+        .returning({ id: commerceInventory.ticketTypeId })
+      return { seats: seats.length, categories: categories.length }
+    },
     async retagSeat(performanceId, seatId, set, at) {
       const rows = await db
         .update(commerceSeats)

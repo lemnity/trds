@@ -333,6 +333,22 @@ describe.skipIf(!url)('commerce on PostgreSQL', () => {
     )
   })
 
+  it('removePerformance deletes an unsold performance; one with sales is refused', async () => {
+    const fresh: Performance = {
+      ...seated('rm1'),
+      ticketTypes: [{ id: 'std', title: 'std', priceKopecks: 0, capacity: 5 }],
+    }
+    expect((await inventory.syncCapacity(capacityFromPerformance(fresh), NOW)).ok).toBe(true)
+    expect(await inventory.removePerformance('rm1')).toMatchObject({ ok: true, categories: 1 })
+    expect(await store.seats('rm1')).toEqual([])
+    expect(await store.inventory('rm1')).toEqual([])
+
+    // На da1 продано место r5-s7 (тест «40 buyers»): ничего не удаляется.
+    const seats = (await store.seats('da1')).length
+    expect(await inventory.removePerformance('da1')).toEqual({ ok: false, error: 'HAS_SALES' })
+    expect(await store.seats('da1')).toHaveLength(seats)
+  })
+
   it('no transaction hit a deadlock: lock order is deterministic everywhere', () => {
     expect(retries).toBe(0)
   })

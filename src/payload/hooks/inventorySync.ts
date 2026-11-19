@@ -50,7 +50,15 @@ type TicketTypeDoc = {
   performance?: Id | { id: Id } | null
 }
 
-export type InventoryFor = (req: PayloadRequest) => Promise<Pick<InventoryService, 'syncCapacity'>>
+export type InventoryFor = (
+  req: PayloadRequest,
+) => Promise<Pick<InventoryService, 'syncCapacity' | 'removePerformance'>>
+
+/**
+ * Ключ `req.context`: категории удаляются вместе с показом — их guard не синхронизирует
+ * вместимость (inventory показа уже убран `removePerformance`, синхронизация вернула бы строки).
+ */
+export const PERFORMANCE_DELETE_CONTEXT = 'inventorySync.performanceDelete'
 
 const defaultInventory: InventoryFor = async (req) =>
   createInventoryService({
@@ -176,7 +184,8 @@ export const syncTicketTypeCapacity =
 /** Удаление категории: сначала обнулить её вместимость; если есть проданные — отказ. */
 export const guardTicketTypeDelete =
   (inventoryFor: InventoryFor = defaultInventory): CollectionBeforeDeleteHook =>
-  async ({ id, req }) => {
+  async ({ id, req, context }) => {
+    if (context?.[PERFORMANCE_DELETE_CONTEXT]) return
     const type = (await req.payload.findByID({
       collection: TICKET_TYPES_SLUG,
       id,
@@ -216,15 +225,50 @@ export const syncPerformanceSeating =
     return doc
   }
 
-/** Показ с категориями или схемой не удаляется: снимите с публикации (заказы ссылаются на него). */
-export const guardPerformanceDelete: CollectionBeforeDeleteHook = async ({ id, req }) => {
-  const types = await loadTypes(req, id)
-  const perf = await loadPerformance(req, id)
-  if (types.length > 0 || perf.seating?.planId)
-    throw new APIError(
-      'Показ с билетами нельзя удалить — снимите его с публикации или удалите категории.',
-      400,
-      undefined,
-      true,
+/**
+ * Отказ в удалении, который доходит до админки текстом. Payload (3.90) показывает сообщение
+ * ошибки `beforeDelete`, только если она публичная: одиночное удаление — routeError/formatErrors
+ * → `errors[].message` в toast; массовое — `{ message, isPublic }` в `errors` ответа, toast
+ * с этим описанием. Непубличная ошибка заменяется на «Something went wrong.». ValidationError
+ * не подходит: в toast попадает её общий заголовок, а не текст поля.
+ */
+const refuseDelete = (message: string) => new APIError(message, 400, null, true)
+
+/**
+ * Показ удаляется, если по нему ничего не продано и не забронировано и нет позиций заказов;
+ * иначе — снять с публикации. Вместе с показом в той же транзакции уходят его места и категории
+ * в ядре продаж и категории билетов в CMS (их `performance` обязателен).
+ */
+export const guardPerformanceDelete =
+  (inventoryFor: InventoryFor = defaultInventory): CollectionBeforeDeleteHook =>
+  async ({ id, req }) => {
+    const perf = await loadPerformance(req, id)
+    const removed = await (await inventoryFor(req)).removePerformance(perf.code)
+    if (!removed.ok)
+      throw refuseDelete(
+        'Показ с проданными или забронированными билетами нельзя удалить — снимите его с публикации.',
+      )
+    const types = await req.payload.delete({
+      collection: TICKET_TYPES_SLUG,
+      where: { performance: { equals: id } },
+      overrideAccess: true,
+      req,
+      context: { [PERFORMANCE_DELETE_CONTEXT]: true },
+    })
+    // Массовое удаление не бросает — ошибки по документам в ответе.
+    if (types.errors.length) throw new APIError(types.errors.map((e) => e.message).join('; '))
+  }
+
+/** Спектакль с показами не удаляется: иначе показы остаются без спектакля (`show` = null). */
+export const guardShowDelete: CollectionBeforeDeleteHook = async ({ id, req }) => {
+  const { totalDocs } = await req.payload.count({
+    collection: PERFORMANCES_SLUG,
+    where: { show: { equals: id } },
+    overrideAccess: true,
+    req,
+  })
+  if (totalDocs > 0)
+    throw refuseDelete(
+      `У спектакля есть показы (${totalDocs}) — сначала удалите их или перенесите на другой спектакль.`,
     )
 }

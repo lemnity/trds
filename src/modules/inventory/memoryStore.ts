@@ -230,6 +230,37 @@ export function memoryCommerceStore(
           }
           return changed
         },
+        async lockPerformanceInventory(performanceId) {
+          await pause()
+          const keys = [...inventory.values()]
+            .filter((r) => r.performanceId === performanceId)
+            .map((r) => ({ performanceId, ticketTypeId: r.ticketTypeId }))
+          return tx.lockInventory(keys)
+        },
+        async hasOrderItems(performanceId) {
+          await pause()
+          return items.some((i) => i.performanceId === performanceId)
+        },
+        async deletePerformanceInventory(performanceId) {
+          await pause()
+          const removed = { seats: 0, categories: 0 }
+          for (const [id, row] of [...seats])
+            if (
+              row.performanceId === performanceId &&
+              (row.status === 'free' || row.status === 'blocked')
+            ) {
+              seats.delete(id)
+              undo.push(() => seats.set(id, row))
+              removed.seats++
+            }
+          for (const [id, row] of [...inventory])
+            if (row.performanceId === performanceId && row.sold === 0 && row.held === 0) {
+              inventory.delete(id)
+              undo.push(() => inventory.set(id, row))
+              removed.categories++
+            }
+          return removed
+        },
         async retagSeat(performanceId, id, set, at) {
           await pause()
           const row = seats.get(seatId(performanceId, id))

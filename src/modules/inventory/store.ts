@@ -240,6 +240,15 @@ export interface CommerceTx {
   lockSeats(performanceId: string, seatIds?: string[]): Promise<SeatRow[]>
   /** Добавить места; уже существующие не меняются. */
   insertSeats(rows: SeatRow[]): Promise<void>
+  /** Все строки остатков показа под блокировкой (FOR NO KEY UPDATE) в порядке категории. */
+  lockPerformanceInventory(performanceId: string): Promise<InventoryRow[]>
+  /** Есть ли у показа позиции заказов (в любом статусе — на них ссылаются билеты и возвраты). */
+  hasOrderItems(performanceId: string): Promise<boolean>
+  /**
+   * Удалить ядро продаж показа: места `free`/`blocked` и категории без продаж и броней
+   * (`sold = held = 0`). Занятые строки условие не удаляет — вызывающий сверяет число.
+   */
+  deletePerformanceInventory(performanceId: string): Promise<{ seats: number; categories: number }>
   /**
    * Условно перевести места: только строки, совпадающие с `where`. Возвращает число
    * изменённых строк — вызывающий сверяет его с числом мест.

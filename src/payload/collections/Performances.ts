@@ -71,7 +71,7 @@ export const Performances: CollectionConfig = {
   hooks: {
     beforeValidate: [defaultCode],
     afterChange: [syncPerformanceSeating()],
-    beforeDelete: [guardPerformanceDelete],
+    beforeDelete: [guardPerformanceDelete()],
   },
   fields: [
     codeField('Не меняется: на него ссылаются заказы и билеты. Пусто — заполнится сам.', {

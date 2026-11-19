@@ -458,7 +458,32 @@ export function createInventoryService({ store }: { store: CommerceStore }) {
     )
   }
 
-  return { syncCapacity, availability, availabilityOf }
+  /**
+   * Удаление показа из CMS: убрать его места и категории из ядра продаж. Отказ (ничего не
+   * меняется), если есть проданные или забронированные места/билеты либо хотя бы одна позиция
+   * заказа — даже после возврата: на позиции ссылаются билеты, возвраты и история заказа.
+   */
+  async function removePerformance(
+    performanceId: string,
+  ): Promise<{ ok: true; seats: number; categories: number } | { ok: false; error: 'HAS_SALES' }> {
+    return withRetry(store, async (tx) => {
+      // Порядок блокировок общий: остатки, затем места.
+      const rows = await tx.lockPerformanceInventory(performanceId)
+      const seats = await tx.lockSeats(performanceId)
+      if (
+        rows.some((r) => r.sold + r.held > 0) ||
+        seats.some((s) => s.status === 'held' || s.status === 'sold') ||
+        (await tx.hasOrderItems(performanceId))
+      )
+        return { ok: false as const, error: 'HAS_SALES' as const }
+      const removed = await tx.deletePerformanceInventory(performanceId)
+      if (removed.seats !== seats.length || removed.categories !== rows.length)
+        throw new InventoryInvariantError('performance inventory changed under lock')
+      return { ok: true as const, ...removed }
+    })
+  }
+
+  return { syncCapacity, availability, availabilityOf, removePerformance }
 }
 
 export type InventoryService = ReturnType<typeof createInventoryService>

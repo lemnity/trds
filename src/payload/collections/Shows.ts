@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { EVENT_TYPE_LABELS } from '@/modules/shows'
 
 import { contentAccess } from '../access/roles'
+import { guardShowDelete } from '../hooks/inventorySync'
 import {
   creditsField,
   galleryField,
@@ -26,7 +27,10 @@ export const Shows: CollectionConfig = {
     defaultColumns: ['title', 'eventType', 'premiere', '_status'],
   },
   access: contentAccess,
-  hooks: { beforeValidate: [requireImageOnPublish('shows', 'poster', 'Афиша')] },
+  hooks: {
+    beforeValidate: [requireImageOnPublish('shows', 'poster', 'Афиша')],
+    beforeDelete: [guardShowDelete],
+  },
   versions: { drafts: true, maxPerDoc: 30 },
   defaultSort: 'title',
   fields: [
