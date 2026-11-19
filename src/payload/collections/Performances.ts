@@ -12,6 +12,17 @@ import {
   syncPerformanceSeating,
 } from '../hooks/inventorySync'
 
+/**
+ * Дата и время в админке: react-datepicker разбирает ввод тем же форматом, что и показывает,
+ * поэтому без displayFormat ручной ввод «15.03.2027 19:00» не принимался (формат по умолчанию — американский 12-часовой).
+ */
+export const RU_DATE_TIME = {
+  pickerAppearance: 'dayAndTime',
+  displayFormat: 'dd.MM.yyyy HH:mm',
+  timeFormat: 'HH:mm',
+  timeIntervals: 15,
+} as const
+
 const dayTime = new Intl.DateTimeFormat('ru-RU', {
   timeZone: THEATRE_TIME_ZONE,
   month: '2-digit',
@@ -82,7 +93,7 @@ export const Performances: CollectionConfig = {
       required: true,
       index: true,
       admin: {
-        date: { pickerAppearance: 'dayAndTime', timeFormat: 'HH:mm', timeIntervals: 15 },
+        date: RU_DATE_TIME,
         description: 'Время — екатеринбургское (часовой пояс браузера должен совпадать).',
       },
     },
@@ -160,7 +171,7 @@ export const Performances: CollectionConfig = {
               type: 'date',
               label: 'Продажи с',
               access: { create: fieldTheatreAdmins, update: fieldTheatreAdmins },
-              admin: { date: { pickerAppearance: 'dayAndTime', timeFormat: 'HH:mm' } },
+              admin: { date: RU_DATE_TIME },
             },
             {
               name: 'salesEndAt',
@@ -168,7 +179,7 @@ export const Performances: CollectionConfig = {
               label: 'Продажи до',
               access: { create: fieldTheatreAdmins, update: fieldTheatreAdmins },
               admin: {
-                date: { pickerAppearance: 'dayAndTime', timeFormat: 'HH:mm' },
+                date: RU_DATE_TIME,
                 description: 'Пусто — до начала показа.',
               },
             },
