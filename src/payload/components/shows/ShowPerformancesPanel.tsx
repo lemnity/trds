@@ -115,6 +115,15 @@ const markAddAfterSave = () => {
   }
 }
 
+const addAfterSavePending = (): boolean => {
+  try {
+    const at = sessionStorage.getItem(ADD_AFTER_SAVE_KEY)
+    return at !== null && Date.now() - Number(at) < ADD_AFTER_SAVE_TTL_MS
+  } catch {
+    return false
+  }
+}
+
 const takeAddAfterSave = (): boolean => {
   try {
     const at = sessionStorage.getItem(ADD_AFTER_SAVE_KEY)
@@ -271,4 +280,24 @@ export function ShowPerformancesPanel() {
       <PerformanceDrawer initialData={{ show: id }} onSave={reload} redirectAfterCreate={false} />
     </div>
   )
+}
+
+const PERFORMANCES_TAB_LABEL = 'Показы и продажи'
+
+/**
+ * Невидимый помощник в боковой колонке спектакля. После «Сохранить черновик и добавить показ»
+ * Payload открывает сохранённый спектакль на первой вкладке, а содержимое неактивных вкладок не
+ * рендерит — панель показов не смонтирована и окно открыть не может. Помощник (боковая колонка
+ * есть всегда) переключает на вкладку «Показы и продажи», панель монтируется и открывает окно.
+ */
+export function OpenPerformancesTabAfterSave() {
+  const { id } = useDocumentInfo()
+  useEffect(() => {
+    if (id === undefined || id === null || !addAfterSavePending()) return
+    const tab = [...document.querySelectorAll<HTMLButtonElement>('.tabs-field__tab-button')].find(
+      (b) => b.textContent?.trim() === PERFORMANCES_TAB_LABEL,
+    )
+    tab?.click()
+  }, [id])
+  return null
 }

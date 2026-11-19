@@ -39,6 +39,17 @@ export const Shows: CollectionConfig = {
   defaultSort: 'title',
   fields: [
     slugField(),
+    // После «Сохранить черновик и добавить показ» — переход на вкладку показов (см. компонент).
+    {
+      name: 'openPerformancesAfterSave',
+      type: 'ui',
+      admin: {
+        position: 'sidebar',
+        components: {
+          Field: '/payload/components/shows/ShowPerformancesPanel#OpenPerformancesTabAfterSave',
+        },
+      },
+    },
     {
       type: 'tabs',
       tabs: withTabNav([
