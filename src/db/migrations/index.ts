@@ -4,6 +4,7 @@ import * as migration_20261114_200415_refund_claims from './20261114_200415_refu
 import * as migration_20261119_063001_seat_pricing_templates from './20261119_063001_seat_pricing_templates'
 import * as migration_20261119_064005_belinskogo_hall from './20261119_064005_belinskogo_hall'
 import * as migration_20261119_085320_performance_title from './20261119_085320_performance_title'
+import * as migration_20261119_184512_show_seats_per_performance from './20261119_184512_show_seats_per_performance'
 
 export const migrations = [
   {
@@ -35,5 +36,10 @@ export const migrations = [
     up: migration_20261119_085320_performance_title.up,
     down: migration_20261119_085320_performance_title.down,
     name: '20261119_085320_performance_title',
+  },
+  {
+    up: migration_20261119_184512_show_seats_per_performance.up,
+    down: migration_20261119_184512_show_seats_per_performance.down,
+    name: '20261119_184512_show_seats_per_performance',
   },
 ]

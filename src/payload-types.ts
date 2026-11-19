@@ -69,10 +69,10 @@ export interface Config {
   collections: {
     shows: Show;
     performances: Performance;
-    venues: Venue;
     archive: Archive;
-    'ticket-types': TicketType;
+    venues: Venue;
     'seat-price-templates': SeatPriceTemplate;
+    'ticket-types': TicketType;
     people: Person;
     news: News;
     reviews: Review;
@@ -96,10 +96,10 @@ export interface Config {
   collectionsSelect: {
     shows: ShowsSelect<false> | ShowsSelect<true>;
     performances: PerformancesSelect<false> | PerformancesSelect<true>;
-    venues: VenuesSelect<false> | VenuesSelect<true>;
     archive: ArchiveSelect<false> | ArchiveSelect<true>;
-    'ticket-types': TicketTypesSelect<false> | TicketTypesSelect<true>;
+    venues: VenuesSelect<false> | VenuesSelect<true>;
     'seat-price-templates': SeatPriceTemplatesSelect<false> | SeatPriceTemplatesSelect<true>;
+    'ticket-types': TicketTypesSelect<false> | TicketTypesSelect<true>;
     people: PeopleSelect<false> | PeopleSelect<true>;
     news: NewsSelect<false> | NewsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
@@ -171,11 +171,11 @@ export interface Show {
   premiere?: boolean | null;
   pushkinCard?: boolean | null;
   studentOffer?: boolean | null;
+  lead: string;
   /**
    * Новее — раньше в слайдере главной. Пусто — дата создания записи.
    */
   announcedAt?: string | null;
-  lead: string;
   /**
    * Новый абзац — через пустую строку.
    */
@@ -231,6 +231,10 @@ export interface Show {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Для показов без схемы зала: в показе появится кнопка «Добавить входной билет» с этой вместимостью. Цену задаёте в показе.
+   */
+  seatsPerPerformance?: number | null;
   seo?: {
     title?: string | null;
     description?: string | null;
@@ -426,6 +430,7 @@ export interface Performance {
      * Подставляется из площадки. Пусто — продажа по категориям без мест.
      */
     planId?: ('dom-aktera' | 'dom-kultury' | 'belinskogo' | 'khlebozavod') | null;
+    pricesPlaceholder?: boolean | null;
     pricing?:
       | {
           [k: string]: unknown;
@@ -435,7 +440,6 @@ export interface Performance {
       | number
       | boolean
       | null;
-    pricesPlaceholder?: boolean | null;
     /**
      * Отмечаются на схеме: «Закрыть с продажи».
      */
@@ -778,20 +782,20 @@ export interface PayloadLockedDocument {
         value: number | Performance;
       } | null)
     | ({
-        relationTo: 'venues';
-        value: number | Venue;
-      } | null)
-    | ({
         relationTo: 'archive';
         value: number | Archive;
       } | null)
     | ({
-        relationTo: 'ticket-types';
-        value: number | TicketType;
+        relationTo: 'venues';
+        value: number | Venue;
       } | null)
     | ({
         relationTo: 'seat-price-templates';
         value: number | SeatPriceTemplate;
+      } | null)
+    | ({
+        relationTo: 'ticket-types';
+        value: number | TicketType;
       } | null)
     | ({
         relationTo: 'people';
@@ -889,8 +893,8 @@ export interface ShowsSelect<T extends boolean = true> {
   premiere?: T;
   pushkinCard?: T;
   studentOffer?: T;
-  announcedAt?: T;
   lead?: T;
+  announcedAt?: T;
   description?: T;
   credits?:
     | T
@@ -919,6 +923,7 @@ export interface ShowsSelect<T extends boolean = true> {
         imageUrl?: T;
         id?: T;
       };
+  seatsPerPerformance?: T;
   seo?:
     | T
     | {
@@ -944,39 +949,13 @@ export interface PerformancesSelect<T extends boolean = true> {
     | T
     | {
         planId?: T;
-        pricing?: T;
         pricesPlaceholder?: T;
+        pricing?: T;
         unavailableSeatIds?: T;
       };
   ticketTypes?: T;
   salesStartAt?: T;
   salesEndAt?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "venues_select".
- */
-export interface VenuesSelect<T extends boolean = true> {
-  code?: T;
-  title?: T;
-  kind?: T;
-  address?: T;
-  lat?: T;
-  lon?: T;
-  seatingPlanId?: T;
-  directions?: T;
-  accessibilityNotes?: T;
-  sortOrder?: T;
-  seo?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        image?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1011,6 +990,44 @@ export interface ArchiveSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "venues_select".
+ */
+export interface VenuesSelect<T extends boolean = true> {
+  code?: T;
+  title?: T;
+  kind?: T;
+  address?: T;
+  lat?: T;
+  lon?: T;
+  seatingPlanId?: T;
+  directions?: T;
+  accessibilityNotes?: T;
+  sortOrder?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "seat-price-templates_select".
+ */
+export interface SeatPriceTemplatesSelect<T extends boolean = true> {
+  title?: T;
+  venue?: T;
+  planId?: T;
+  pricing?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ticket-types_select".
  */
 export interface TicketTypesSelect<T extends boolean = true> {
@@ -1022,18 +1039,6 @@ export interface TicketTypesSelect<T extends boolean = true> {
   placeholder?: T;
   promo?: T;
   sortOrder?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "seat-price-templates_select".
- */
-export interface SeatPriceTemplatesSelect<T extends boolean = true> {
-  title?: T;
-  venue?: T;
-  planId?: T;
-  pricing?: T;
   updatedAt?: T;
   createdAt?: T;
 }

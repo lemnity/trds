@@ -2,7 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { EVENT_TYPE_LABELS } from '@/modules/shows'
 
-import { contentAccess } from '../access/roles'
+import { contentAccess, fieldTheatreAdmins } from '../access/roles'
 import { guardShowDelete } from '../hooks/inventorySync'
 import { refreshPerformanceTitles } from '../hooks/performanceTitle'
 import {
@@ -120,6 +120,20 @@ export const Shows: CollectionConfig = {
         {
           label: 'Показы и продажи',
           fields: [
+            {
+              name: 'seatsPerPerformance',
+              type: 'number',
+              label: 'Мест на показ (без схемы зала)',
+              min: 1,
+              admin: {
+                step: 1,
+                description:
+                  'Для показов без схемы зала: в показе появится кнопка «Добавить входной билет» с этой вместимостью. Цену задаёте в показе.',
+              },
+              validate: (value: number | null | undefined) =>
+                value == null || Number.isInteger(value) || 'Укажите целое число',
+              access: { create: fieldTheatreAdmins, update: fieldTheatreAdmins },
+            },
             // Свой список вместо join: join не показывает черновики показов.
             {
               name: 'performancesPanel',
