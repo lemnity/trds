@@ -1,4 +1,4 @@
-import { APIError, getFieldsToSign, jwtSign } from 'payload'
+import { getFieldsToSign, jwtSign } from 'payload'
 import type { Endpoint, PayloadRequest, TypedUser } from 'payload'
 import { addSessionToUser, generatePayloadCookie } from 'payload/shared'
 import { z } from 'zod'
@@ -8,6 +8,7 @@ import type { AuthService } from '@/modules/accounts/service'
 
 import { ADMIN_USERS_SLUG } from '../access/roles'
 import { writeCmsAudit, type CmsAuditWriter } from '../audit'
+import { publicError } from '../errors'
 import { json, readBody, sameOrigin } from '../endpoints/http'
 import { mfaVerifiedCookie } from './endpoints'
 import { createMfaService, mfaKeysFromEnv } from './mfa'
@@ -283,5 +284,5 @@ export const blockPasswordLogin = ({ req }: { req: PayloadRequest }) => {
     // нет адреса — считаем обычным входом
   }
   if (path.endsWith('/first-register')) return
-  throw new APIError(PASSWORD_LOGIN_DISABLED, 403, undefined, true)
+  throw publicError(PASSWORD_LOGIN_DISABLED, 403)
 }

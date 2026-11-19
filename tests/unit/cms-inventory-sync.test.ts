@@ -1,6 +1,7 @@
 import { APIError, ValidationError, formatErrors, type PayloadRequest } from 'payload'
 import { describe, expect, it } from 'vitest'
 
+import { publicError } from '../../src/payload/errors'
 import { createInventoryService } from '../../src/modules/inventory/inventory'
 import { memoryCommerceStore } from '../../src/modules/inventory/memoryStore'
 import type { SeatRow } from '../../src/modules/inventory/store'
@@ -321,5 +322,23 @@ describe('show delete', () => {
   it('a show without performances is deleted', async () => {
     const { req } = setup([], undefined, 0)
     await expect(guardShowDelete({ id: 7, req } as never)).resolves.toBeUndefined()
+  })
+})
+
+// Продакшн-сборка Next минифицирует имена классов: `name === ''`. formatErrors (экспорт payload)
+// тогда не должен терять сообщение отказа.
+describe('publicError under minified class names', () => {
+  it('formatErrors keeps the Russian message when name is empty', () => {
+    const err = publicError('Показ нельзя удалить — снимите его с публикации.')
+    err.name = ''
+    expect(formatErrors(err).errors[0]?.message).toBe(
+      'Показ нельзя удалить — снимите его с публикации.',
+    )
+    expect(err.status).toBe(400)
+    expect(err.isPublic).toBe(true)
+  })
+
+  it('sets the name explicitly', () => {
+    expect(publicError('x').name).toBe('APIError')
   })
 })

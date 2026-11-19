@@ -1,5 +1,4 @@
 import {
-  APIError,
   ValidationError,
   type CollectionAfterChangeHook,
   type CollectionBeforeDeleteHook,
@@ -18,6 +17,7 @@ import { getZonePlan, layoutOfPricing, parseSeatPricing, zoneTicketTypes } from 
 import type { Performance } from '@/modules/shows'
 
 import { transactionDb } from '../db'
+import { publicError } from '../errors'
 import { TITLE_REFRESH_CONTEXT } from './performanceTitle'
 
 /**
@@ -233,7 +233,7 @@ export const syncPerformanceSeating =
  * с этим описанием. Непубличная ошибка заменяется на «Something went wrong.». ValidationError
  * не подходит: в toast попадает её общий заголовок, а не текст поля.
  */
-const refuseDelete = (message: string) => new APIError(message, 400, null, true)
+const refuseDelete = (message: string) => publicError(message)
 
 /**
  * Показ удаляется, если по нему ничего не продано и не забронировано и нет позиций заказов;
