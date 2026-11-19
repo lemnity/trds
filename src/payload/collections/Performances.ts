@@ -1,6 +1,6 @@
 import type { CollectionBeforeValidateHook, CollectionConfig } from 'payload'
 
-import { domAkteraPlan, domKulturyPlan } from '@/modules/seating'
+import { HALL_PLAN_OPTIONS, validateSeatPricing } from '@/modules/seating'
 import { THEATRE_TIME_ZONE } from '@/modules/shows'
 
 import { contentAccess, fieldTheatreAdmins, theatreAdmins } from '../access/roles'
@@ -11,8 +11,6 @@ import {
   guardPerformanceDelete,
   syncPerformanceSeating,
 } from '../hooks/inventorySync'
-
-const PLANS = [domAkteraPlan, domKulturyPlan]
 
 const dayTime = new Intl.DateTimeFormat('ru-RU', {
   timeZone: THEATRE_TIME_ZONE,
@@ -89,6 +87,64 @@ export const Performances: CollectionConfig = {
       },
     },
     {
+      name: 'seating',
+      type: 'group',
+      label: 'Схема зала и цены мест',
+      access: { create: fieldTheatreAdmins, update: fieldTheatreAdmins },
+      admin: {
+        description:
+          'Выберите площадку — появится её зал. Выделите места и назначьте им ценовую зону. Только администратор театра.',
+      },
+      fields: [
+        {
+          name: 'planId',
+          type: 'select',
+          label: 'Схема',
+          options: HALL_PLAN_OPTIONS,
+          admin: {
+            description: 'Подставляется из площадки. Пусто — продажа по категориям без мест.',
+          },
+        },
+        {
+          name: 'pricing',
+          type: 'json',
+          label: 'Цены по схеме зала',
+          validate: (
+            value: unknown,
+            { siblingData }: { siblingData?: { planId?: string | null } },
+          ) => validateSeatPricing(value, siblingData?.planId),
+          admin: {
+            components: {
+              Field: {
+                path: '/payload/components/seating/SeatPricingField#SeatPricingField',
+                clientProps: {
+                  planPath: 'seating.planId',
+                  venuePath: 'venue',
+                  closedPath: 'seating.unavailableSeatIds',
+                  templates: true,
+                },
+              },
+            },
+          },
+        },
+        {
+          name: 'pricesPlaceholder',
+          type: 'checkbox',
+          label: 'Цены не утверждены театром (на сайте — «предварительно»)',
+        },
+        {
+          name: 'unavailableSeatIds',
+          type: 'text',
+          hasMany: true,
+          label: 'Закрытые места',
+          admin: {
+            hidden: true,
+            description: 'Отмечаются на схеме: «Закрыть с продажи».',
+          },
+        },
+      ],
+    },
+    {
       type: 'collapsible',
       label: 'Продажи',
       admin: {
@@ -115,54 +171,6 @@ export const Performances: CollectionConfig = {
                 date: { pickerAppearance: 'dayAndTime', timeFormat: 'HH:mm' },
                 description: 'Пусто — до начала показа.',
               },
-            },
-          ],
-        },
-        {
-          name: 'seating',
-          type: 'group',
-          label: 'Схема зала',
-          access: { create: fieldTheatreAdmins, update: fieldTheatreAdmins },
-          fields: [
-            {
-              name: 'planId',
-              type: 'select',
-              label: 'Схема',
-              options: PLANS.map((p) => ({ value: p.id, label: p.title })),
-              admin: { description: 'Пусто — продажа по категориям без мест.' },
-            },
-            {
-              name: 'prices',
-              type: 'array',
-              label: 'Цены категорий мест',
-              admin: {
-                description: 'В копейках: 1 000 ₽ = 100000. Категория без цены не продаётся.',
-              },
-              fields: [
-                { name: 'categoryId', type: 'text', label: 'Категория', required: true },
-                {
-                  name: 'priceKopecks',
-                  type: 'number',
-                  label: 'Цена, коп.',
-                  required: true,
-                  min: 0,
-                  validate: (v: number | null | undefined) =>
-                    (typeof v === 'number' && Number.isSafeInteger(v) && v >= 0) ||
-                    'Целое число копеек',
-                },
-              ],
-            },
-            {
-              name: 'pricesPlaceholder',
-              type: 'checkbox',
-              label: 'Цены не утверждены театром (на сайте — «предварительно»)',
-            },
-            {
-              name: 'unavailableSeatIds',
-              type: 'text',
-              hasMany: true,
-              label: 'Закрытые места',
-              admin: { description: 'Технические и снятые с продажи места, например «p-1-5».' },
             },
           ],
         },

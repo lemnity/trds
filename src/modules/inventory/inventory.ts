@@ -1,4 +1,4 @@
-import { getSeatingPlan, seatsOf } from '@/modules/seating'
+import { applySeatLayout, getSeatingPlan, seatsOf } from '@/modules/seating'
 import type { Performance } from '@/modules/shows'
 
 import { withRetry } from './retry'
@@ -275,7 +275,8 @@ export const capacityFromPerformance = (performance: Performance): CapacitySpec 
     performanceId: performance.id,
     ticketTypes: performance.ticketTypes.map((t) => ({ id: t.id, capacity: t.capacity })),
   }
-  const plan = performance.seating ? getSeatingPlan(performance.seating.planId) : null
+  const base = performance.seating ? getSeatingPlan(performance.seating.planId) : null
+  const plan = base && applySeatLayout(base, performance.seating?.layout)
   if (performance.seating && plan)
     spec.seating = {
       planId: plan.id,

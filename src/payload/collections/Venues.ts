@@ -1,8 +1,9 @@
 import type { CollectionConfig } from 'payload'
 
+import { HALL_PLAN_OPTIONS } from '@/modules/seating'
 import { VENUE_KIND_LABELS } from '@/modules/shows'
 
-import { contentAccess } from '../access/roles'
+import { contentAccess, fieldTheatreAdmins } from '../access/roles'
 import { codeField, seoField, sortOrderField } from '../fields'
 
 /** Площадки (T-021). Ключ совпадает с id площадки в схемах залов (`dom-aktera`, `dk`). */
@@ -30,6 +31,26 @@ export const Venues: CollectionConfig = {
         { name: 'lat', type: 'number', label: 'Широта' },
         { name: 'lon', type: 'number', label: 'Долгота' },
       ],
+    },
+    {
+      name: 'seatingPlanId',
+      type: 'select',
+      label: 'Схема зала',
+      options: HALL_PLAN_OPTIONS,
+      access: { create: fieldTheatreAdmins, update: fieldTheatreAdmins },
+      admin: {
+        description:
+          'Пусто — продажа по категориям без мест. Новые показы на площадке берут эту схему.',
+      },
+    },
+    {
+      name: 'seatingTemplates',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '/payload/components/seating/VenueSeatingTemplates#VenueSeatingTemplates',
+        },
+      },
     },
     { name: 'directions', type: 'textarea', label: 'Как добраться' },
     { name: 'accessibilityNotes', type: 'textarea', label: 'Доступная среда' },

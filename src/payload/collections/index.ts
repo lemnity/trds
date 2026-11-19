@@ -9,6 +9,7 @@ import { Partners } from './Partners'
 import { People } from './People'
 import { Performances } from './Performances'
 import { Reviews } from './Reviews'
+import { SeatPriceTemplates } from './SeatPriceTemplates'
 import { Shows } from './Shows'
 import { TicketTypes } from './TicketTypes'
 import { Venues } from './Venues'
@@ -20,6 +21,7 @@ export const collections = [
   Venues,
   Archive,
   TicketTypes,
+  SeatPriceTemplates,
   People,
   News,
   Reviews,

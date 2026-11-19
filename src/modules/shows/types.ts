@@ -1,3 +1,5 @@
+import type { SeatLayout } from '@/modules/seating'
+
 export type VenueKind = 'bar' | 'restaurant' | 'loft' | 'apartment' | 'stage' | 'city'
 
 export type Venue = {
@@ -87,7 +89,13 @@ export type Performance = {
     /** Цены-заглушки до утверждения театром. */
     pricesPlaceholder?: boolean
     unavailableSeatIds: string[]
+    /** Ценовые зоны показа поверх схемы (админка «Схема зала»); нет — категории схемы. */
+    layout?: SeatLayout
   }
+  /** Зонная схема зала (Хлебозавод): зоны продаются как категории `ticketTypes`. */
+  zonePlanId?: string
+  /** Цвета зон этого показа (админка «Зоны и цены»), поверх цветов схемы. */
+  zoneColors?: Record<string, string>
   /** Окно продаж (CMS): до начала окна и после конца — продажи на сайте закрыты. */
   salesStartsAt?: string
   salesEndsAt?: string

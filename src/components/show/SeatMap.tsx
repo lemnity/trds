@@ -3,21 +3,19 @@
 import { useRef, useState, type KeyboardEvent } from 'react'
 
 import { formatRub } from '@/lib/money'
-import type { PerformanceSeating, Seat, SeatRow } from '@/modules/seating'
+import {
+  SEAT_ZONE_COLORS,
+  type PerformanceSeating,
+  type Seat,
+  type SeatRow,
+} from '@/modules/seating'
 
 import styles from './SeatMap.module.css'
 
 // Цвета категорий по схеме театра; подобраны с контрастом ≥ 3:1 к белому (WCAG 1.4.11).
 // Категория также указана текстом в легенде и в подписи каждого места.
-export const SEAT_CATEGORY_COLORS: Record<string, string> = {
-  'cat-1': '#e0600c',
-  'cat-2': '#6b2a5b',
-  'cat-3': '#7a479c',
-  'cat-4': '#8771b8',
-  'cat-5': '#0b70d6',
-  'cat-6': '#24895a',
-  'cat-7': '#7a860d',
-}
+/** Цвета ценовых зон — общие с редактором схемы в админке. */
+export const SEAT_CATEGORY_COLORS = SEAT_ZONE_COLORS
 
 type Props = {
   seating: PerformanceSeating

@@ -14,6 +14,7 @@ import {
   type InventoryService,
 } from '@/modules/inventory/inventory'
 import { pgCommerceStore } from '@/modules/inventory/pgStore'
+import { getZonePlan, layoutOfPricing, parseSeatPricing, zoneTicketTypes } from '@/modules/seating'
 import type { Performance } from '@/modules/shows'
 
 import { transactionDb } from '../db'
@@ -37,6 +38,7 @@ type PerformanceDoc = {
   seating?: {
     planId?: string | null
     unavailableSeatIds?: string[] | null
+    pricing?: unknown
   } | null
 }
 type TicketTypeDoc = {
@@ -55,6 +57,12 @@ const defaultInventory: InventoryFor = async (req) =>
     store: pgCommerceStore(await transactionDb<Parameters<typeof pgCommerceStore>[0]>(req)),
   })
 
+/** Раскладка мест показа: зоны из «Схемы зала». Битый JSON отклоняет валидация поля. */
+const pricingOfDoc = (perf: PerformanceDoc) => {
+  const parsed = parseSeatPricing(perf.seating?.pricing, perf.seating?.planId)
+  return parsed.ok ? parsed.pricing : null
+}
+
 const idOf = (ref: TicketTypeDoc['performance']) =>
   ref && typeof ref === 'object' ? ref.id : (ref ?? null)
 
@@ -64,25 +72,38 @@ export const inventoryPerformance = (
   types: TicketTypeDoc[],
   override?: { code: string; capacity: number },
 ): Performance => {
-  const ticketTypes = types.map((t) => ({
-    id: t.code,
-    title: t.title ?? t.code,
-    priceKopecks: t.priceKopecks ?? 0,
-    capacity: override?.code === t.code ? override.capacity : (t.capacity ?? 0),
-  }))
+  const pricing = pricingOfDoc(perf)
+  const zonePlan = perf.seating?.planId ? getZonePlan(perf.seating.planId) : null
+  // Зонная схема: зоны — категории показа (с ценой и вместимостью из «Схемы зала»).
+  const zoneTypes = zonePlan ? zoneTicketTypes(zonePlan, pricing) : []
+  const zoneIds = new Set(zoneTypes.map((t) => t.id))
+  const ticketTypes = [
+    ...types
+      .filter((t) => !zoneIds.has(t.code))
+      .map((t) => ({
+        id: t.code,
+        title: t.title ?? t.code,
+        priceKopecks: t.priceKopecks ?? 0,
+        capacity: override?.code === t.code ? override.capacity : (t.capacity ?? 0),
+      })),
+    ...zoneTypes,
+  ]
+  const layout = layoutOfPricing(pricing)
   return {
     id: perf.code,
     showSlug: '',
     venueId: '',
     startsAt: perf.startsAt ?? '',
     ticketTypes,
-    ...(perf.seating?.planId && {
-      seating: {
-        planId: perf.seating.planId,
-        pricesKopecks: {},
-        unavailableSeatIds: perf.seating.unavailableSeatIds ?? [],
-      },
-    }),
+    ...(perf.seating?.planId &&
+      !zonePlan && {
+        seating: {
+          planId: perf.seating.planId,
+          pricesKopecks: {},
+          unavailableSeatIds: perf.seating.unavailableSeatIds ?? [],
+          ...(layout && { layout }),
+        },
+      }),
   }
 }
 

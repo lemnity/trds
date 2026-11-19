@@ -5,7 +5,22 @@ import type { Payload } from 'payload'
 
 import { demoSiteContent, school, type SiteContent } from '@/modules/content'
 import { personSlug } from '@/modules/people'
+import { getSeatingPlan, type SeatPricing } from '@/modules/seating'
 import { demoShowsData, type Credit, type ShowsData } from '@/modules/shows'
+
+/** Цены демо-показа → JSON «Цены по схеме зала»: зоны — категории схемы, места — по рядам. */
+const seedPricing = (planId: string, prices: Record<string, number>): SeatPricing | null => {
+  const plan = getSeatingPlan(planId)
+  if (!plan || Object.keys(prices).length === 0) return null
+  return {
+    zones: plan.categories.map((c) => ({
+      categoryId: c.id,
+      title: c.title,
+      priceKopecks: prices[c.id] ?? null,
+    })),
+    seats: {},
+  }
+}
 
 /**
  * Перенос демо-набора (реальные данные с teatrturdus.ru) в пустую CMS — `pnpm cms:seed`.
@@ -271,14 +286,11 @@ export async function seedCms(payload: Payload, options: SeedOptions): Promise<S
         seating: p.seating
           ? {
               planId: p.seating.planId,
-              prices: Object.entries(p.seating.pricesKopecks).map(([categoryId, priceKopecks]) => ({
-                categoryId,
-                priceKopecks,
-              })),
+              pricing: seedPricing(p.seating.planId, p.seating.pricesKopecks),
               pricesPlaceholder: p.seating.pricesPlaceholder === true,
               unavailableSeatIds: p.seating.unavailableSeatIds,
             }
-          : { planId: null, prices: [], pricesPlaceholder: false, unavailableSeatIds: [] },
+          : { planId: null, pricing: null, pricesPlaceholder: false, unavailableSeatIds: [] },
         ...PUBLISHED,
       },
     )

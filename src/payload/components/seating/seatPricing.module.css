@@ -1,0 +1,642 @@
+/*
+ * Редактор «Схема зала» в админке. Цвета — токены темы Payload (--theme-*), цвет зоны — --zone
+ * на элементе. Отступы — шкала 4/8/12/16/24.
+ */
+.root {
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --radius: var(--style-radius-m, 6px);
+  --radius-s: var(--style-radius-s, 4px);
+  --line: var(--theme-elevation-150);
+  --surface: var(--theme-elevation-0);
+  --surface-2: var(--theme-elevation-50);
+  --muted: var(--theme-elevation-600);
+  --warn: var(--theme-warning-800, #a15c00);
+  --seat: 26px;
+
+  display: grid;
+  gap: var(--sp-4);
+  margin: var(--sp-2) 0 var(--sp-5);
+  color: var(--theme-text);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.toolbar select {
+  min-width: 200px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+}
+
+.toolbarSpacer {
+  flex: 1;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: var(--sp-4);
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --- Схема --- */
+.hall {
+  padding: var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow-x: auto;
+}
+
+.stage {
+  width: min(70%, 420px);
+  margin: 0 auto var(--sp-5);
+  padding: var(--sp-1) 0;
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  background: var(--theme-elevation-100);
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.grid {
+  display: grid;
+  gap: 6px;
+  width: max-content;
+  margin: 0 auto;
+  touch-action: none;
+  user-select: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 24px auto auto auto 24px;
+  align-items: center;
+  column-gap: var(--sp-4);
+}
+
+.block {
+  display: flex;
+  gap: 4px;
+}
+
+.left {
+  justify-content: flex-end;
+  min-width: calc(var(--seat) * 2 + 4px);
+}
+
+.center {
+  justify-content: center;
+  min-width: calc(var(--seat) * 9 + 4px * 8);
+}
+
+.right {
+  justify-content: flex-start;
+  min-width: calc(var(--seat) * 2 + 4px);
+}
+
+.rowNum {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  text-align: center;
+}
+
+button.rowNum {
+  cursor: pointer;
+  border-radius: var(--radius-s);
+}
+
+button.rowNum:hover:not(:disabled) {
+  background: var(--theme-elevation-100);
+  color: var(--theme-text);
+}
+
+.seat {
+  position: relative;
+  width: var(--seat);
+  height: var(--seat);
+  padding: 0;
+  border: 0;
+  border-radius: 6px 6px 3px 3px;
+  background: var(--zone);
+  color: #fff;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: var(--seat);
+  cursor: pointer;
+  transition:
+    transform 80ms ease,
+    box-shadow 80ms ease;
+}
+
+.seat:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.seat:focus-visible {
+  outline: 2px solid var(--theme-text);
+  outline-offset: 2px;
+}
+
+.seat[data-unpriced='true'] {
+  background: color-mix(in srgb, var(--zone) 35%, var(--surface));
+  color: var(--theme-text);
+}
+
+.seat[data-closed='true'] {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--theme-elevation-150) 0 4px,
+    var(--theme-elevation-50) 4px 8px
+  );
+  color: var(--muted);
+  box-shadow: inset 0 0 0 1.5px var(--zone);
+}
+
+.seat[aria-pressed='true'] {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--theme-text);
+  transform: scale(1.06);
+}
+
+.seat:disabled {
+  cursor: default;
+}
+
+.hint {
+  margin-top: var(--sp-4);
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* --- Зоны --- */
+.side {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.sideTitle {
+  margin: 0;
+  font-size: 14px;
+}
+
+.zones {
+  display: grid;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.zone {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) auto 96px;
+  grid-template-areas:
+    'sw title title price'
+    '. meta actions actions';
+  align-items: center;
+  gap: var(--sp-1) var(--sp-2);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--theme-elevation-100);
+}
+
+.zone:last-child {
+  border-bottom: 0;
+}
+
+.swatch {
+  grid-area: sw;
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--zone);
+  flex: none;
+}
+
+.zoneTitle,
+.priceInput input {
+  width: 100%;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+}
+
+.zone .zoneTitle {
+  grid-area: title;
+}
+
+.priceInput {
+  grid-area: price;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.priceInput input {
+  padding-right: 22px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.priceInput > span {
+  position: absolute;
+  right: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.priceInput[data-invalid='true'] input {
+  border-color: var(--theme-error-500);
+}
+
+.zoneMeta {
+  grid-area: meta;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.zoneActions {
+  grid-area: actions;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+}
+
+.warn {
+  color: var(--warn);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-2);
+  margin: 0;
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--line);
+}
+
+.summary div {
+  display: grid;
+  gap: 2px;
+}
+
+.summary dt {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.summary dd {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary dd[data-warn='true'] {
+  color: var(--warn);
+}
+
+.summary .revenue {
+  grid-column: 1 / -1;
+}
+
+.summary .revenue dd {
+  font-size: 20px;
+}
+
+/* --- Действия с выделением --- */
+.actions {
+  position: sticky;
+  bottom: var(--sp-3);
+  z-index: 2;
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border: 1px solid var(--theme-elevation-250, var(--line));
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.actionsHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.assign,
+.newZone {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.newZone .zoneTitle {
+  width: 220px;
+}
+
+.newZone .priceInput {
+  width: 120px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--theme-text);
+}
+
+.chip .swatch {
+  width: 10px;
+  height: 10px;
+}
+
+.primary {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--theme-text);
+  color: var(--surface);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.link:disabled {
+  color: var(--muted);
+  text-decoration: none;
+  cursor: default;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.notice {
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+}
+
+.error {
+  color: var(--theme-error-500);
+  font-size: 13px;
+}
+
+.sideHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.zone[data-active='true'] {
+  margin: 0 calc(-1 * var(--sp-2));
+  padding: var(--sp-2);
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+  outline: 2px solid var(--theme-text);
+}
+
+.chip:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.chip:disabled:hover {
+  border-color: var(--line);
+}
+
+/* --- Зонная схема --- */
+.zoneStack {
+  display: grid;
+  gap: var(--sp-2);
+  width: min(100%, 560px);
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.zoneBlock {
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  min-height: 96px;
+  padding: var(--sp-3);
+  border-radius: 12px;
+  background: var(--zone);
+  color: #fff;
+  text-align: center;
+}
+
+.zoneBlock[data-off='true'] {
+  background: color-mix(in srgb, var(--zone) 30%, var(--surface));
+  color: var(--theme-text);
+}
+
+.zoneBlockTitle {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.zoneBlockMeta {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.zoneRow {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'sw title title'
+    '. price cap';
+  align-items: center;
+  gap: var(--sp-2);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--theme-elevation-100);
+}
+
+.zoneRow:last-child {
+  border-bottom: 0;
+}
+
+.capacityInput {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.capacityInput input {
+  width: 100%;
+  padding: 5px 40px 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.capacityInput > span {
+  position: absolute;
+  right: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+/* Строка зонной схемы: название во всю ширину, под ним цена и вместимость. */
+.zoneRow > .swatch {
+  grid-area: sw;
+}
+
+.zoneRow > .zoneTitle {
+  grid-area: title;
+}
+
+.zoneRow > .priceInput {
+  grid-area: price;
+}
+
+.zoneRow > .capacityInput {
+  grid-area: cap;
+}
+
+/* Поля не шире своей колонки: иначе input берёт ширину «по умолчанию» и наезжает на соседей. */
+.priceInput,
+.capacityInput {
+  width: 100%;
+  min-width: 0;
+}
+
+.priceInput input,
+.capacityInput input {
+  min-width: 0;
+}
+
+.root *,
+.root *::before,
+.root *::after {
+  box-sizing: border-box;
+}
+
+/* Цвет зоны: кружок цвета, по клику — системная палитра. */
+.colorPicker {
+  grid-area: sw;
+  position: relative;
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--zone);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+}
+
+.colorPicker:hover {
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.12),
+    0 0 0 2px var(--surface),
+    0 0 0 3px var(--line);
+}
+
+.colorPicker:focus-within {
+  outline: 2px solid var(--theme-text);
+  outline-offset: 2px;
+}
+
+.colorPicker input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.colorPicker:has(input:disabled) {
+  cursor: default;
+}
+
+.zoneRow > .colorPicker {
+  grid-area: sw;
+}

@@ -1,6 +1,7 @@
 import * as migration_20261025_195018_initial from './20261025_195018_initial';
 import * as migration_20261027_104849_people_works_catalog from './20261027_104849_people_works_catalog';
 import * as migration_20261114_200415_refund_claims from './20261114_200415_refund_claims';
+import * as migration_20261119_063001_seat_pricing_templates from './20261119_063001_seat_pricing_templates';
 
 export const migrations = [
   {
@@ -16,6 +17,11 @@ export const migrations = [
   {
     up: migration_20261114_200415_refund_claims.up,
     down: migration_20261114_200415_refund_claims.down,
-    name: '20261114_200415_refund_claims'
+    name: '20261114_200415_refund_claims',
+  },
+  {
+    up: migration_20261119_063001_seat_pricing_templates.up,
+    down: migration_20261119_063001_seat_pricing_templates.down,
+    name: '20261119_063001_seat_pricing_templates'
   },
 ];

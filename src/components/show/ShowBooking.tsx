@@ -23,6 +23,7 @@ import {
 import { Availability as AvailabilityIndicator } from '../ui/Availability'
 import { VenueTag } from '../ui/VenueTag'
 import { SeatMap } from './SeatMap'
+import { ZoneMap } from './ZoneMap'
 import styles from './ShowBooking.module.css'
 import { Button, NumberField, ToggleButton } from '@heroui/react'
 import { ButtonLink } from '../ui/ButtonLink'
@@ -316,11 +317,13 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
           </h2>
         </div>
         <p className={styles.hint}>
-          {!seating
-            ? 'Места по категориям, без схемы зала'
-            : seatPricesSet
-              ? `${seating.plan.title} · нажмите на место на схеме`
-              : seating.plan.title}
+          {selected.zonePlan
+            ? `${selected.zonePlan.title} · выберите зону`
+            : !seating
+              ? 'Места по категориям, без схемы зала'
+              : seatPricesSet
+                ? `${seating.plan.title} · нажмите на место на схеме`
+                : seating.plan.title}
         </p>
       </div>
 
@@ -346,6 +349,17 @@ export function ShowBooking({ performances, fallbackUrl }: Props) {
         </div>
       ) : selected.salesOpen ? (
         <div className={styles.stack}>
+          {selected.zonePlan && (
+            <div className={cardClass(styles.card)}>
+              <ZoneMap
+                plan={selected.zonePlan}
+                ticketTypes={selected.ticketTypes}
+                quantities={quantities}
+                canAdd={(type) => maxFor(type) > (quantities[type.id] ?? 0)}
+                onPick={(type) => setQuantity(type, (quantities[type.id] ?? 0) + 1)}
+              />
+            </div>
+          )}
           <fieldset className={cardClass(styles.card)}>
             <legend className={styles.cardTitle}>Категории</legend>
             <ul className={styles.types}>

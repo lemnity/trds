@@ -72,6 +72,7 @@ export interface Config {
     venues: Venue;
     archive: Archive;
     'ticket-types': TicketType;
+    'seat-price-templates': SeatPriceTemplate;
     people: Person;
     news: News;
     reviews: Review;
@@ -101,6 +102,7 @@ export interface Config {
     venues: VenuesSelect<false> | VenuesSelect<true>;
     archive: ArchiveSelect<false> | ArchiveSelect<true>;
     'ticket-types': TicketTypesSelect<false> | TicketTypesSelect<true>;
+    'seat-price-templates': SeatPriceTemplatesSelect<false> | SeatPriceTemplatesSelect<true>;
     people: PeopleSelect<false> | PeopleSelect<true>;
     news: NewsSelect<false> | NewsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
@@ -420,32 +422,34 @@ export interface Performance {
    * Время — екатеринбургское (часовой пояс браузера должен совпадать).
    */
   startsAt: string;
+  /**
+   * Выберите площадку — появится её зал. Выделите места и назначьте им ценовую зону. Только администратор театра.
+   */
+  seating?: {
+    /**
+     * Подставляется из площадки. Пусто — продажа по категориям без мест.
+     */
+    planId?: ('dom-aktera' | 'dom-kultury' | 'khlebozavod') | null;
+    pricing?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    pricesPlaceholder?: boolean | null;
+    /**
+     * Отмечаются на схеме: «Закрыть с продажи».
+     */
+    unavailableSeatIds?: string[] | null;
+  };
   salesStartAt?: string | null;
   /**
    * Пусто — до начала показа.
    */
   salesEndAt?: string | null;
-  seating?: {
-    /**
-     * Пусто — продажа по категориям без мест.
-     */
-    planId?: ('dom-aktera' | 'dom-kultury') | null;
-    /**
-     * В копейках: 1 000 ₽ = 100000. Категория без цены не продаётся.
-     */
-    prices?:
-      | {
-          categoryId: string;
-          priceKopecks: number;
-          id?: string | null;
-        }[]
-      | null;
-    pricesPlaceholder?: boolean | null;
-    /**
-     * Технические и снятые с продажи места, например «p-1-5».
-     */
-    unavailableSeatIds?: string[] | null;
-  };
   ticketTypes?: {
     docs?: (number | TicketType)[];
     hasNextPage?: boolean;
@@ -470,6 +474,10 @@ export interface Venue {
   address: string;
   lat?: number | null;
   lon?: number | null;
+  /**
+   * Пусто — продажа по категориям без мест. Новые показы на площадке берут эту схему.
+   */
+  seatingPlanId?: ('dom-aktera' | 'dom-kultury' | 'khlebozavod') | null;
   directions?: string | null;
   accessibilityNotes?: string | null;
   /**
@@ -513,6 +521,32 @@ export interface TicketType {
    */
   promo?: boolean | null;
   sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Удобнее править в карточке площадки: «Схема зала и шаблоны цен».
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "seat-price-templates".
+ */
+export interface SeatPriceTemplate {
+  id: number;
+  title: string;
+  venue: number | Venue;
+  /**
+   * Пусто — схема площадки.
+   */
+  planId: 'dom-aktera' | 'dom-kultury' | 'khlebozavod';
+  pricing?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -763,6 +797,10 @@ export interface PayloadLockedDocument {
         value: number | TicketType;
       } | null)
     | ({
+        relationTo: 'seat-price-templates';
+        value: number | SeatPriceTemplate;
+      } | null)
+    | ({
         relationTo: 'people';
         value: number | Person;
       } | null)
@@ -909,22 +947,16 @@ export interface PerformancesSelect<T extends boolean = true> {
   show?: T;
   venue?: T;
   startsAt?: T;
-  salesStartAt?: T;
-  salesEndAt?: T;
   seating?:
     | T
     | {
         planId?: T;
-        prices?:
-          | T
-          | {
-              categoryId?: T;
-              priceKopecks?: T;
-              id?: T;
-            };
+        pricing?: T;
         pricesPlaceholder?: T;
         unavailableSeatIds?: T;
       };
+  salesStartAt?: T;
+  salesEndAt?: T;
   ticketTypes?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -941,6 +973,7 @@ export interface VenuesSelect<T extends boolean = true> {
   address?: T;
   lat?: T;
   lon?: T;
+  seatingPlanId?: T;
   directions?: T;
   accessibilityNotes?: T;
   sortOrder?: T;
@@ -996,6 +1029,18 @@ export interface TicketTypesSelect<T extends boolean = true> {
   placeholder?: T;
   promo?: T;
   sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "seat-price-templates_select".
+ */
+export interface SeatPriceTemplatesSelect<T extends boolean = true> {
+  title?: T;
+  venue?: T;
+  planId?: T;
+  pricing?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -19,7 +19,7 @@ import {
   type PaymentProvider,
   type ProviderPayment,
 } from '@/modules/payments'
-import { quoteSeats } from '@/modules/seating'
+import { layoutOf, quoteSeats } from '@/modules/seating'
 import type { Performance, SalePerformance } from '@/modules/shows'
 import type { WalletService } from '@/modules/wallet/service'
 
@@ -226,6 +226,8 @@ const capacitySource = (p: SalePerformance): Performance => ({
       planId: p.seating.plan.id,
       pricesKopecks: p.seating.pricesKopecks,
       unavailableSeatIds: p.seating.unavailableSeatIds,
+      // plan уже с раскладкой показа — передаём её целиком, чтобы зоны мест не сбросились.
+      layout: layoutOf(p.seating.plan),
     },
   }),
 })

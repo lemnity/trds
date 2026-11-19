@@ -1,4 +1,12 @@
-import { getSeatingPlan, seatsOf, type PerformanceSeating } from '@/modules/seating'
+import {
+  applySeatLayout,
+  getSeatingPlan,
+  getZonePlan,
+  withZoneColors,
+  type ZonePlan,
+  seatsOf,
+  type PerformanceSeating,
+} from '@/modules/seating'
 
 import type {
   Availability,
@@ -16,6 +24,11 @@ import type {
 // Часовой пояс театра (Екатеринбург). Открытый вопрос memory.md §5 — подтвердить у театра.
 export const THEATRE_TIME_ZONE = 'Asia/Yekaterinburg'
 
+const zonePlanOf = (p: Performance): ZonePlan | null => {
+  const plan = p.zonePlanId ? getZonePlan(p.zonePlanId) : null
+  return plan && withZoneColors(plan, p.zoneColors)
+}
+
 const isPublished = (show: Show | undefined): show is Show => show?.status === 'published'
 
 const resolveSeating = (p: Performance): PerformanceSeating | null => {
@@ -23,7 +36,7 @@ const resolveSeating = (p: Performance): PerformanceSeating | null => {
   const plan = getSeatingPlan(p.seating.planId)
   if (!plan) return null
   return {
-    plan,
+    plan: applySeatLayout(plan, p.seating.layout),
     pricesKopecks: p.seating.pricesKopecks,
     pricesPlaceholder: p.seating.pricesPlaceholder === true,
     unavailableSeatIds: p.seating.unavailableSeatIds,
@@ -104,6 +117,8 @@ export type SalePerformance = PerformanceView & {
   ticketTypes: TicketType[]
   venue: Venue
   seating: PerformanceSeating | null
+  /** Зонная схема зала: картинка зон над категориями билетов. */
+  zonePlan: ZonePlan | null
 }
 
 /** Спектакль и его будущие показы с категориями билетов (пусто — продажи не открыты). */
@@ -118,6 +133,7 @@ export const getShowPage = (data: ShowsData, slug: string, now: Date) => {
         ...view,
         ticketTypes: source?.ticketTypes ?? [],
         seating: source ? resolveSeating(source) : null,
+        zonePlan: source ? zonePlanOf(source) : null,
       }
     })
   return { show, performances }
@@ -129,7 +145,12 @@ export const findPerformance = (data: ShowsData, id: string, now: Date): SalePer
   if (!p || !isUpcoming(p, now)) return null
   const view = toView(data, p, now)
   if (!view?.salesOpen) return null
-  return { ...view, ticketTypes: p.ticketTypes, seating: resolveSeating(p) }
+  return {
+    ...view,
+    ticketTypes: p.ticketTypes,
+    seating: resolveSeating(p),
+    zonePlan: zonePlanOf(p),
+  }
 }
 
 const partsFormatter = new Intl.DateTimeFormat('ru-RU', {

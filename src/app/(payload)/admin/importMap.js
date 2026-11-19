@@ -1,3 +1,5 @@
+import { SeatPricingField as SeatPricingField_6c1dd99f130615d13f3dabbf75fedfe9 } from '../../../payload/components/seating/SeatPricingField'
+import { VenueSeatingTemplates as VenueSeatingTemplates_a94205021fbed17a449d3e23eb59f555 } from '../../../payload/components/seating/VenueSeatingTemplates'
 import { AdminIcon as AdminIcon_547aa444501e522c092c005941ad7303 } from '../../../payload/components/AdminBrand'
 import { AdminLogo as AdminLogo_547aa444501e522c092c005941ad7303 } from '../../../payload/components/AdminBrand'
 import { AdminNavLinks as AdminNavLinks_6989c2b28aaa1ffaed0e1a411d06ffaa } from '../../../payload/components/AdminNavLinks'
@@ -14,6 +16,8 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "/payload/components/seating/SeatPricingField#SeatPricingField": SeatPricingField_6c1dd99f130615d13f3dabbf75fedfe9,
+  "/payload/components/seating/VenueSeatingTemplates#VenueSeatingTemplates": VenueSeatingTemplates_a94205021fbed17a449d3e23eb59f555,
   "/payload/components/AdminBrand#AdminIcon": AdminIcon_547aa444501e522c092c005941ad7303,
   "/payload/components/AdminBrand#AdminLogo": AdminLogo_547aa444501e522c092c005941ad7303,
   "/payload/components/AdminNavLinks#AdminNavLinks": AdminNavLinks_6989c2b28aaa1ffaed0e1a411d06ffaa,

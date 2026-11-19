@@ -8,6 +8,16 @@ import type {
   Venue as CmsVenue,
 } from '@/payload-types'
 
+import {
+  getZonePlan,
+  layoutOfPricing,
+  parseSeatPricing,
+  pricesOf,
+  zoneColorsOf,
+  zoneTicketTypes,
+  type SeatPricing,
+} from '@/modules/seating'
+
 import type { ArchivedShow, Credit, Performance, Show, ShowsData, TicketType, Venue } from './types'
 
 /**
@@ -122,6 +132,12 @@ export const ticketTypeFromCms = (doc: CmsTicketType): TicketType => ({
   ...(doc.promo && { promo: true }),
 })
 
+/** Цены мест показа: битый JSON (не прошёл бы валидацию поля) — как «цены не заданы». */
+const seatPricingOf = (value: unknown, planId?: string | null): SeatPricing | null => {
+  const parsed = parseSeatPricing(value, planId)
+  return parsed.ok ? parsed.pricing : null
+}
+
 export const performanceFromCms = (
   doc: CmsPerformance,
   ticketTypes: CmsTicketType[],
@@ -129,23 +145,36 @@ export const performanceFromCms = (
   const show = obj<CmsShow>(doc.show)
   const venue = obj<CmsVenue>(doc.venue)
   if (!doc.code || !show?.slug || !venue) return null
-  const seating = doc.seating?.planId
-    ? {
-        planId: doc.seating.planId,
-        pricesKopecks: Object.fromEntries(
-          (doc.seating.prices ?? []).map((p) => [p.categoryId, p.priceKopecks]),
-        ),
-        ...(doc.seating.pricesPlaceholder && { pricesPlaceholder: true }),
-        unavailableSeatIds: doc.seating.unavailableSeatIds ?? [],
-      }
-    : undefined
+  const pricing = seatPricingOf(doc.seating?.pricing, doc.seating?.planId)
+  const layout = layoutOfPricing(pricing)
+  const zonePlan = doc.seating?.planId ? getZonePlan(doc.seating.planId) : null
+  const zoneTypes = zonePlan
+    ? zoneTicketTypes(zonePlan, pricing, doc.seating?.pricesPlaceholder === true)
+    : []
+  const zoneIds = new Set(zoneTypes.map((t) => t.id))
+  const seating =
+    doc.seating?.planId && !zonePlan
+      ? {
+          planId: doc.seating.planId,
+          pricesKopecks: pricesOf(pricing),
+          ...(doc.seating.pricesPlaceholder && { pricesPlaceholder: true }),
+          unavailableSeatIds: doc.seating.unavailableSeatIds ?? [],
+          ...(layout && { layout }),
+        }
+      : undefined
   return {
     id: doc.code,
     showSlug: show.slug,
     venueId: venue.code,
     startsAt: toTheatreIso(doc.startsAt),
-    ticketTypes: ticketTypes.map(ticketTypeFromCms),
+    ticketTypes: [
+      ...ticketTypes.map(ticketTypeFromCms).filter((t) => !zoneIds.has(t.id)),
+      ...zoneTypes,
+    ],
     ...(seating && { seating }),
+    ...(zonePlan && { zonePlanId: zonePlan.id }),
+    ...(zonePlan &&
+      Object.keys(zoneColorsOf(pricing)).length > 0 && { zoneColors: zoneColorsOf(pricing) }),
     ...(doc.salesStartAt && { salesStartsAt: toTheatreIso(doc.salesStartAt) }),
     ...(doc.salesEndAt && { salesEndsAt: toTheatreIso(doc.salesEndAt) }),
   }
