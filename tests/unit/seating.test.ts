@@ -40,16 +40,6 @@ describe('Дом актёра seating plan', () => {
   })
 })
 
-describe('Дом Культуры seating plan', () => {
-  it('uses the same 136-seat layout as provided by the theatre', () => {
-    const plan = getSeatingPlan('dom-kultury')
-    expect(plan?.venueId).toBe('dk')
-    expect(seatsOf(plan!).map((s) => [s.id, s.categoryId])).toEqual(
-      seatsOf(domAkteraPlan).map((s) => [s.id, s.categoryId]),
-    )
-  })
-})
-
 describe('quoteSeats', () => {
   const unavailable = new Set(['r1-s5'])
 

@@ -1,5 +1,6 @@
 import { belinskogoPlan } from './belinskogo'
-import { domAkteraPlan, domKulturyPlan } from './dom-aktera'
+import { domAkteraPlan } from './dom-aktera'
+import { domKulturyPlan } from './dom-kultury'
 import type { SeatingPlan } from './types'
 import { khlebozavodPlan, type ZonePlan } from './zone-plans'
 

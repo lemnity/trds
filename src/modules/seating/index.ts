@@ -1,4 +1,6 @@
 export type {
+  FloorPlan,
+  FloorTable,
   PerformanceSeating,
   Seat,
   SeatBlock,
@@ -7,7 +9,8 @@ export type {
   SeatingPlan,
 } from './types'
 export { belinskogoPlan } from './belinskogo'
-export { domAkteraPlan, domKulturyPlan } from './dom-aktera'
+export { domAkteraPlan } from './dom-aktera'
+export { domKulturyPlan } from './dom-kultury'
 export {
   MAX_SEAT_ZONES,
   SEAT_ZONE_COLORS,
@@ -15,6 +18,7 @@ export {
   applySeatLayout,
   blockSlots,
   seatCategoryColor,
+  seatPlace,
   layoutOf,
   type SeatLayout,
 } from './layout'

@@ -661,3 +661,78 @@ button.rowNum:hover:not(:disabled) {
 .block[data-section='left'] + .block[data-section='right'] {
   margin-left: var(--sp-4);
 }
+
+/* --- Планировка со столами (бар «Дом Культуры») --- */
+.floor {
+  user-select: none;
+}
+
+.floorRoom {
+  fill: var(--surface);
+  stroke: var(--theme-elevation-250, var(--line));
+  stroke-width: 1.2;
+}
+
+.floorBar,
+.floorStage {
+  fill: var(--surface);
+  stroke: var(--theme-elevation-250, var(--line));
+}
+
+.floorBarIcon rect {
+  fill: var(--muted);
+}
+
+.floorBarIcon path {
+  stroke: var(--surface);
+}
+
+.floorColumn {
+  fill: var(--theme-elevation-100);
+}
+
+.floorStageLabel {
+  fill: var(--muted);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+}
+
+.floorTable {
+  fill: var(--surface);
+  stroke: var(--theme-elevation-400, var(--muted));
+}
+
+.floorTableLabel {
+  fill: var(--muted);
+  font-size: 9px;
+  pointer-events: none;
+}
+
+.floorSeat {
+  cursor: pointer;
+  outline: none;
+}
+
+.floorSeat circle {
+  fill: var(--zone);
+  transition: r 80ms ease;
+}
+
+.floorSeat[data-unpriced='true'] circle {
+  fill: color-mix(in srgb, var(--zone) 35%, var(--surface));
+}
+
+.floorSeat[data-closed='true'] circle {
+  fill: var(--theme-elevation-250, #c4c4c4);
+}
+
+.floorSeat[aria-pressed='true'] circle {
+  stroke: var(--theme-text);
+  stroke-width: 2.5;
+}
+
+.floorSeat:focus-visible circle {
+  stroke: var(--theme-text);
+  stroke-width: 2;
+  stroke-dasharray: 3 2;
+}

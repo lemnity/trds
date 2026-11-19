@@ -13,6 +13,9 @@ export type Seat = {
   categoryId: string
   /** Позиция в блоке (с 1), если в блоке есть пропуски — «места нет» на схеме. */
   col?: number
+  /** Планировка со столами (`SeatingPlan.floor`): центр места в координатах плана. */
+  x?: number
+  y?: number
 }
 
 export type SeatBlock = {
@@ -22,7 +25,39 @@ export type SeatBlock = {
   width?: number
 }
 
-export type SeatRow = { number: number; blocks: SeatBlock[] }
+export type SeatRow = {
+  number: number
+  blocks: SeatBlock[]
+  /** Подпись вместо «Ряд N»: «Стол 8», «Барная стойка». */
+  label?: string
+}
+
+/** Стол на планировке; `row` — «ряд» схемы с местами этого стола. */
+export type FloorTable = {
+  row: number
+  label: string
+  shape: 'rect' | 'round'
+  x: number
+  y: number
+  w: number
+  h: number
+  rotate?: number
+}
+
+/**
+ * Свободная планировка (бар, лофт): помещение, столы, стойки, колонны и сцена в координатах
+ * viewBox `0 0 width height`. Места — `Seat.x/y`. Рисуется вместо рядов.
+ */
+export type FloorPlan = {
+  width: number
+  height: number
+  /** Контур помещения — SVG path. */
+  outline: string
+  tables: FloorTable[]
+  bars: { path: string; iconX: number; iconY: number }[]
+  columns: { x: number; y: number; r: number }[]
+  stage: { x: number; y: number; w: number; h: number }
+}
 
 export type SeatingPlan = {
   id: string
@@ -31,6 +66,10 @@ export type SeatingPlan = {
   title: string
   categories: SeatCategory[]
   rows: SeatRow[]
+  /** Планировка со столами вместо рядов. */
+  floor?: FloorPlan
+  /** Места, закрытые с продажи по умолчанию при выборе схемы для показа (включаются в админке). */
+  defaultClosedSeatIds?: string[]
 }
 
 /** Продажа мест конкретного показа. Цена задаётся по категории; без цены категория не продаётся. */

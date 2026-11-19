@@ -38,11 +38,20 @@ export const performanceLookupFrom = (data: ShowsData): PerformanceLookup => {
   }
 }
 
-/** «Ряд 3, место 12» из id места схемы зала (`r<ряд>-s<место>`); иной формат — как есть. */
+const BAR_LABELS: Record<string, string> = { b1: 'Барная стойка', b2: 'Стойка у сцены' }
+
+/**
+ * Подпись места из id схемы зала: `r3-s12` — «Ряд 3, место 12», `t8-s3` — «Стол 8, место 3»,
+ * `b1-s2` — «Барная стойка, место 2» (бар «Дом Культуры»); иной формат — как есть.
+ */
 export const seatLabel = (seatId: string | null) => {
   if (!seatId) return null
-  const m = /^r(\d+)-s(\d+)$/.exec(seatId)
-  return m ? `Ряд ${m[1]}, место ${m[2]}` : seatId
+  const m = /^([rtb])(\d+)-s(\d+)$/.exec(seatId)
+  if (!m) return seatId
+  const [, kind, group, seat] = m
+  if (kind === 'r') return `Ряд ${group}, место ${seat}`
+  if (kind === 't') return `Стол ${group}, место ${seat}`
+  return `${BAR_LABELS[`b${group}`] ?? `Стойка ${group}`}, место ${seat}`
 }
 
 /** Окончание показа: начало + длительность (или значение по умолчанию). */

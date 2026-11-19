@@ -68,9 +68,3 @@ const tShapedHall = (id: string, venueId: string, title: string): SeatingPlan =>
 })
 
 export const domAkteraPlan = tShapedHall('dom-aktera', 'dom-aktera', 'Зал Дома актёра')
-
-/**
- * Бар «Дом Культуры»: заказчик прислал ту же схему, что и для Дома актёра (15.10.2026).
- * Совпадение залов подтвердить у театра (memory.md, открытые вопросы).
- */
-export const domKulturyPlan = tShapedHall('dom-kultury', 'dk', 'Зал бара «Дом Культуры»')

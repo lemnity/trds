@@ -2,11 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
+import { FloorSvg, hasFloor } from '@/components/show/FloorSvg'
 import { formatRub } from '@/lib/money'
 import {
   MAX_SEAT_ZONES,
   blockSlots,
   seatCategoryColor,
+  seatPlace,
+  type FloorTable,
+  type Seat,
   SEAT_ZONE_IDS,
   pricingSummary,
   seatsOf,
@@ -119,6 +123,18 @@ export function SeatPricingEditor({
     [plan, pricing, closedSeatIds],
   )
   const freeZoneId = SEAT_ZONE_IDS.find((id) => !zoneById.has(id))
+  const floorPlan = hasFloor(plan) ? plan : null
+  const seatTitle = (
+    seat: Seat,
+    zone: { title: string; priceKopecks: number | null } | undefined,
+    isClosed: boolean,
+  ) =>
+    [
+      seatPlace(plan, seat),
+      zone?.title ?? seat.categoryId,
+      zone?.priceKopecks != null ? formatRub(zone.priceKopecks) : 'без цены',
+      ...(isClosed ? ['закрыто'] : []),
+    ].join(' · ')
   const colorOf = (zoneId: string) => zoneById.get(zoneId)?.color ?? seatCategoryColor(plan, zoneId)
   /** Секции, которые есть в этом зале (у Белинского нет центра). */
   const usedSections = (['left', 'center', 'right'] as const).filter((section) =>
@@ -283,91 +299,145 @@ export function SeatPricingEditor({
       <div className={styles.layout}>
         {/* --- Схема --- */}
         <div className={styles.hall}>
-          <div className={styles.stage}>Сцена</div>
-          <div
-            className={styles.grid}
-            onPointerMove={onPointerMove}
-            role="group"
-            aria-label={`${plan.title}: выделите места, чтобы назначить цену`}
-          >
-            {plan.rows.map((row) => {
-              const sections = new Map(row.blocks.map((b) => [b.section, b]))
-              return (
-                <div
-                  key={row.number}
-                  className={styles.row}
-                  style={{ gridTemplateColumns: rowColumns }}
-                >
-                  <button
-                    type="button"
-                    className={styles.rowNum}
-                    onClick={() => toggleGroup(rowSeatIds(row.number))}
-                    disabled={readOnly}
-                    title={`Выделить ряд ${row.number}`}
-                  >
-                    {row.number}
-                  </button>
-                  {usedSections.map((section) => (
-                    <span
-                      key={section}
-                      className={`${styles.block} ${usedSections.length === 3 ? styles[section] : ''}`}
-                      data-section={section}
+          {floorPlan ? (
+            <div className={styles.floor} onPointerMove={onPointerMove}>
+              <FloorSvg
+                plan={floorPlan}
+                lockTouch
+                ariaLabel={`${plan.title}: выделите места, чтобы назначить цену`}
+                classes={{
+                  room: styles.floorRoom,
+                  bar: styles.floorBar,
+                  barIcon: styles.floorBarIcon,
+                  column: styles.floorColumn,
+                  stage: styles.floorStage,
+                  stageLabel: styles.floorStageLabel,
+                  table: styles.floorTable,
+                  tableLabel: styles.floorTableLabel,
+                }}
+                {...(!readOnly && {
+                  onTableClick: (t: FloorTable) => toggleGroup(rowSeatIds(t.row)),
+                })}
+                tableTitle={(t) => `Стол ${t.row}: выделить все места`}
+                renderSeat={(seat) => {
+                  const zoneId = pricing.seats[seat.id] ?? seat.categoryId
+                  const zone = zoneById.get(zoneId)
+                  const isClosed = closed.has(seat.id)
+                  const isSelected = selected.has(seat.id)
+                  return (
+                    <g
+                      key={seat.id}
+                      data-seat={seat.id}
+                      className={styles.floorSeat}
+                      data-closed={isClosed}
+                      data-unpriced={zone?.priceKopecks == null}
+                      aria-pressed={isSelected}
+                      role="button"
+                      tabIndex={readOnly ? -1 : 0}
+                      style={{ '--zone': colorOf(zoneId) } as React.CSSProperties}
+                      onPointerDown={(e) => onPointerDown(e, seat.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          apply([seat.id], 'toggle')
+                        }
+                      }}
                     >
-                      {(sections.get(section) ? blockSlots(sections.get(section)!) : []).map(
-                        (seat, i) => {
-                          if (!seat)
-                            return (
-                              <span key={`gap-${i}`} className={styles.gap} title="Места нет" />
-                            )
-                          const zoneId = pricing.seats[seat.id] ?? seat.categoryId
-                          const zone = zoneById.get(zoneId)
-                          const isClosed = closed.has(seat.id)
-                          const isSelected = selected.has(seat.id)
-                          const price =
-                            zone?.priceKopecks != null ? formatRub(zone.priceKopecks) : 'без цены'
-                          return (
-                            <button
-                              key={seat.id}
-                              type="button"
-                              data-seat={seat.id}
-                              className={styles.seat}
-                              data-closed={isClosed}
-                              data-unpriced={zone?.priceKopecks == null}
-                              aria-pressed={isSelected}
-                              disabled={readOnly}
-                              style={
-                                {
-                                  '--zone': colorOf(zoneId),
-                                } as React.CSSProperties
-                              }
-                              title={`Ряд ${seat.row}, место ${seat.number} · ${zone?.title ?? zoneId} · ${price}${isClosed ? ' · закрыто' : ''}`}
-                              onPointerDown={(e) => onPointerDown(e, seat.id)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  apply([seat.id], 'toggle')
-                                }
-                              }}
-                            >
-                              {seat.number}
-                            </button>
-                          )
-                        },
-                      )}
-                    </span>
-                  ))}
-                  <span className={styles.rowNum} aria-hidden="true">
-                    {row.number}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
+                      <title>{seatTitle(seat, zone, isClosed)}</title>
+                      <circle cx={seat.x} cy={seat.y} r={isClosed ? 4.5 : 7} />
+                    </g>
+                  )
+                }}
+              />
+            </div>
+          ) : (
+            <>
+              <div className={styles.stage}>Сцена</div>
+              <div
+                className={styles.grid}
+                onPointerMove={onPointerMove}
+                role="group"
+                aria-label={`${plan.title}: выделите места, чтобы назначить цену`}
+              >
+                {plan.rows.map((row) => {
+                  const sections = new Map(row.blocks.map((b) => [b.section, b]))
+                  return (
+                    <div
+                      key={row.number}
+                      className={styles.row}
+                      style={{ gridTemplateColumns: rowColumns }}
+                    >
+                      <button
+                        type="button"
+                        className={styles.rowNum}
+                        onClick={() => toggleGroup(rowSeatIds(row.number))}
+                        disabled={readOnly}
+                        title={`Выделить: ${row.label ?? `ряд ${row.number}`}`}
+                      >
+                        {row.number}
+                      </button>
+                      {usedSections.map((section) => (
+                        <span
+                          key={section}
+                          className={`${styles.block} ${usedSections.length === 3 ? styles[section] : ''}`}
+                          data-section={section}
+                        >
+                          {(sections.get(section) ? blockSlots(sections.get(section)!) : []).map(
+                            (seat, i) => {
+                              if (!seat)
+                                return (
+                                  <span key={`gap-${i}`} className={styles.gap} title="Места нет" />
+                                )
+                              const zoneId = pricing.seats[seat.id] ?? seat.categoryId
+                              const zone = zoneById.get(zoneId)
+                              const isClosed = closed.has(seat.id)
+                              const isSelected = selected.has(seat.id)
+                              return (
+                                <button
+                                  key={seat.id}
+                                  type="button"
+                                  data-seat={seat.id}
+                                  className={styles.seat}
+                                  data-closed={isClosed}
+                                  data-unpriced={zone?.priceKopecks == null}
+                                  aria-pressed={isSelected}
+                                  disabled={readOnly}
+                                  style={
+                                    {
+                                      '--zone': colorOf(zoneId),
+                                    } as React.CSSProperties
+                                  }
+                                  title={seatTitle(seat, zone, isClosed)}
+                                  onPointerDown={(e) => onPointerDown(e, seat.id)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault()
+                                      apply([seat.id], 'toggle')
+                                    }
+                                  }}
+                                >
+                                  {seat.number}
+                                </button>
+                              )
+                            },
+                          )}
+                        </span>
+                      ))}
+                      <span className={styles.rowNum} aria-hidden="true">
+                        {row.number}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
 
           {!readOnly && (
             <div className={styles.hint}>
-              Клик или протягивание — выделить места, номер ряда — весь ряд, «Выделить» у зоны — все
-              её места.{' '}
+              {floorPlan
+                ? 'Клик или протягивание — выделить места, клик по столу — все его места, «Выделить» у зоны — все её места.'
+                : 'Клик или протягивание — выделить места, номер ряда — весь ряд, «Выделить» у зоны — все её места.'}{' '}
               <button
                 type="button"
                 className={styles.link}

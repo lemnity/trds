@@ -238,3 +238,91 @@ button.seat:focus-visible .seatNumber {
   border-radius: 50%;
   background: var(--color-hairline);
 }
+
+/* --- Планировка со столами (бар «Дом Культуры») --- */
+.floor {
+  overflow-x: auto;
+}
+
+.floor svg {
+  min-width: 34rem;
+}
+
+.floorRoom {
+  fill: var(--color-surface);
+  stroke: var(--color-hairline);
+  stroke-width: 1.5;
+}
+
+.floorBar,
+.floorStage {
+  fill: var(--color-surface);
+  stroke: var(--color-hairline);
+}
+
+.floorBarIcon rect {
+  fill: #9a9893;
+}
+
+.floorBarIcon path {
+  stroke: #ffffff;
+}
+
+.floorColumn {
+  fill: #e4e2dd;
+}
+
+.floorStageLabel {
+  fill: var(--color-muted);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+}
+
+.floorTable {
+  fill: var(--color-surface);
+  stroke: #bdbab3;
+}
+
+.floorTableLabel {
+  fill: var(--color-muted);
+  font-size: 9px;
+  pointer-events: none;
+}
+
+.floorSeat circle {
+  fill: var(--seat-color);
+  transition:
+    r var(--motion-fast, 120ms) ease,
+    fill var(--motion-fast, 120ms) ease;
+}
+
+.floorSeat[role='button'] {
+  cursor: pointer;
+  outline: none;
+}
+
+.floorSeat[role='button']:hover:not([aria-disabled='true']) circle {
+  r: 9;
+}
+
+.floorSeat[data-taken='true'] circle {
+  fill: #cfcdc8;
+}
+
+.floorSeat[aria-pressed='true'] circle {
+  fill: var(--color-ink, #15171c);
+  stroke: var(--seat-color);
+  stroke-width: 2.5;
+}
+
+.floorSeat:focus-visible circle {
+  stroke: var(--color-ink, #15171c);
+  stroke-width: 2;
+}
+
+.floorSeatNumber {
+  fill: #ffffff;
+  font-size: 9px;
+  font-weight: 600;
+  pointer-events: none;
+}

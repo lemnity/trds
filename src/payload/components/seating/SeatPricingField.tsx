@@ -77,6 +77,18 @@ export function SeatPricingField(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venueId])
 
+  // Схема выбрана (вручную или из площадки) — места, закрытые на схеме театра по умолчанию
+  // (серые на схеме бара «Дом Культуры»), сразу «закрыты с продажи»; их включают на показ.
+  const lastPlan = useRef(plan.value)
+  useEffect(() => {
+    if (lastPlan.current === plan.value) return
+    lastPlan.current = plan.value
+    const defaults = hall?.kind === 'seats' ? hall.plan.defaultClosedSeatIds : undefined
+    if (closedPath && defaults?.length && (closed.value ?? []).length === 0)
+      closed.setValue([...defaults])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan.value])
+
   const label = <FieldLabel label={field.label ?? 'Цены по схеме зала'} path={path} />
 
   if (!hall || !pricing)

@@ -90,3 +90,9 @@ export const blockSlots = (block: SeatBlock): (Seat | null)[] => {
   const byCol = new Map(block.seats.map((s) => [s.col, s]))
   return Array.from({ length: width }, (_, i) => byCol.get(i + 1) ?? null)
 }
+
+/** «Ряд 3, место 12» или «Стол 8, место 3» — по подписи ряда схемы. */
+export const seatPlace = (plan: SeatingPlan, seat: Pick<Seat, 'row' | 'number'>): string => {
+  const label = plan.rows.find((r) => r.number === seat.row)?.label
+  return `${label ?? `Ряд ${seat.row}`}, место ${seat.number}`
+}

@@ -19,7 +19,7 @@ import {
   type PaymentProvider,
   type ProviderPayment,
 } from '@/modules/payments'
-import { layoutOf, quoteSeats } from '@/modules/seating'
+import { layoutOf, quoteSeats, seatPlace } from '@/modules/seating'
 import type { Performance, SalePerformance } from '@/modules/shows'
 import type { WalletService } from '@/modules/wallet/service'
 
@@ -203,7 +203,9 @@ export function orderLines(performance: SalePerformance, selection: Selection): 
       performanceId: performance.id,
       ticketTypeId: s.categoryId,
       seatId: s.id,
-      title: `${category.get(s.categoryId) ?? s.categoryId} · ${SEAT_SECTIONS[s.section]}, ряд ${s.row}, место ${s.number}`,
+      title: plan.rows.find((r) => r.number === s.row)?.label
+        ? `${category.get(s.categoryId) ?? s.categoryId} · ${seatPlace(plan, s)}`
+        : `${category.get(s.categoryId) ?? s.categoryId} · ${SEAT_SECTIONS[s.section]}, ряд ${s.row}, место ${s.number}`,
       unitPriceKopecks: s.priceKopecks,
       quantity: 1,
       snapshot,

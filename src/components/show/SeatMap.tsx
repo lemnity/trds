@@ -7,11 +7,13 @@ import {
   SEAT_ZONE_COLORS,
   blockSlots,
   seatCategoryColor,
+  seatPlace,
   type PerformanceSeating,
   type Seat,
   type SeatRow,
 } from '@/modules/seating'
 
+import { FloorSvg, hasFloor } from './FloorSvg'
 import styles from './SeatMap.module.css'
 
 // Цвета категорий по схеме театра; подобраны с контрастом ≥ 3:1 к белому (WCAG 1.4.11).
@@ -85,7 +87,7 @@ export function SeatMap({ seating, selectedIds, interactive, maxSeats, onToggle 
     const taken = unavailable.has(seat.id)
     const isSelected = selected.has(seat.id)
     const label = [
-      `Ряд ${seat.row}, место ${seat.number}`,
+      seatPlace(plan, seat),
       titleOf.get(seat.categoryId),
       price !== undefined ? formatRub(price) : 'цена уточняется',
       taken ? 'занято' : isSelected ? 'выбрано' : 'свободно',
@@ -133,7 +135,12 @@ export function SeatMap({ seating, selectedIds, interactive, maxSeats, onToggle 
     const rowIndex = plan.rows.indexOf(row)
     const blocks = row.blocks
     return (
-      <div key={row.number} className={styles.row} role="group" aria-label={`Ряд ${row.number}`}>
+      <div
+        key={row.number}
+        className={styles.row}
+        role="group"
+        aria-label={row.label ?? `Ряд ${row.number}`}
+      >
         <span className={styles.rowNum} aria-hidden="true">
           {row.number}
         </span>
@@ -186,19 +193,88 @@ export function SeatMap({ seating, selectedIds, interactive, maxSeats, onToggle 
         ← Схему можно прокрутить в сторону →
       </p>
       {/* Схема шире телефона — прокручивается внутри себя, страница не уезжает. */}
-      <div className={styles.scroller}>
-        <div className={styles.hall} role="group" aria-label={plan.title}>
-          <p className={styles.stage}>Сцена</p>
-          <div className={styles.upper}>{upper.map(renderRow)}</div>
-          {/* Узкая нижняя часть есть только у Т-образных залов (Дом актёра); у Белинского нет. */}
-          {lower.length > 0 && (
-            <div className={styles.lower}>
-              {lower.map(renderRow)}
-              <p className={styles.zone}>Партер</p>
-            </div>
-          )}
+      {hasFloor(plan) ? (
+        <div className={styles.floor}>
+          <FloorSvg
+            plan={plan}
+            ariaLabel={plan.title}
+            classes={{
+              room: styles.floorRoom,
+              bar: styles.floorBar,
+              barIcon: styles.floorBarIcon,
+              column: styles.floorColumn,
+              stage: styles.floorStage,
+              stageLabel: styles.floorStageLabel,
+              table: styles.floorTable,
+              tableLabel: styles.floorTableLabel,
+            }}
+            renderSeat={(seat) => {
+              const color = seatCategoryColor(plan, seat.categoryId)
+              const price = pricesKopecks[seat.categoryId]
+              const taken = unavailable.has(seat.id)
+              const isSelected = selected.has(seat.id)
+              const blocked = !interactive || taken || (!isSelected && selected.size >= maxSeats)
+              const label = [
+                seatPlace(plan, seat),
+                titleOf.get(seat.categoryId),
+                price !== undefined ? formatRub(price) : 'цена уточняется',
+                taken ? 'занято' : isSelected ? 'выбрано' : 'свободно',
+              ].join(', ')
+              return (
+                <g
+                  key={seat.id}
+                  className={styles.floorSeat}
+                  data-taken={taken}
+                  style={{ '--seat-color': color } as React.CSSProperties}
+                  {...(interactive && !taken
+                    ? {
+                        role: 'button',
+                        tabIndex: 0,
+                        'aria-label': label,
+                        'aria-pressed': isSelected,
+                        'aria-disabled': blocked,
+                        onClick: () => !blocked && onToggle(seat.id),
+                        onKeyDown: (e: React.KeyboardEvent) => {
+                          if (e.key !== 'Enter' && e.key !== ' ') return
+                          e.preventDefault()
+                          if (!blocked) onToggle(seat.id)
+                        },
+                      }
+                    : { 'aria-hidden': true })}
+                >
+                  <title>{label}</title>
+                  <circle cx={seat.x} cy={seat.y} r={taken ? 4.5 : 7.5} />
+                  {isSelected && (
+                    <text
+                      x={seat.x}
+                      y={seat.y}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      className={styles.floorSeatNumber}
+                    >
+                      {seat.number}
+                    </text>
+                  )}
+                </g>
+              )
+            }}
+          />
         </div>
-      </div>
+      ) : (
+        <div className={styles.scroller}>
+          <div className={styles.hall} role="group" aria-label={plan.title}>
+            <p className={styles.stage}>Сцена</p>
+            <div className={styles.upper}>{upper.map(renderRow)}</div>
+            {/* Узкая нижняя часть есть только у Т-образных залов (Дом актёра); у Белинского нет. */}
+            {lower.length > 0 && (
+              <div className={styles.lower}>
+                {lower.map(renderRow)}
+                <p className={styles.zone}>Партер</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {interactive && (
         <p className={styles.help}>
