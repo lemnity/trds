@@ -109,6 +109,7 @@ export default buildConfig({
           email: 'Почта',
           emailAddress: 'Почта',
           createNewLabel: 'Создать: {{label}}',
+          creatingNewLabel: 'Создание: {{label}}',
           searchBy: 'Поиск: {{label}}',
         },
       },

@@ -1,6 +1,13 @@
 'use client'
 
-import { Button, useAuth, useConfig, useDocumentDrawer, useDocumentInfo } from '@payloadcms/ui'
+import {
+  Button,
+  useAuth,
+  useConfig,
+  useDocumentDrawer,
+  useDocumentInfo,
+  useFormFields,
+} from '@payloadcms/ui'
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -92,6 +99,32 @@ const SALES_TONE: Record<SalesStatus['kind'], string | undefined> = {
   closed: styles.muted,
 }
 
+/**
+ * «Сохранить черновик и добавить показ» на несохранённом спектакле: жмём штатную кнопку Payload
+ * «Сохранить черновик» (та же логика и переход на страницу спектакля), а метка в sessionStorage
+ * говорит панели открыть окно нового показа, как только у спектакля появится id.
+ */
+const ADD_AFTER_SAVE_KEY = 'trds:add-performance-after-save'
+const ADD_AFTER_SAVE_TTL_MS = 60_000
+
+const markAddAfterSave = () => {
+  try {
+    sessionStorage.setItem(ADD_AFTER_SAVE_KEY, String(Date.now()))
+  } catch {
+    // Хранилище недоступно (приватный режим) — окно просто не откроется само.
+  }
+}
+
+const takeAddAfterSave = (): boolean => {
+  try {
+    const at = sessionStorage.getItem(ADD_AFTER_SAVE_KEY)
+    sessionStorage.removeItem(ADD_AFTER_SAVE_KEY)
+    return at !== null && Date.now() - Number(at) < ADD_AFTER_SAVE_TTL_MS
+  } catch {
+    return false
+  }
+}
+
 /** Вкладка спектакля «Показы и продажи»: список показов с продажами и одна кнопка «Добавить». */
 export function ShowPerformancesPanel() {
   const { id } = useDocumentInfo()
@@ -106,6 +139,28 @@ export function ShowPerformancesPanel() {
   const [PerformanceDrawer, , { openDrawer }] = useDocumentDrawer({
     collectionSlug: PERFORMANCES_SLUG,
   })
+  const title = useFormFields(([fields]) => fields.title?.value as string | undefined)
+  const [saveNote, setSaveNote] = useState<string | null>(null)
+
+  // Спектакль только что сохранён кнопкой «Сохранить черновик и добавить показ».
+  useEffect(() => {
+    if (id !== undefined && id !== null && canCreate && takeAddAfterSave()) openDrawer()
+  }, [id, canCreate, openDrawer])
+
+  const saveDraftAndAdd = () => {
+    if (!title?.trim()) {
+      setSaveNote('Сначала заполните «Название» на вкладке «Основное».')
+      return
+    }
+    const saveDraft = document.getElementById('action-save-draft')
+    if (!saveDraft) {
+      setSaveNote('Нажмите «Сохранить черновик» вверху страницы, затем добавьте показ.')
+      return
+    }
+    setSaveNote(null)
+    markAddAfterSave()
+    saveDraft.click()
+  }
 
   useEffect(() => {
     if (id === undefined || id === null) return
@@ -128,7 +183,18 @@ export function ShowPerformancesPanel() {
   if (id === undefined || id === null)
     return (
       <div className={styles.root}>
-        <p className={styles.note}>Сохраните спектакль, чтобы добавить показы.</p>
+        <p className={styles.note}>
+          Показ — это конкретная дата в конкретном зале. Чтобы добавить показы, спектакль нужно
+          сохранить — черновиком, на сайте он не появится.
+        </p>
+        {canCreate && (
+          <div className={styles.head}>
+            <Button buttonStyle="primary" size="small" margin={false} onClick={saveDraftAndAdd}>
+              Сохранить черновик и добавить показ
+            </Button>
+          </div>
+        )}
+        {saveNote && <p className={styles.error}>{saveNote}</p>}
       </div>
     )
 
