@@ -106,15 +106,17 @@ export const Shows: CollectionConfig = {
           ],
         },
         {
-          label: 'Показы',
+          label: 'Показы и продажи',
           fields: [
+            // Свой список вместо join: join не показывает черновики показов.
             {
-              name: 'performances',
-              type: 'join',
-              collection: 'performances',
-              on: 'show',
-              label: 'Показы',
-              admin: { defaultColumns: ['startsAt', 'venue', '_status'] },
+              name: 'performancesPanel',
+              type: 'ui',
+              admin: {
+                components: {
+                  Field: '/payload/components/shows/ShowPerformancesPanel#ShowPerformancesPanel',
+                },
+              },
             },
           ],
         },

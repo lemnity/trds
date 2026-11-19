@@ -89,9 +89,6 @@ export interface Config {
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {
-    shows: {
-      performances: 'performances';
-    };
     performances: {
       ticketTypes: 'ticket-types';
     };
@@ -234,11 +231,6 @@ export interface Show {
         id?: string | null;
       }[]
     | null;
-  performances?: {
-    docs?: (number | Performance)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
   seo?: {
     title?: string | null;
     description?: string | null;
@@ -927,7 +919,6 @@ export interface ShowsSelect<T extends boolean = true> {
         imageUrl?: T;
         id?: T;
       };
-  performances?: T;
   seo?:
     | T
     | {

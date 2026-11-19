@@ -147,7 +147,7 @@ export function payloadReaderFor(payload: Payload): CmsReader {
   return {
     async showsDocs() {
       const [shows, venues, performances, ticketTypes, archive] = await Promise.all([
-        payload.find({ collection: 'shows', where: PUBLISHED, depth: 1, joins: false, ...common }),
+        payload.find({ collection: 'shows', where: PUBLISHED, depth: 1, ...common }),
         payload.find({
           collection: 'venues',
           where: PUBLISHED,

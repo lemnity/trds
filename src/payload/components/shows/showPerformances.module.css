@@ -1,0 +1,128 @@
+/*
+ * Вкладка спектакля «Показы и продажи». Цвета — токены темы Payload (--theme-*), отступы —
+ * шкала 4/8/12/16/24, как у редактора «Схема зала».
+ */
+.root {
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --radius: var(--style-radius-m, 6px);
+  --line: var(--theme-elevation-150);
+  --surface: var(--theme-elevation-0);
+  --surface-2: var(--theme-elevation-50);
+  --muted: var(--theme-elevation-600);
+
+  display: grid;
+  gap: var(--sp-3);
+  margin: var(--sp-2) 0 var(--sp-5);
+  color: var(--theme-text);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-3);
+}
+
+.title {
+  margin: 0;
+}
+
+.note {
+  margin: 0;
+  color: var(--muted);
+}
+
+.error {
+  margin: 0;
+  color: var(--theme-error-500);
+}
+
+.linkButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.empty {
+  display: grid;
+  gap: var(--sp-1);
+  padding: var(--sp-4);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.empty p {
+  margin: 0;
+}
+
+.table {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  background: var(--surface-2);
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.when {
+  white-space: nowrap;
+}
+
+.open {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.hint {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ok {
+  color: var(--theme-success-750, var(--theme-text));
+  font-weight: 500;
+}
+
+.pending {
+  color: var(--theme-text);
+}
+
+.warn {
+  color: var(--theme-warning-800, #a15c00);
+  font-weight: 500;
+}
+
+.draft,
+.muted {
+  color: var(--muted);
+}
