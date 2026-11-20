@@ -42,6 +42,50 @@
   color: var(--color-muted);
 }
 
+/* Реквизиты ИП — одна ровная строка над нижней линией; на узком экране переносятся по пунктам. */
+.legalRow {
+  border-top: 1px solid var(--color-hairline);
+}
+
+.legal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 2rem;
+  padding-block: 1.25rem;
+  font-size: var(--step--1);
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+
+.legal > div {
+  display: flex;
+  gap: 0.4em;
+}
+
+.legal dt {
+  flex: none;
+  white-space: nowrap;
+  color: var(--color-muted);
+}
+
+/* На телефоне — столбиком, каждый пункт с новой строки. */
+@media (max-width: 47.99rem) {
+  .legal {
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+}
+
+.legal dd {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.legalName {
+  font-weight: 600;
+}
+
 .column {
   display: flex;
   flex-direction: column;
@@ -115,12 +159,18 @@
   position: absolute;
   top: 0;
   left: 0;
+  right: 0;
   display: flex;
   gap: 0 1.75rem;
+  overflow: hidden; /* иначе невидимая мерка раздувает страницу и даёт горизонтальный скролл на телефоне */
   font-size: var(--step--1);
   white-space: nowrap;
   visibility: hidden;
   pointer-events: none;
+}
+
+.measure > li {
+  flex: none;
 }
 
 .more {
@@ -226,62 +276,28 @@
   white-space: nowrap;
 }
 
-.creditName {
+.creditLink {
   display: inline-flex;
   align-items: center;
+  gap: 0.35em;
   min-height: var(--tap-min);
-  font-weight: 700;
-  color: var(--color-ink);
+  color: inherit;
   text-decoration: none;
 }
 
-.creditName:focus-visible {
+.creditLink:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+
+.creditLink:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
-.creditWord {
-  display: inline-flex;
-  align-items: center;
-}
-
-/* «oo» — знак бесконечности в строку с текстом. */
-.infinity {
-  width: 2em;
-  height: 1em;
-  margin-inline: 0.08em;
-  overflow: visible;
-}
-
-.infinity path {
-  fill: none;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-}
-
-.infinityBase {
-  stroke: currentColor;
-  opacity: 0.2;
-}
-
-/* По знаку бесконечно бежит штрих. */
-.infinityTrace {
-  stroke: currentColor;
-  stroke-dasharray: 34 66;
-  animation: infinity-run 2.4s linear infinite;
-}
-
-@keyframes infinity-run {
-  to {
-    stroke-dashoffset: -100;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .infinityTrace {
-    animation: none;
-    stroke-dasharray: none;
-  }
+.creditName {
+  font-weight: 700;
+  color: var(--color-ink);
 }
 
 @media (min-width: 48rem) {
