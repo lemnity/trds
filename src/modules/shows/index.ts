@@ -13,6 +13,7 @@ export type {
   VenueKind,
   ArchivedShow,
 } from './types'
+export { CAST_ROLE, isCastCredit } from './types'
 export {
   THEATRE_TIME_ZONE,
   availabilityLevel,

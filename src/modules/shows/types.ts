@@ -37,6 +37,9 @@ export type Credit = {
   entries: CreditEntry[]
 }
 
+/** Заголовок актёрского состава на сайте; в CMS — отдельный блок `cast`. */
+export const CAST_ROLE = 'Действующие лица и исполнители'
+
 export type EventType = 'spectacle' | 'immersive' | 'performance' | 'concert' | 'promenade'
 
 export type Show = {
@@ -144,3 +147,7 @@ export type PerformanceView = {
   /** null — продажа на сайте не открыта, остаток неизвестен. */
   availability: Availability | null
 }
+
+/** Актёрская строка старого «Состава»: «В ролях» / «Действующие лица» или с персонажами. */
+export const isCastCredit = (c: Credit) =>
+  /в ролях|действующие лица|исполнители/i.test(c.role) || c.entries.some((e) => e.character)

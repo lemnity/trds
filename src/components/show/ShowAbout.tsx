@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Fragment } from 'react'
 
 import { personSlug } from '@/modules/people'
-import { formatAge, formatDuration, type Credit, type Show } from '@/modules/shows'
+import { formatAge, formatDuration, isCastCredit, type Credit, type Show } from '@/modules/shows'
 
 import styles from './ShowAbout.module.css'
 import { personPhotos } from '../people/personPhotos'
@@ -11,9 +11,8 @@ import { PersonAvatar } from '../ui/PersonAvatar'
 import { cardClass } from '../ui/card'
 
 const isDirector = (c: Credit) => /режисс/i.test(c.role)
-/** Актёрский состав: роли с персонажами или явные «В ролях» / «Действующие лица». */
-const isCast = (c: Credit) =>
-  /в ролях|действующие лица/i.test(c.role) || c.entries.some((e) => e.character)
+/** Актёрский состав: блок «Действующие лица» из CMS или «В ролях» в демо-наборе. */
+const isCast = isCastCredit
 
 /** Имена через запятую, каждое — ссылка на страницу человека. */
 export function PeopleLinks({ names }: { names: string[] }) {

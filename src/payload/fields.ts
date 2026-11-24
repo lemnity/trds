@@ -6,6 +6,7 @@ import {
 } from 'payload'
 
 import { personSlug } from '@/modules/people'
+import { CAST_ROLE } from '@/modules/shows/types'
 
 /**
  * Общие поля коллекций контента. Тексты — обычные строки (абзацы через пустую строку), без
@@ -123,31 +124,80 @@ export const seoField: Field = {
   ],
 }
 
-/** Состав: строка («Режиссёр», «В ролях») → персонажи → люди (несколько — играют в очередь). */
+const peopleField = (description: string): Field => ({
+  name: 'people',
+  type: 'relationship',
+  relationTo: 'people',
+  hasMany: true,
+  required: true,
+  label: 'Люди',
+  admin: { description },
+})
+
+/**
+ * Создатели: должность («Режиссёр», «Художник по свету») → люди.
+ * Поле `credits` и вложенный `entries` — прежняя схема «Состава»; персонажи отсюда
+ * перенесены в `cast` (миграция 20261124_cast_split), поле `character` видно только у старых записей.
+ */
 export const creditsField: Field = {
   name: 'credits',
   type: 'array',
-  label: 'Состав и создатели',
-  labels: { singular: 'Строка состава', plural: 'Состав' },
+  label: 'Создатели',
+  labels: { singular: 'Должность', plural: 'Создатели' },
+  admin: {
+    description: 'Режиссёр, автор, художники, хореограф — на сайте идут первым блоком.',
+  },
   fields: [
-    { name: 'role', type: 'text', label: 'Строка', required: true },
+    {
+      name: 'role',
+      type: 'text',
+      label: 'Должность',
+      required: true,
+      admin: {
+        placeholder: 'Например: Режиссёр',
+        description: 'Так подпись будет выглядеть на странице спектакля.',
+      },
+    },
     {
       name: 'entries',
       type: 'array',
       label: 'Кто',
+      labels: { singular: 'Человек', plural: 'Люди' },
+      minRows: 1,
       fields: [
-        { name: 'character', type: 'text', label: 'Персонаж (для актёров)' },
         {
-          name: 'people',
-          type: 'relationship',
-          relationTo: 'people',
-          hasMany: true,
-          required: true,
-          label: 'Люди',
-          admin: { description: 'Несколько человек — состав в очередь.' },
+          name: 'character',
+          type: 'text',
+          label: 'Персонаж',
+          admin: {
+            condition: (_, sibling) => Boolean(sibling?.character),
+            description: 'Устарело: персонажей заводите в «Действующие лица и исполнители».',
+          },
         },
+        peopleField('Можно выбрать нескольких.'),
       ],
     },
+  ],
+}
+
+/** Действующие лица: персонаж → исполнители (несколько — играют в очередь). */
+export const castField: Field = {
+  name: 'cast',
+  type: 'array',
+  label: CAST_ROLE,
+  labels: { singular: 'Роль', plural: 'Роли' },
+  admin: { description: 'На сайте идут после создателей, карточками с фото.' },
+  fields: [
+    {
+      name: 'character',
+      type: 'text',
+      label: 'Персонаж',
+      admin: {
+        placeholder: 'Например: Габи',
+        description: 'Пусто — актёр без указания роли.',
+      },
+    },
+    peopleField('Несколько человек — играют в очередь.'),
   ],
 }
 

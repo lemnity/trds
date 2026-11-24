@@ -18,7 +18,17 @@ import {
   type SeatPricing,
 } from '@/modules/seating'
 
-import type { ArchivedShow, Credit, Performance, Show, ShowsData, TicketType, Venue } from './types'
+import {
+  CAST_ROLE,
+  type ArchivedShow,
+  type Credit,
+  type CreditEntry,
+  type Performance,
+  type Show,
+  type ShowsData,
+  type TicketType,
+  type Venue,
+} from './types'
 
 /**
  * Документы Payload → read model афиши (те же типы, что у демо-набора). Чистые функции:
@@ -51,21 +61,26 @@ const focusOf = (media: Ref<CmsMedia>) => {
 }
 
 type CmsCredits = CmsShow['credits']
+type CmsCast = CmsShow['cast']
+type CmsEntry = { character?: string | null; people?: (number | CmsPerson)[] | null }
 
-export const creditsOf = (credits: CmsCredits): Credit[] =>
-  (credits ?? [])
-    .map((c) => ({
-      role: c.role,
-      entries: (c.entries ?? [])
-        .map((e) => ({
-          ...(e.character ? { character: e.character } : {}),
-          people: (e.people ?? [])
-            .map((p) => obj<CmsPerson>(p)?.name)
-            .filter((n): n is string => !!n),
-        }))
-        .filter((e) => e.people.length > 0),
-    }))
-    .filter((c) => c.entries.length > 0)
+const entryOf = (e: CmsEntry): CreditEntry => ({
+  ...(e.character ? { character: e.character } : {}),
+  people: (e.people ?? []).map((p) => obj<CmsPerson>(p)?.name).filter((n): n is string => !!n),
+})
+
+/** Создатели (`credits`), затем действующие лица (`cast`) одной строкой `CAST_ROLE`. */
+export const creditsOf = (credits: CmsCredits, cast?: CmsCast): Credit[] => {
+  const crew = (credits ?? []).map((c) => ({
+    role: c.role,
+    entries: (c.entries ?? []).map(entryOf).filter((e) => e.people.length > 0),
+  }))
+  const actors = {
+    role: CAST_ROLE,
+    entries: (cast ?? []).map(entryOf).filter((e) => e.people.length > 0),
+  }
+  return [...crew, actors].filter((c) => c.entries.length > 0)
+}
 
 const dateOnly = (iso: string | null | undefined) => (iso ? iso.slice(0, 10) : undefined)
 
@@ -94,7 +109,7 @@ export const showFromCms = (doc: CmsShow): Show | null => {
     durationMinutes: doc.durationMinutes ?? null,
     lead: doc.lead,
     description: paragraphs(doc.description),
-    credits: creditsOf(doc.credits),
+    credits: creditsOf(doc.credits, doc.cast),
     eventType: doc.eventType,
     ...(doc.premiere && { premiere: true }),
     announcedAt: dateOnly(doc.announcedAt) ?? dateOnly(doc.createdAt),
@@ -188,7 +203,7 @@ export const archivedFromCms = (doc: CmsArchive): ArchivedShow | null => {
     title: doc.title,
     genre: doc.genre ?? null,
     posterUrl,
-    credits: creditsOf(doc.credits),
+    credits: creditsOf(doc.credits, doc.cast),
   }
 }
 

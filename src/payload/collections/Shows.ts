@@ -7,6 +7,7 @@ import { guardShowDelete } from '../hooks/inventorySync'
 import { refreshPerformanceTitles } from '../hooks/performanceTitle'
 import {
   RU_DATE_ONLY,
+  castField,
   creditsField,
   galleryField,
   imageFields,
@@ -98,7 +99,7 @@ export const Shows: CollectionConfig = {
         },
         {
           label: 'Описание и состав',
-          fields: [paragraphsField('description', 'Описание'), creditsField],
+          fields: [paragraphsField('description', 'Описание'), creditsField, castField],
         },
         {
           label: 'Медиа',

@@ -112,6 +112,8 @@ export default buildConfig({
           creatingNewLabel: 'Создание: {{label}}',
           searchBy: 'Поиск: {{label}}',
         },
+        // «Добавить Должность» → «Добавить: Должность» (подпись не склоняется).
+        fields: { addLabel: 'Добавить: {{label}}' },
       },
     },
   },

@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { contentAccess } from '../access/roles'
 import {
+  castField,
   creditsField,
   imageFields,
   requireImageOnPublish,
@@ -24,6 +25,7 @@ export const Archive: CollectionConfig = {
     { name: 'genre', type: 'text', label: 'Жанр' },
     ...imageFields('poster', 'Афиша'),
     creditsField,
+    castField,
     sortOrderField,
   ],
 }

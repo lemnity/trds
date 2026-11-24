@@ -6,7 +6,7 @@ import type { Payload } from 'payload'
 import { demoSiteContent, school, type SiteContent } from '@/modules/content'
 import { personSlug } from '@/modules/people'
 import { getSeatingPlan, type SeatPricing } from '@/modules/seating'
-import { demoShowsData, type Credit, type ShowsData } from '@/modules/shows'
+import { demoShowsData, isCastCredit, type Credit, type ShowsData } from '@/modules/shows'
 
 /** Цены демо-показа → JSON «Цены по схеме зала»: зоны — категории схемы, места — по рядам. */
 const seedPricing = (planId: string, prices: Record<string, number>): SeatPricing | null => {
@@ -222,14 +222,17 @@ export async function seedCms(payload: Payload, options: SeedOptions): Promise<S
   }
   log(`people: ${personIds.size}`)
 
+  const ids = (names: string[]) => names.map((n) => personIds.get(personSlug(n))!)
+  // Демо-набор хранит актёров строкой «В ролях»; в CMS это отдельный блок `cast`.
   const credits = (list: Credit[]) =>
-    list.map((c) => ({
-      role: c.role,
-      entries: c.entries.map((e) => ({
-        character: e.character ?? null,
-        people: e.people.map((n) => personIds.get(personSlug(n))!),
-      })),
-    }))
+    list
+      .filter((c) => !isCastCredit(c))
+      .map((c) => ({ role: c.role, entries: c.entries.map((e) => ({ people: ids(e.people) })) }))
+  const cast = (list: Credit[]) =>
+    list
+      .filter(isCastCredit)
+      .flatMap((c) => c.entries)
+      .map((e) => ({ character: e.character ?? null, people: ids(e.people) }))
 
   // --- Спектакли ---
   const showIds = new Map<string, Id>()
@@ -258,6 +261,7 @@ export async function seedCms(payload: Payload, options: SeedOptions): Promise<S
           lead: s.lead,
           description: s.description.join('\n\n'),
           credits: credits(s.credits),
+          cast: cast(s.credits),
           ...(await image('poster', s.posterUrl, `Афиша спектакля «${s.title}»`)),
           ...(await image('cover', s.coverUrl, `Обложка спектакля «${s.title}»`)),
           coverFocus: s.coverFocus ?? null,
@@ -322,6 +326,7 @@ export async function seedCms(payload: Payload, options: SeedOptions): Promise<S
         genre: a.genre,
         ...(await image('poster', a.posterUrl, `Афиша постановки «${a.title}»`)),
         credits: credits(a.credits),
+        cast: cast(a.credits),
         sortOrder: i,
         ...PUBLISHED,
       },

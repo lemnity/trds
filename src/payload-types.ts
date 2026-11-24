@@ -180,19 +180,44 @@ export interface Show {
    * Новый абзац — через пустую строку.
    */
   description?: string | null;
+  /**
+   * Режиссёр, автор, художники, хореограф — на сайте идут первым блоком.
+   */
   credits?:
     | {
+        /**
+         * Так подпись будет выглядеть на странице спектакля.
+         */
         role: string;
         entries?:
           | {
+              /**
+               * Устарело: персонажей заводите в «Действующие лица и исполнители».
+               */
               character?: string | null;
               /**
-               * Несколько человек — состав в очередь.
+               * Можно выбрать нескольких.
                */
               people: (number | Person)[];
               id?: string | null;
             }[]
           | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * На сайте идут после создателей, карточками с фото.
+   */
+  cast?:
+    | {
+        /**
+         * Пусто — актёр без указания роли.
+         */
+        character?: string | null;
+        /**
+         * Несколько человек — играют в очередь.
+         */
+        people: (number | Person)[];
         id?: string | null;
       }[]
     | null;
@@ -378,19 +403,44 @@ export interface Archive {
    * Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…
    */
   posterUrl?: string | null;
+  /**
+   * Режиссёр, автор, художники, хореограф — на сайте идут первым блоком.
+   */
   credits?:
     | {
+        /**
+         * Так подпись будет выглядеть на странице спектакля.
+         */
         role: string;
         entries?:
           | {
+              /**
+               * Устарело: персонажей заводите в «Действующие лица и исполнители».
+               */
               character?: string | null;
               /**
-               * Несколько человек — состав в очередь.
+               * Можно выбрать нескольких.
                */
               people: (number | Person)[];
               id?: string | null;
             }[]
           | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * На сайте идут после создателей, карточками с фото.
+   */
+  cast?:
+    | {
+        /**
+         * Пусто — актёр без указания роли.
+         */
+        character?: string | null;
+        /**
+         * Несколько человек — играют в очередь.
+         */
+        people: (number | Person)[];
         id?: string | null;
       }[]
     | null;
@@ -909,6 +959,13 @@ export interface ShowsSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  cast?:
+    | T
+    | {
+        character?: T;
+        people?: T;
+        id?: T;
+      };
   poster?: T;
   posterUrl?: T;
   cover?: T;
@@ -981,6 +1038,13 @@ export interface ArchiveSelect<T extends boolean = true> {
               people?: T;
               id?: T;
             };
+        id?: T;
+      };
+  cast?:
+    | T
+    | {
+        character?: T;
+        people?: T;
         id?: T;
       };
   sortOrder?: T;
