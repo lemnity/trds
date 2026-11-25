@@ -41,11 +41,8 @@ export default buildConfig({
         Logo: '/payload/components/AdminBrand#AdminLogo',
       },
       providers: ['/payload/components/MfaGate#MfaGate'],
-      afterNavLinks: [
-        '/payload/components/AdminNavLinks#AdminNavLinks',
-        '/payload/components/refunds/RefundsNavLink#RefundsNavLink',
-        '/payload/components/MfaNavLink#MfaNavLink',
-      ],
+      // Меню по задачам театра: группы с разделами Payload и своими экранами (AdminNav.tsx).
+      beforeNavLinks: ['/payload/components/AdminNav#AdminNav'],
       views: {
         // Вход без пароля: почта → код из письма → код из приложения (src/payload/auth/codeLogin.ts).
         login: {

@@ -1,4 +1,240 @@
+// Тема админки «Турдус» поверх Payload.
+// Стандартная тема Payload — 13px и светло-серые подписи (#9a9a9a на белом, контраст ~2.8:1):
+// заказчик не может их прочитать. Здесь: базовый размер 15px, серые тона затемнены до
+// контраста ≥ 4.5:1 (подсказки ≈ 7:1), акцент — синий театра (tokens.css: --color-brand).
+// Стили без @layer: они сильнее слоёв payload-default / payload.
+
 // Логотип театра (src/payload/components/AdminBrand.tsx) — тёмный; в тёмной теме админки светлый.
 html[data-theme='dark'] .turdus-admin-brand {
   filter: invert(1);
+}
+
+:root {
+  --turdus-accent: #2d55d6; // белый текст 6.2:1
+  --turdus-accent-hover: #1f3a8a;
+  --turdus-accent-soft: #e8eefc;
+
+  // Шрифт 15px; --base (шаг сетки Payload) остаётся 20px.
+  --base-body-size: 15;
+}
+
+html {
+  font-size: 15px;
+
+  @media (max-width: 1024px) {
+    font-size: 14px;
+  }
+}
+
+// Светлая тема: серые тона темнее. 0–250 — фоны и рамки, 300–350 — иконки и плейсхолдеры,
+// 400+ — текст (подсказки, мета, заголовки таблиц).
+html:not([data-theme='dark']) {
+  --theme-elevation-50: #f5f5f3;
+  --theme-elevation-100: #ebebe8;
+  --theme-elevation-150: #d8d8d4;
+  --theme-elevation-200: #c4c4bf;
+  --theme-elevation-250: #aeaea9;
+  --theme-elevation-300: #93938e;
+  --theme-elevation-350: #74746f;
+  --theme-elevation-400: #575a62; // подсказки: 7:1
+  --theme-elevation-450: #4f525a;
+  --theme-elevation-500: #474a51;
+  --theme-elevation-550: #3f4248;
+  --theme-elevation-600: #373a40;
+  --theme-elevation-650: #2f3237;
+  --theme-elevation-700: #27292e;
+  --theme-elevation-750: #1f2125;
+  --theme-elevation-800: #15171c;
+  --theme-elevation-850: #0f1014;
+  --theme-elevation-900: #08090b;
+  --theme-text: #15171c;
+  --theme-border-color: var(--theme-elevation-150);
+}
+
+// Тёмная тема: подписи светлее.
+html[data-theme='dark'] {
+  --turdus-accent: #6f8ff0;
+  --turdus-accent-hover: #8fa8f5;
+  --turdus-accent-soft: rgb(111 143 240 / 0.16);
+  --theme-elevation-400: #b9bcc4;
+  --theme-elevation-450: #c3c6cd;
+  --theme-elevation-500: #cdd0d6;
+  --theme-elevation-550: #d6d8dd;
+  --theme-elevation-600: #dfe1e5;
+}
+
+// --- Текст полей ---
+
+.field-label:not(.unstyled) {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  color: var(--theme-text);
+}
+
+.field-description {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--theme-elevation-400);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--theme-elevation-350) !important;
+}
+
+.collapsible__toggle {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+// Мета в шапке документа («Статус», «Последнее изменение»).
+.doc-controls__list-item {
+  font-size: 13px;
+}
+
+// Даты в шапке не обрезаем многоточием.
+.doc-controls__list-item,
+.doc-controls__value {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+// --- Меню слева ---
+// Группы строит AdminNav (src/payload/components/AdminNav.tsx); стандартные группы Payload скрыты.
+
+.nav__wrap > .nav-group {
+  display: none;
+}
+
+.turdus-nav .nav-group {
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--theme-elevation-100);
+}
+
+.turdus-nav .nav-group:last-child {
+  border-bottom: 0;
+}
+
+.turdus-nav .nav__link {
+  padding-block: 3px;
+}
+
+.nav__link {
+  font-size: 15px;
+  color: var(--theme-text);
+}
+
+.nav__link:hover {
+  color: var(--turdus-accent);
+}
+
+// Активный пункт: у Payload это ссылка с индикатором.
+.nav__link:has(.nav__link-indicator) {
+  color: var(--turdus-accent);
+  font-weight: 600;
+}
+
+.nav__link-indicator {
+  background: var(--turdus-accent) !important;
+  width: 3px !important;
+}
+
+.nav-group__toggle {
+  color: var(--theme-elevation-400);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+// --- Кнопки ---
+
+.btn--style-primary {
+  --bg-color: var(--turdus-accent);
+  --color: #ffffff;
+  --hover-bg: var(--turdus-accent-hover);
+  --hover-color: #ffffff;
+  font-weight: 600;
+}
+
+.btn--style-primary.btn--disabled {
+  --bg-color: var(--theme-elevation-150);
+  --color: var(--theme-elevation-500);
+  --hover-bg: var(--bg-color);
+  --hover-color: var(--color);
+}
+
+.btn--style-secondary {
+  --hover-color: var(--turdus-accent);
+  --hover-btn-border: 1px solid var(--turdus-accent);
+  font-weight: 600;
+}
+
+.btn--style-pill {
+  --bg-color: var(--turdus-accent-soft);
+  --color: var(--turdus-accent);
+  --hover-bg: var(--turdus-accent);
+  --hover-color: #ffffff;
+  font-weight: 600;
+}
+
+// --- Вкладки документа («Основное», «Описание и состав», …) ---
+
+.tabs-field__tab-button {
+  opacity: 1;
+  color: var(--theme-elevation-500);
+}
+
+.tabs-field__tab-button:hover {
+  color: var(--theme-text);
+}
+
+.tabs-field__tab-button--active {
+  color: var(--turdus-accent);
+}
+
+.tabs-field__tab-button--active::after {
+  background: var(--turdus-accent) !important;
+  height: 3px !important;
+}
+
+// --- Таблицы списков ---
+
+.table thead {
+  color: var(--theme-elevation-400);
+}
+
+.table thead th {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.table td {
+  font-size: 15px;
+}
+
+.table td a {
+  color: var(--turdus-accent);
+  font-weight: 600;
+}
+
+// --- Карточки главной ---
+
+.card__title {
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.card--has-onclick:hover {
+  border-color: var(--turdus-accent);
+}
+
+// --- Фокус с клавиатуры ---
+
+:focus-visible {
+  outline-color: var(--turdus-accent);
 }

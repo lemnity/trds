@@ -140,6 +140,14 @@ export const seoField: Field = {
   ],
 }
 
+/** Заголовок строки: значение `field`, иначе имена из `people`, иначе «<fallback> 01». */
+const rowLabel = (fallback: string, { field, people }: { field?: string; people?: string }) => ({
+  RowLabel: {
+    path: '/payload/components/FieldRowLabel#FieldRowLabel',
+    clientProps: { field, people, fallback },
+  },
+})
+
 const peopleField = (description: string): Field => ({
   name: 'people',
   type: 'relationship',
@@ -162,6 +170,7 @@ export const creditsField: Field = {
   labels: { singular: 'Должность', plural: 'Создатели' },
   admin: {
     description: 'Режиссёр, автор, художники, хореограф — на сайте идут первым блоком.',
+    components: rowLabel('Должность', { field: 'role' }),
   },
   fields: [
     {
@@ -180,6 +189,7 @@ export const creditsField: Field = {
       label: 'Кто',
       labels: { singular: 'Человек', plural: 'Люди' },
       minRows: 1,
+      admin: { components: rowLabel('Человек', { field: 'character', people: 'people' }) },
       fields: [
         {
           name: 'character',
@@ -202,7 +212,10 @@ export const castField: Field = {
   type: 'array',
   label: CAST_ROLE,
   labels: { singular: 'Роль', plural: 'Роли' },
-  admin: { description: 'На сайте идут после создателей, карточками с фото.' },
+  admin: {
+    description: 'На сайте идут после создателей, карточками с фото.',
+    components: rowLabel('Роль', { field: 'character', people: 'people' }),
+  },
   fields: [
     {
       name: 'character',

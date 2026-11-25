@@ -1,5 +1,6 @@
 import { OpenPerformancesTabAfterSave as OpenPerformancesTabAfterSave_aee6c14f4bff33201cec8be3cc981d67 } from '../../../payload/components/shows/ShowPerformancesPanel'
 import { TabNav as TabNav_297a57cac53ca32fb496c03a56dada51 } from '../../../payload/components/TabNav'
+import { FieldRowLabel as FieldRowLabel_a8d6907fcd02b09b8f7289e26196c316 } from '../../../payload/components/FieldRowLabel'
 import { GalleryField as GalleryField_f6c639cc49e0699d456c73197d0e4669 } from '../../../payload/components/gallery/GalleryField'
 import { ShowPerformancesPanel as ShowPerformancesPanel_aee6c14f4bff33201cec8be3cc981d67 } from '../../../payload/components/shows/ShowPerformancesPanel'
 import { ReadinessPanel as ReadinessPanel_80e17dd25847a148ce1ad6569cb7ded0 } from '../../../payload/components/performances/ReadinessPanel'
@@ -10,9 +11,7 @@ import { PriceRubCell as PriceRubCell_708d6fd7d4399aa050974d8410326837 } from '.
 import { PriceRubField as PriceRubField_3caeba515ba1bb81d7f55502fecc634a } from '../../../payload/components/tickets/PriceRubField'
 import { AdminIcon as AdminIcon_547aa444501e522c092c005941ad7303 } from '../../../payload/components/AdminBrand'
 import { AdminLogo as AdminLogo_547aa444501e522c092c005941ad7303 } from '../../../payload/components/AdminBrand'
-import { AdminNavLinks as AdminNavLinks_6989c2b28aaa1ffaed0e1a411d06ffaa } from '../../../payload/components/AdminNavLinks'
-import { RefundsNavLink as RefundsNavLink_7b11dc1e76bf6af7be00789285ef8d1f } from '../../../payload/components/refunds/RefundsNavLink'
-import { MfaNavLink as MfaNavLink_5bd747441aa4ab87badb346e980d60c4 } from '../../../payload/components/MfaNavLink'
+import { AdminNav as AdminNav_d75d6f53ddc8c45ae1d1a1f42b3751a0 } from '../../../payload/components/AdminNav'
 import { MfaGate as MfaGate_d6a0b852bad1732cd89c9176c6b9d902 } from '../../../payload/components/MfaGate'
 import { LoginCodeView as LoginCodeView_be752d599afafc8eadc8cef4cc6435ef } from '../../../payload/components/LoginCodeView'
 import { ForgotPasswordRedirect as ForgotPasswordRedirect_be752d599afafc8eadc8cef4cc6435ef } from '../../../payload/components/LoginCodeView'
@@ -26,6 +25,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 export const importMap = {
   "/payload/components/shows/ShowPerformancesPanel#OpenPerformancesTabAfterSave": OpenPerformancesTabAfterSave_aee6c14f4bff33201cec8be3cc981d67,
   "/payload/components/TabNav#TabNav": TabNav_297a57cac53ca32fb496c03a56dada51,
+  "/payload/components/FieldRowLabel#FieldRowLabel": FieldRowLabel_a8d6907fcd02b09b8f7289e26196c316,
   "/payload/components/gallery/GalleryField#GalleryField": GalleryField_f6c639cc49e0699d456c73197d0e4669,
   "/payload/components/shows/ShowPerformancesPanel#ShowPerformancesPanel": ShowPerformancesPanel_aee6c14f4bff33201cec8be3cc981d67,
   "/payload/components/performances/ReadinessPanel#ReadinessPanel": ReadinessPanel_80e17dd25847a148ce1ad6569cb7ded0,
@@ -36,9 +36,7 @@ export const importMap = {
   "/payload/components/tickets/PriceRubField#PriceRubField": PriceRubField_3caeba515ba1bb81d7f55502fecc634a,
   "/payload/components/AdminBrand#AdminIcon": AdminIcon_547aa444501e522c092c005941ad7303,
   "/payload/components/AdminBrand#AdminLogo": AdminLogo_547aa444501e522c092c005941ad7303,
-  "/payload/components/AdminNavLinks#AdminNavLinks": AdminNavLinks_6989c2b28aaa1ffaed0e1a411d06ffaa,
-  "/payload/components/refunds/RefundsNavLink#RefundsNavLink": RefundsNavLink_7b11dc1e76bf6af7be00789285ef8d1f,
-  "/payload/components/MfaNavLink#MfaNavLink": MfaNavLink_5bd747441aa4ab87badb346e980d60c4,
+  "/payload/components/AdminNav#AdminNav": AdminNav_d75d6f53ddc8c45ae1d1a1f42b3751a0,
   "/payload/components/MfaGate#MfaGate": MfaGate_d6a0b852bad1732cd89c9176c6b9d902,
   "/payload/components/LoginCodeView#LoginCodeView": LoginCodeView_be752d599afafc8eadc8cef4cc6435ef,
   "/payload/components/LoginCodeView#ForgotPasswordRedirect": ForgotPasswordRedirect_be752d599afafc8eadc8cef4cc6435ef,
