@@ -9,7 +9,7 @@ import type {
   SiteSetting as CmsSettings,
 } from '@/payload-types'
 
-import { imageOf, mediaUrl, paragraphs } from '../shows/cms'
+import { galleryOf, imageOf, mediaUrl, paragraphs } from '../shows/cms'
 
 import type {
   AboutPage,
@@ -115,8 +115,7 @@ const sorted = <T extends { sortOrder?: number | null }>(docs: T[]) =>
 
 const pageBy = (pages: CmsPage[], slug: string) => pages.find((p) => p.slug === slug)
 
-const photosOf = (page: CmsPage) =>
-  (page.photos ?? []).map((p) => imageOf(p.image, p.imageUrl)).filter((u): u is string => !!u)
+const photosOf = (page: CmsPage) => galleryOf(page.photosFiles, page.photos)
 
 export const aboutFromCms = (page: CmsPage | undefined, fallback: AboutPage): AboutPage =>
   page

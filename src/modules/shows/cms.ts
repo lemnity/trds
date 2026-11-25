@@ -46,6 +46,16 @@ export const mediaUrl = (ref: Ref<CmsMedia>) => obj(ref)?.url ?? undefined
 export const imageOf = (media: Ref<CmsMedia>, legacyUrl: string | null | undefined) =>
   mediaUrl(media) ?? (legacyUrl || undefined)
 
+/** Галерея: файлы из «Медиа» (массовая загрузка), затем строки с адресами старого сайта. */
+export const galleryOf = (
+  files: Ref<CmsMedia>[] | null | undefined,
+  legacy: { image?: Ref<CmsMedia>; imageUrl?: string | null }[] | null | undefined,
+): string[] =>
+  [
+    ...(files ?? []).map((f) => mediaUrl(f)),
+    ...(legacy ?? []).map((g) => imageOf(g.image, g.imageUrl)),
+  ].filter((u): u is string => !!u)
+
 /** Абзацы: разделитель — пустая строка. */
 export const paragraphs = (text: string | null | undefined): string[] =>
   (text ?? '')
@@ -92,9 +102,7 @@ export const toTheatreIso = (utc: string) => {
 }
 
 export const showFromCms = (doc: CmsShow): Show | null => {
-  const gallery = (doc.gallery ?? [])
-    .map((g) => imageOf(g.image, g.imageUrl))
-    .filter((u): u is string => !!u)
+  const gallery = galleryOf(doc.galleryFiles, doc.gallery)
   const posterUrl = imageOf(doc.poster, doc.posterUrl) ?? imageOf(doc.cover, doc.coverUrl)
   if (!doc.slug || !posterUrl) return null
   const coverUrl = imageOf(doc.cover, doc.coverUrl)

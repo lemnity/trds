@@ -1,5 +1,6 @@
 import { OpenPerformancesTabAfterSave as OpenPerformancesTabAfterSave_aee6c14f4bff33201cec8be3cc981d67 } from '../../../payload/components/shows/ShowPerformancesPanel'
 import { TabNav as TabNav_297a57cac53ca32fb496c03a56dada51 } from '../../../payload/components/TabNav'
+import { GalleryField as GalleryField_f6c639cc49e0699d456c73197d0e4669 } from '../../../payload/components/gallery/GalleryField'
 import { ShowPerformancesPanel as ShowPerformancesPanel_aee6c14f4bff33201cec8be3cc981d67 } from '../../../payload/components/shows/ShowPerformancesPanel'
 import { ReadinessPanel as ReadinessPanel_80e17dd25847a148ce1ad6569cb7ded0 } from '../../../payload/components/performances/ReadinessPanel'
 import { SeatPricingField as SeatPricingField_6c1dd99f130615d13f3dabbf75fedfe9 } from '../../../payload/components/seating/SeatPricingField'
@@ -25,6 +26,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 export const importMap = {
   "/payload/components/shows/ShowPerformancesPanel#OpenPerformancesTabAfterSave": OpenPerformancesTabAfterSave_aee6c14f4bff33201cec8be3cc981d67,
   "/payload/components/TabNav#TabNav": TabNav_297a57cac53ca32fb496c03a56dada51,
+  "/payload/components/gallery/GalleryField#GalleryField": GalleryField_f6c639cc49e0699d456c73197d0e4669,
   "/payload/components/shows/ShowPerformancesPanel#ShowPerformancesPanel": ShowPerformancesPanel_aee6c14f4bff33201cec8be3cc981d67,
   "/payload/components/performances/ReadinessPanel#ReadinessPanel": ReadinessPanel_80e17dd25847a148ce1ad6569cb7ded0,
   "/payload/components/seating/SeatPricingField#SeatPricingField": SeatPricingField_6c1dd99f130615d13f3dabbf75fedfe9,

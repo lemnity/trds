@@ -18,7 +18,7 @@ export const Pages: CollectionConfig = {
     slugField(),
     { name: 'lead', type: 'textarea', label: 'Подзаголовок / слоган' },
     paragraphsField('body', 'Текст'),
-    galleryField('photos', 'Фото'),
+    ...galleryField('photos', 'Фото'),
     seoField,
   ],
 }

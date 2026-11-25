@@ -105,13 +105,29 @@ export const imageFields = (name: string, label: string, description?: string): 
   },
 ]
 
-export const galleryField = (name = 'gallery', label = 'Фото'): Field => ({
-  name,
-  type: 'array',
-  label,
-  labels: { singular: 'Фото', plural: 'Фото' },
-  fields: imageFields('image', 'Файл'),
-})
+/**
+ * Галерея: `<name>Files` — файлы из «Медиа»; `<name>` — прежние строки с адресами старого сайта.
+ * В админке обе части показывает одна сетка миниатюр (components/gallery/GalleryField):
+ * «Добавить фото» (сразу несколько), «Заменить», «Удалить». Сайт — сначала файлы, потом адреса.
+ */
+export const galleryField = (name = 'gallery', label = 'Фото'): Field[] => [
+  {
+    name: `${name}Files`,
+    type: 'upload',
+    relationTo: 'media',
+    hasMany: true,
+    label,
+    admin: { components: { Field: '/payload/components/gallery/GalleryField#GalleryField' } },
+  },
+  {
+    name,
+    type: 'array',
+    label: `${label} со старого сайта`,
+    labels: { singular: 'Фото', plural: 'Фото' },
+    admin: { hidden: true },
+    fields: imageFields('image', 'Файл'),
+  },
+]
 
 export const seoField: Field = {
   name: 'seo',

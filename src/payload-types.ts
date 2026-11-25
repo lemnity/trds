@@ -246,6 +246,7 @@ export interface Show {
    * Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…
    */
   previewUrl?: string | null;
+  galleryFiles?: (number | Media)[] | null;
   gallery?:
     | {
         image?: (number | null) | Media;
@@ -692,6 +693,7 @@ export interface Page {
    * Новый абзац — через пустую строку.
    */
   body?: string | null;
+  photosFiles?: (number | Media)[] | null;
   photos?:
     | {
         image?: (number | null) | Media;
@@ -973,6 +975,7 @@ export interface ShowsSelect<T extends boolean = true> {
   coverFocus?: T;
   preview?: T;
   previewUrl?: T;
+  galleryFiles?: T;
   gallery?:
     | T
     | {
@@ -1210,6 +1213,7 @@ export interface PagesSelect<T extends boolean = true> {
   slug?: T;
   lead?: T;
   body?: T;
+  photosFiles?: T;
   photos?:
     | T
     | {

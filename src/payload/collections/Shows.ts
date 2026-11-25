@@ -115,7 +115,7 @@ export const Shows: CollectionConfig = {
               admin: { description: 'Например «50% 85%». Пусто — точка фокуса из «Медиа».' },
             },
             ...imageFields('preview', 'Превью карточки (368×250)', 'Нет — карточка берёт афишу.'),
-            galleryField(),
+            ...galleryField(),
           ],
         },
         {

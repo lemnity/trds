@@ -6,6 +6,7 @@ import * as migration_20261119_064005_belinskogo_hall from './20261119_064005_be
 import * as migration_20261119_085320_performance_title from './20261119_085320_performance_title';
 import * as migration_20261119_184512_show_seats_per_performance from './20261119_184512_show_seats_per_performance';
 import * as migration_20261124_130834_cast_split from './20261124_130834_cast_split';
+import * as migration_20261124_132528_gallery_files from './20261124_132528_gallery_files';
 
 export const migrations = [
   {
@@ -46,6 +47,11 @@ export const migrations = [
   {
     up: migration_20261124_130834_cast_split.up,
     down: migration_20261124_130834_cast_split.down,
-    name: '20261124_130834_cast_split'
+    name: '20261124_130834_cast_split',
+  },
+  {
+    up: migration_20261124_132528_gallery_files.up,
+    down: migration_20261124_132528_gallery_files.down,
+    name: '20261124_132528_gallery_files'
   },
 ];
