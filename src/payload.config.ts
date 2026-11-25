@@ -1,6 +1,7 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { ru } from '@payloadcms/translations/languages/ru'
+import os from 'os'
 import path from 'path'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
@@ -117,6 +118,17 @@ const config = buildConfig({
   plugins: storagePlugins(),
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET ?? '',
+  // Загрузки в «Медиа» без ограничения размера (видео в новостях, решение заказчика 25.11.2026;
+  // по умолчанию Payload режет файл на 20 МБ, запрос — на 50 МБ). Файл пишется во временную
+  // папку, а не держится в памяти; таймаут — пауза между частями файла на медленной сети.
+  // Загружают только сотрудники (права коллекции Media); лимит прокси — Caddyfile.
+  upload: {
+    limits: { fileSize: Infinity },
+    requestSizeLimit: Infinity,
+    useTempFiles: true,
+    tempFileDir: path.join(os.tmpdir(), 'payload-uploads'),
+    uploadTimeout: 10 * 60_000,
+  },
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
