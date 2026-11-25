@@ -9,11 +9,13 @@ import { HideWhenStarted } from '@/components/board/HideWhenStarted'
 import { ShowCard } from '@/components/board/ShowCard'
 import { ShowBooking } from '@/components/show/ShowBooking'
 import { Gallery, showGalleryItems } from '@/components/show/Gallery'
+import { ReviewsShowcase } from '@/components/home/ReviewsShowcase'
 import { ShowAbout } from '@/components/show/ShowAbout'
 import { ShowBuy, ShowCover } from '@/components/show/ShowHeaderCompact'
 import { ShowHero } from '@/components/show/ShowHero'
 import {
   getPersonPhotos,
+  getSiteContent,
   getSiteShows,
   staticExportOnly,
   staticShowsData,
@@ -53,11 +55,16 @@ const OTHER_SHOWS = 4
 
 export default async function ShowPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params
-  const [data, personPhotos] = await Promise.all([getSiteShows(), getPersonPhotos()])
+  const [data, personPhotos, { reviews: allReviews }] = await Promise.all([
+    getSiteShows(),
+    getPersonPhotos(),
+    getSiteContent(),
+  ])
   const now = new Date()
   const page = getShowPage(data, slug, now)
   if (!page) notFound()
   const { show, performances } = page
+  const reviews = allReviews.filter((r) => r.showSlug === show.slug)
 
   const posters = new Map(data.shows.map((s) => [s.slug, s.previewUrl ?? s.posterUrl]))
   const seen = new Set([slug])
@@ -102,6 +109,17 @@ export default async function ShowPage({ params }: { params: Promise<Params> }) 
               items={showGalleryItems(show.gallery, show.title)}
             />
           </div>
+        </section>
+      )}
+
+      {/* Отзывы, привязанные к спектаклю в CMS; нет таких — блока нет. */}
+      {reviews.length > 0 && (
+        <section
+          id="reviews"
+          className={`container ${styles.section}`}
+          aria-labelledby="reviews-title"
+        >
+          <ReviewsShowcase reviews={reviews} />
         </section>
       )}
 

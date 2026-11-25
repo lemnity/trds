@@ -191,6 +191,13 @@ export async function seedCms(payload: Payload, options: SeedOptions): Promise<S
       ...school.teachers.map((t) => t.name),
     ]),
   ]
+  // Разделы: в актёрском составе — «Актёры», в создателях — «Создатели», руководство — по списку.
+  const actorSlugs = new Set<string>()
+  const creatorSlugs = new Set<string>()
+  for (const s of [...shows.shows, ...(shows.archive ?? [])])
+    for (const c of s.credits)
+      for (const e of c.entries)
+        for (const n of e.people) (isCastCredit(c) ? actorSlugs : creatorSlugs).add(personSlug(n))
   const personIds = new Map<string, Id>()
   for (const name of names) {
     const slug = personSlug(name)
@@ -212,7 +219,11 @@ export async function seedCms(payload: Payload, options: SeedOptions): Promise<S
           bio: bio?.paragraphs.join('\n\n') ?? null,
           works: (bio?.works ?? []).map(({ title }) => ({ title })),
           quote: leader?.quote ? { text: leader.quote.text, about: leader.quote.about } : {},
-          leadership: !!leader,
+          groups: [
+            ...(actorSlugs.has(slug) ? ['actors' as const] : []),
+            ...(creatorSlugs.has(slug) ? ['creators' as const] : []),
+            ...(leader ? ['leadership' as const] : []),
+          ],
           sortOrder: leader?.i ?? 0,
           source: bio?.source ?? leader?.source ?? null,
           ...PUBLISHED,
@@ -350,7 +361,7 @@ export async function seedCms(payload: Payload, options: SeedOptions): Promise<S
       },
     )
 
-  for (const [i, r] of content.reviews.entries())
+  for (const r of content.reviews)
     await upsert(
       'reviews',
       { slug: { equals: r.id } },
@@ -360,7 +371,6 @@ export async function seedCms(payload: Payload, options: SeedOptions): Promise<S
         role: r.role,
         lead: r.lead,
         quote: r.quote,
-        sortOrder: i,
         ...PUBLISHED,
       },
     )

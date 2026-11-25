@@ -238,3 +238,122 @@ textarea::placeholder {
 :focus-visible {
   outline-color: var(--turdus-accent);
 }
+
+// --- Визуальный редактор (Lexical: текст новости) ---
+// По умолчанию у Payload нет рамки — непонятно, куда писать. Рамка как у поля ввода: панель
+// инструментов сверху, под ней область текста. Рамку держат сами панель и область (не обёртка):
+// панель «липкая» (sticky), а overflow у обёртки сдвигал бы её внутрь поля.
+
+.rich-text-lexical__wrap .fixed-toolbar {
+  margin: 0;
+  border: 1px solid var(--theme-elevation-200);
+  border-bottom-color: var(--theme-elevation-150);
+  border-radius: var(--style-radius-s, 4px) var(--style-radius-s, 4px) 0 0;
+  background: var(--theme-elevation-50);
+}
+
+.rich-text-lexical__wrap .editor-container {
+  border: 1px solid var(--theme-elevation-200);
+  border-top: 0;
+  border-radius: 0 0 var(--style-radius-s, 4px) var(--style-radius-s, 4px);
+  background: var(--theme-input-bg, var(--theme-bg));
+}
+
+.rich-text-lexical__wrap:focus-within .fixed-toolbar,
+.rich-text-lexical__wrap:focus-within .editor-container {
+  border-color: var(--turdus-accent);
+}
+
+.rich-text-lexical__wrap .editor {
+  min-height: 320px;
+  padding: 16px 20px 24px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+// Приглашение «Начните писать…» — внутри области текста, с её отступами и тем же шрифтом.
+.rich-text-lexical__wrap .LexicalEditorTheme__placeholder {
+  font-family: var(--font-body);
+  top: 16px;
+  left: 20px;
+  color: var(--theme-elevation-350);
+  font-size: 16px;
+}
+
+.rich-text-lexical__wrap .field-description {
+  margin-top: 8px;
+}
+
+// Панель не «скачет»: кнопка стиля подписывает текущий блок («Нормальный текст», «Цитата»,
+// «Заголовок 2»…), и её ширина менялась при каждом движении курсора. Фиксируем ширину по самой
+// длинной подписи; меню «＋» — с понятными отступами.
+.rich-text-lexical__wrap .fixed-toolbar {
+  flex-wrap: nowrap;
+  align-items: center;
+  min-height: 44px;
+}
+
+.rich-text-lexical__wrap .toolbar-popup__dropdown-text {
+  min-width: 190px;
+  justify-content: space-between;
+}
+
+.rich-text-lexical__wrap .toolbar-popup__dropdown-text .toolbar-popup__dropdown-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toolbar-popup__dropdown-items {
+  min-width: 300px;
+  padding: 6px;
+}
+
+.toolbar-popup__dropdown-item {
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--style-radius-s, 4px);
+  font-size: 15px;
+}
+
+.toolbar-popup__dropdown-item:hover {
+  background: var(--turdus-accent-soft);
+}
+
+// Меню «＋» по порядку: файлы → видео по ссылке → кнопка → линия. Пункты из разных фич Payload
+// сортирует сам, поэтому порядок — через flex order по ключу пункта.
+.fixed-toolbar__dropdown-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar-popup__dropdown-item-turdusMediaUpload {
+  order: 1;
+}
+
+.toolbar-popup__dropdown-item-upload {
+  order: 2;
+}
+
+.toolbar-popup__dropdown-item-turdusVideoEmbed {
+  order: 3;
+}
+
+.toolbar-popup__dropdown-item-turdusButton {
+  order: 4;
+}
+
+.toolbar-popup__dropdown-item-horizontalRule {
+  order: 5;
+}
+
+// Отдельная кнопка «блоки» не нужна: блоки — пунктами в «＋» (MediaUploadFeature.client).
+.rich-text-lexical__wrap .fixed-toolbar__group-blocks {
+  display: none;
+}
+
+// Группа стиля текста — постоянной ширины, чтобы панель не сдвигалась.
+.rich-text-lexical__wrap .fixed-toolbar__group-text {
+  flex: 0 0 auto;
+  width: 220px;
+}

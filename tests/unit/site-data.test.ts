@@ -143,7 +143,7 @@ const contentDocs = (): CmsContentDocs => ({
       portrait: media(20, '/api/media/file/anna.jpg'),
       position: 'Актриса',
       bio: 'Выпускница ЕГТИ.',
-      leadership: true,
+      groups: ['leadership'],
     }),
   ],
   pages: [],

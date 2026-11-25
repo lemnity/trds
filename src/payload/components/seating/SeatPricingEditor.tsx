@@ -40,6 +40,13 @@ type Props = {
   toolbar?: ReactNode
 }
 
+/** Enter в поле ввода панели — как кнопка «Сохранить» (вместо отправки формы). */
+const onEnter = (action: () => unknown) => (e: React.KeyboardEvent) => {
+  if (e.key !== 'Enter' || !(e.target instanceof HTMLInputElement)) return
+  e.preventDefault()
+  action()
+}
+
 const seatWord = (n: number) => {
   const m10 = n % 10
   const m100 = n % 100
@@ -292,6 +299,7 @@ export function SeatPricingEditor({
 
   const selectedClosed = [...selected].filter((id) => closed.has(id)).length
   const newPriceParsed = parseRub(newPrice)
+  const canCreateZone = Boolean(newTitle.trim()) && newPriceParsed !== undefined
 
   return (
     <div className={styles.root}>
@@ -591,13 +599,13 @@ export function SeatPricingEditor({
 
       {/* --- Зона: название, цена и места --- */}
       {!readOnly && zoneDraft && (
-        <form
+        // Не <form>: редактор стоит внутри формы документа Payload, вложенная форма отправлялась
+        // браузером (перезагрузка страницы, «Закрыть сайт?»). Enter в полях — onEnter.
+        <div
           className={styles.actions}
+          role="group"
           aria-label={zoneDraft.zoneId ? 'Места зоны' : 'Новая зона'}
-          onSubmit={(e) => {
-            e.preventDefault()
-            saveZoneDraft()
-          }}
+          onKeyDown={onEnter(() => canSaveDraft && saveZoneDraft())}
         >
           <div className={styles.actionsHead}>
             <strong>
@@ -638,11 +646,16 @@ export function SeatPricingEditor({
             <button type="button" className={styles.chip} onClick={cancelZoneDraft}>
               Отмена
             </button>
-            <button type="submit" className={styles.primary} disabled={!canSaveDraft}>
+            <button
+              type="button"
+              className={styles.primary}
+              disabled={!canSaveDraft}
+              onClick={saveZoneDraft}
+            >
               Сохранить
             </button>
           </div>
-        </form>
+        </div>
       )}
 
       {/* --- Действия с выделением --- */}
@@ -675,12 +688,11 @@ export function SeatPricingEditor({
             ))}
           </div>
           {pricing.zones.length < MAX_SEAT_ZONES && (
-            <form
+            <div
               className={styles.newZone}
-              onSubmit={(e) => {
-                e.preventDefault()
-                createZone()
-              }}
+              role="group"
+              aria-label="Новая зона"
+              onKeyDown={onEnter(() => canCreateZone && createZone())}
             >
               <span className={styles.muted}>или новая зона:</span>
               <input
@@ -701,13 +713,14 @@ export function SeatPricingEditor({
                 <span aria-hidden="true">₽</span>
               </span>
               <button
-                type="submit"
+                type="button"
                 className={styles.primary}
-                disabled={!newTitle.trim() || newPriceParsed === undefined}
+                disabled={!canCreateZone}
+                onClick={createZone}
               >
                 Создать и назначить
               </button>
-            </form>
+            </div>
           )}
           {canClose && (
             <div className={styles.assign}>

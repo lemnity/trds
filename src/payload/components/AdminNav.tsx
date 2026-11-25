@@ -2,7 +2,7 @@
 
 import { NavGroup, useAuth, useConfig } from '@payloadcms/ui'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 
 /**
  * Меню админки по задачам театра (вместо групп Payload, собранных из коллекций): разделы Payload и
@@ -16,7 +16,8 @@ import { usePathname } from 'next/navigation'
 type User = { role?: string | null; systemAdmin?: boolean | null }
 
 type Item =
-  | { label: string; collection: string }
+  // `group` — список людей, отфильтрованный по разделу (поле «Раздел» в People.ts).
+  | { label: string; collection: string; group?: string }
   | { label: string; global: string }
   | { label: string; view: string; roles?: string[] }
 
@@ -46,11 +47,19 @@ const MENU: { label: string; items: Item[] }[] = [
     ],
   },
   {
+    label: 'Люди',
+    items: [
+      { label: 'Актёры', collection: 'people', group: 'actors' },
+      { label: 'Создатели', collection: 'people', group: 'creators' },
+      { label: 'Руководство', collection: 'people', group: 'leadership' },
+      { label: 'Все люди', collection: 'people' },
+    ],
+  },
+  {
     label: 'Сайт',
     items: [
       { label: 'Страницы', collection: 'pages' },
       { label: 'Новости', collection: 'news' },
-      { label: 'Люди', collection: 'people' },
       { label: 'Отзывы', collection: 'reviews' },
       { label: 'Партнёры', collection: 'partners' },
       { label: 'Документы', collection: 'documents' },
@@ -78,11 +87,16 @@ export function AdminNav() {
   const { user, permissions } = useAuth<User>()
   const { config } = useConfig()
   const pathname = usePathname() ?? ''
+  const search = useSearchParams()
+  // Раздел людей в открытом списке: ?where[groups][in]=actors.
+  const openGroup = search?.get('where[groups][in]') ?? null
   const admin = config.routes.admin
 
   const hrefOf = (item: Item) =>
     'collection' in item
-      ? `${admin}/collections/${item.collection}`
+      ? `${admin}/collections/${item.collection}${
+          item.group ? `?where[groups][in]=${item.group}` : ''
+        }`
       : 'global' in item
         ? `${admin}/globals/${item.global}`
         : `${admin}/${item.view}`
@@ -116,7 +130,13 @@ export function AdminNav() {
         <NavGroup key={group.label} label={group.label}>
           {group.items.map((item) => {
             const href = hrefOf(item)
-            const active = pathname === href || pathname.startsWith(`${href}/`)
+            const base = href.split('?')[0]
+            const onBase = pathname === base || pathname.startsWith(`${base}/`)
+            // Пункты одного списка (люди по разделам) различаются фильтром в адресе.
+            const active =
+              'collection' in item && item.collection === 'people'
+                ? pathname === base && (item.group ?? null) === openGroup
+                : onBase
             return (
               <Link
                 key={href}

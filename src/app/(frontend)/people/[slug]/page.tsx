@@ -16,6 +16,7 @@ import { formatPerformanceDate, plural } from '@/modules/shows'
 
 import { reveal } from '@/components/ui/reveal'
 import styles from './person.module.css'
+import { ReviewsShowcase } from '@/components/home/ReviewsShowcase'
 import { Gallery } from '@/components/show/Gallery'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { PageCrumbs } from '@/components/ui/PageCrumbs'
@@ -91,7 +92,7 @@ const aboutTitle = (fields: string[]) =>
  */
 export default async function PersonPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params
-  const [data, { personBios }, personPhotos] = await Promise.all([
+  const [data, { personBios, reviews: allReviews }, personPhotos] = await Promise.all([
     getSiteShows(),
     getSiteContent(),
     getPersonPhotos(),
@@ -100,6 +101,7 @@ export default async function PersonPage({ params }: { params: Promise<Params> }
   if (!profile) notFound()
   const { person, fields, shows, archive, gallery, stats } = profile
   const bio = personBios[person.slug]
+  const reviews = allReviews.filter((r) => r.personSlugs?.includes(person.slug))
   // Ближайшие показы — выше; спектакли без дат — в конце репертуара.
   const timeline = [...shows].sort(
     (a, b) =>
@@ -272,6 +274,13 @@ export default async function PersonPage({ params }: { params: Promise<Params> }
               caption: photo.showTitle,
             }))}
           />
+        </section>
+      )}
+
+      {/* Отзывы, привязанные к человеку в CMS; нет таких — блока нет. */}
+      {reviews.length > 0 && (
+        <section id="reviews" className={styles.section} aria-labelledby="reviews-title">
+          <ReviewsShowcase reviews={reviews} />
         </section>
       )}
     </div>

@@ -326,9 +326,9 @@ export interface Person {
    */
   slideUrl?: string | null;
   /**
-   * Показывать на странице «Руководство».
+   * В каком списке человек в админке. «Руководство» — ещё и на странице «Руководство» сайта. Можно несколько.
    */
-  leadership?: boolean | null;
+  groups?: ('actors' | 'creators' | 'leadership')[] | null;
   /**
    * Меньше — выше в списке.
    */
@@ -606,30 +606,50 @@ export interface News {
   id: number;
   title: string;
   /**
-   * Часть адреса: /shows/<адрес>. Пусто — заполнится из названия.
+   * Текст под заголовком в карточке.
    */
-  slug?: string | null;
-  tag: 'Премьера' | 'Анонс';
   summary: string;
+  tag: 'Премьера' | 'Анонс';
   /**
-   * Новый абзац — через пустую строку.
+   * Картинка карточки и шапка страницы новости. Горизонтальная, 16:9.
    */
-  body?: string | null;
   cover?: (number | null) | Media;
   /**
    * Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…
    */
   coverUrl?: string | null;
   /**
-   * Куда ведёт карточка: «/shows/guests», «/afisha?kind=bar».
+   * Заголовки, жирный, списки, цитаты, ссылки — на панели сверху. В «＋»: фото и видео с компьютера, видео по ссылке (YouTube, VK, Rutube), кнопка-ссылка, линия. Файл можно и перетащить в текст.
    */
-  href: string;
-  publishedAt: string;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Страница спектакля или раздела: «/shows/guests», «/afisha». Если текст выше написан — не нужно.
+   */
+  href?: string | null;
   seo?: {
     title?: string | null;
     description?: string | null;
     image?: (number | null) | Media;
   };
+  publishedAt: string;
+  /**
+   * Часть адреса: /news/<адрес>. Пусто — заполнится из названия.
+   */
+  slug?: string | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -641,20 +661,24 @@ export interface News {
 export interface Review {
   id: number;
   author: string;
-  /**
-   * Часть адреса: /shows/<адрес>. Пусто — заполнится из названия.
-   */
-  slug?: string | null;
   role: string;
   /**
-   * Дословная часть полного текста.
+   * Дословно, как прислал автор.
    */
-  lead: string;
   quote: string;
   /**
-   * Меньше — выше в списке.
+   * Одна яркая фраза из текста отзыва — крупным шрифтом на сайте. Скопируйте её из текста выше слово в слово.
    */
-  sortOrder?: number | null;
+  lead: string;
+  /**
+   * Отзыв появится и на странице этого спектакля. Пусто — отзыв о театре.
+   */
+  show?: (number | null) | Show;
+  /**
+   * Отзыв появится и на страницах этих людей. Можно выбрать нескольких.
+   */
+  people?: (number | Person)[] | null;
+  slug?: string | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -1136,7 +1160,7 @@ export interface PeopleSelect<T extends boolean = true> {
       };
   slide?: T;
   slideUrl?: T;
-  leadership?: T;
+  groups?: T;
   sortOrder?: T;
   source?: T;
   seo?:
@@ -1156,14 +1180,12 @@ export interface PeopleSelect<T extends boolean = true> {
  */
 export interface NewsSelect<T extends boolean = true> {
   title?: T;
-  slug?: T;
-  tag?: T;
   summary?: T;
-  body?: T;
+  tag?: T;
   cover?: T;
   coverUrl?: T;
+  body?: T;
   href?: T;
-  publishedAt?: T;
   seo?:
     | T
     | {
@@ -1171,6 +1193,8 @@ export interface NewsSelect<T extends boolean = true> {
         description?: T;
         image?: T;
       };
+  publishedAt?: T;
+  slug?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1181,11 +1205,12 @@ export interface NewsSelect<T extends boolean = true> {
  */
 export interface ReviewsSelect<T extends boolean = true> {
   author?: T;
-  slug?: T;
   role?: T;
-  lead?: T;
   quote?: T;
-  sortOrder?: T;
+  lead?: T;
+  show?: T;
+  people?: T;
+  slug?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1459,6 +1484,31 @@ export interface CollectionsWidget {
     [k: string]: unknown;
   };
   width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "NewsVideoEmbedBlock".
+ */
+export interface NewsVideoEmbedBlock {
+  /**
+   * Скопируйте адрес страницы с видео из браузера.
+   */
+  url: string;
+  caption?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'videoEmbed';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "NewsButtonBlock".
+ */
+export interface NewsButtonBlock {
+  label: string;
+  href: string;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'button';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -25,7 +25,7 @@ const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // Пустые значения допустимы только на этапе `next build`: при старте сервера и worker
 // окружение проверяет assertServerEnv (src/bin/start-app.ts, src/jobs/main.ts).
-export default buildConfig({
+const config = buildConfig({
   admin: {
     user: AdminUsers.slug,
     importMap: {
@@ -145,4 +145,15 @@ export default buildConfig({
     ],
   }),
   sharp,
+})
+
+/**
+ * Пункт визуального редактора «Загрузить» (UploadFeature) на деле выбирает уже загруженный файл;
+ * загрузка с компьютера — отдельный пункт «Загрузить фото или видео» (payload/lexical). Подписи
+ * фич Lexical накладываются поверх `i18n.translations` при сборке конфига, поэтому меняем после.
+ */
+export default config.then((built) => {
+  const ru = built.i18n.translations.ru as { lexical?: { upload?: { label?: string } } } | undefined
+  if (ru?.lexical?.upload) ru.lexical.upload.label = 'Выбрать из «Медиа»'
+  return built
 })

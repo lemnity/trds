@@ -9,6 +9,8 @@ import type {
   SiteSetting as CmsSettings,
 } from '@/payload-types'
 
+import { personSlug } from '../people'
+import { hasRichText } from './richText'
 import { galleryOf, imageOf, mediaUrl, paragraphs } from '../shows/cms'
 
 import type {
@@ -46,23 +48,38 @@ export type CmsContentDocs = {
 export const newsFromCms = (doc: CmsNews): NewsItem | null => {
   const imageUrl = imageOf(doc.cover, doc.coverUrl)
   if (!doc.slug || !imageUrl) return null
+  // Есть текст — у новости своя страница; нет — карточка ведёт по ссылке из CMS.
+  const body = hasRichText(doc.body) ? doc.body : undefined
+  const href = body ? `/news/${doc.slug}` : doc.href
+  if (!href) return null
   return {
     id: doc.slug,
     tag: doc.tag,
     title: doc.title,
     summary: doc.summary,
-    href: doc.href,
+    href,
     imageUrl,
+    ...(body && { body }),
+    ...(doc.publishedAt && { publishedAt: doc.publishedAt.slice(0, 10) }),
   }
 }
 
-export const reviewFromCms = (doc: CmsReview): Review => ({
-  id: doc.slug ?? String(doc.id),
-  quote: doc.quote,
-  lead: doc.lead,
-  author: doc.author,
-  role: doc.role,
-})
+export const reviewFromCms = (doc: CmsReview): Review => {
+  // Связи приходят раскрытыми (depth 1); неопубликованный спектакль или человек — только id.
+  const show = doc.show && typeof doc.show === 'object' ? doc.show.slug : null
+  const people = (doc.people ?? []).flatMap((p) =>
+    p && typeof p === 'object' ? [p.slug || personSlug(p.name)] : [],
+  )
+  return {
+    id: doc.slug ?? String(doc.id),
+    quote: doc.quote,
+    lead: doc.lead,
+    author: doc.author,
+    role: doc.role,
+    ...(show && { showSlug: show }),
+    ...(people.length > 0 && { personSlugs: people }),
+  }
+}
 
 export const partnerFromCms = (doc: CmsPartner): Partner => ({ name: doc.name, role: doc.role })
 
@@ -182,7 +199,8 @@ export const siteContentFromCms = (docs: CmsContentDocs, fallback: SiteContent):
       .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
       .map(newsFromCms)
       .filter((n): n is NewsItem => n !== null),
-    reviews: sorted(docs.reviews).map(reviewFromCms),
+    // Порядок задаёт запрос: от новых к старым.
+    reviews: docs.reviews.map(reviewFromCms),
     partners: sorted(docs.partners).map(partnerFromCms),
     legalDocuments: sorted(docs.documents)
       .map(documentFromCms)
@@ -191,7 +209,7 @@ export const siteContentFromCms = (docs: CmsContentDocs, fallback: SiteContent):
     aboutTheatre: aboutFromCms(pageBy(docs.pages, 'about'), fallback.aboutTheatre),
     corporate: corporateFromCms(pageBy(docs.pages, 'corporate'), fallback.corporate),
     personBios,
-    leadership: sorted(people.filter((p) => p.leadership)).map(leaderFromCms),
+    leadership: sorted(people.filter((p) => p.groups?.includes('leadership'))).map(leaderFromCms),
     portraits,
     seo: seoFromCms(docs.settings),
   }

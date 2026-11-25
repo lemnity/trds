@@ -36,7 +36,7 @@ const validSlug: TextFieldSingleValidation = (value) =>
   !value || SLUG_PATTERN.test(value) || 'Только латиница, цифры и дефис: «crime-punishment»'
 
 /** Адрес страницы: латиница; пусто — из названия (транслитерация, как у людей театра). */
-export const slugField = (from = 'title', label = 'Адрес страницы'): Field => ({
+export const slugField = (from = 'title', label = 'Адрес страницы', base = '/shows'): Field => ({
   name: 'slug',
   type: 'text',
   label,
@@ -45,7 +45,7 @@ export const slugField = (from = 'title', label = 'Адрес страницы')
   validate: validSlug,
   admin: {
     position: 'sidebar',
-    description: 'Часть адреса: /shows/<адрес>. Пусто — заполнится из названия.',
+    description: `Часть адреса: ${base}/<адрес>. Пусто — заполнится из названия.`,
   },
   hooks: {
     beforeValidate: [
@@ -97,6 +97,8 @@ export const imageFields = (name: string, label: string, description?: string): 
     type: 'text',
     label: `${label}: адрес на старом сайте`,
     admin: {
+      // Наследие переноса с Тильды: новые картинки загружают файлом, пустое поле не показываем.
+      condition: (_, sibling) => Boolean(sibling?.[`${name}Url`]),
       description:
         'Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…',
     },

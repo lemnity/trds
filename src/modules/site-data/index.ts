@@ -182,7 +182,15 @@ export function payloadReaderFor(payload: Payload): CmsReader {
     async contentDocs() {
       const [news, reviews, partners, documents, people, pages, settings] = await Promise.all([
         payload.find({ collection: 'news', where: PUBLISHED, depth: 1, ...common }),
-        payload.find({ collection: 'reviews', where: PUBLISHED, depth: 0, ...common }),
+        payload.find({
+          collection: 'reviews',
+          where: PUBLISHED,
+          depth: 1,
+          sort: '-createdAt',
+          // Из связей нужны только адреса страниц.
+          populate: { shows: { slug: true }, people: { slug: true, name: true } },
+          ...common,
+        }),
         payload.find({ collection: 'partners', where: PUBLISHED, depth: 1, ...common }),
         payload.find({ collection: 'documents', where: PUBLISHED, depth: 0, ...common }),
         payload.find({ collection: 'people', where: PUBLISHED, depth: 1, ...common }),

@@ -5,6 +5,13 @@ import { imageFields, paragraphsField, seoField, slugField, sortOrderField } fro
 
 type WorkValidateArgs = { siblingData?: { show?: unknown } }
 
+/** Разделы людей: меню админки (AdminNav) открывает по ним отфильтрованные списки. */
+export const PEOPLE_GROUPS = [
+  { label: 'Актёры', value: 'actors' },
+  { label: 'Создатели', value: 'creators' },
+  { label: 'Руководство', value: 'leadership' },
+]
+
 /**
  * Люди театра (T-025): актёры, режиссёры, руководство, педагоги. Связаны с составами спектаклей
  * и архива. Портреты и биографии — только переданные театром (rules.md §7).
@@ -15,7 +22,7 @@ export const People: CollectionConfig = {
   admin: {
     group: 'Контент',
     useAsTitle: 'name',
-    defaultColumns: ['name', 'position', 'leadership', '_status'],
+    defaultColumns: ['name', 'position', 'groups', '_status'],
   },
   access: contentAccess,
   versions: { drafts: true, maxPerDoc: 20 },
@@ -83,10 +90,16 @@ export const People: CollectionConfig = {
     },
     ...imageFields('slide', 'Кадр для слайд-шоу'),
     {
-      name: 'leadership',
-      type: 'checkbox',
-      label: 'Руководство театра',
-      admin: { position: 'sidebar', description: 'Показывать на странице «Руководство».' },
+      name: 'groups',
+      type: 'select',
+      hasMany: true,
+      label: 'Раздел',
+      options: PEOPLE_GROUPS,
+      admin: {
+        position: 'sidebar',
+        description:
+          'В каком списке человек в админке. «Руководство» — ещё и на странице «Руководство» сайта. Можно несколько.',
+      },
     },
     sortOrderField,
     {

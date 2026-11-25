@@ -1,3 +1,7 @@
+import type { RichTextState } from './richText'
+
+export { videoEmbedUrl } from './embed'
+
 /**
  * Редакционный контент главной до подключения CMS (T-022). Источник — публичный сайт
  * театра teatrturdus.ru (14–15.10.2026): тексты раздела «Команда», анонсы спектаклей.
@@ -9,8 +13,13 @@ export type NewsItem = {
   tag: 'Премьера' | 'Анонс'
   title: string
   summary: string
+  /** Куда ведёт карточка: страница новости (если есть текст) или ссылка из CMS. */
   href: string
   imageUrl: string
+  /** Текст страницы новости из визуального редактора; нет — у новости нет своей страницы. */
+  body?: RichTextState
+  /** Дата публикации (YYYY-MM-DD). */
+  publishedAt?: string
 }
 
 export type Partner = { name: string; role: string }
@@ -617,7 +626,17 @@ export const legalDocuments: LegalDocument[] = [
  * Отзыв о театре: текст дословно, автор и его роль — как в материалах заказчика.
  * `lead` — выдержка для крупного набора, дословная часть `quote` (проверяет тест).
  */
-export type Review = { id: string; quote: string; lead: string; author: string; role: string }
+export type Review = {
+  id: string
+  quote: string
+  lead: string
+  author: string
+  role: string
+  /** Спектакль, о котором отзыв: отзыв выводится и на его странице. */
+  showSlug?: string
+  /** Люди, о которых отзыв: отзыв выводится и на их страницах. */
+  personSlugs?: string[]
+}
 
 // Отзывы переданы заказчиком изображениями 15.10.2026; текст перенесён дословно.
 export const reviews: Review[] = [

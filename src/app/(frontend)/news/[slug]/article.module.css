@@ -1,0 +1,146 @@
+/* Страница новости: текст из визуального редактора CMS (Lexical). */
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.tag {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--color-ink);
+  color: var(--color-ink);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cover {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  max-width: 60rem;
+  overflow: hidden;
+  background: var(--color-hairline);
+}
+
+.cover img {
+  object-fit: cover;
+}
+
+.body {
+  max-width: var(--reading-max);
+  padding-block: clamp(1.5rem, 4vw, 3rem) clamp(2.5rem, 6vw, 5rem);
+  font-size: var(--step-0);
+  line-height: 1.65;
+}
+
+.body > * + * {
+  margin-top: 1em;
+}
+
+.body h2 {
+  margin-top: 1.8em;
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+}
+
+.body h3 {
+  margin-top: 1.5em;
+  font-size: var(--step-1);
+  font-weight: 600;
+}
+
+.body a {
+  color: var(--color-brand);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.body ul,
+.body ol {
+  padding-left: 1.4em;
+}
+
+.body ul {
+  list-style: disc;
+}
+
+.body ol {
+  list-style: decimal;
+}
+
+.body li + li {
+  margin-top: 0.35em;
+}
+
+.body blockquote {
+  padding-left: 1.25rem;
+  border-left: 3px solid var(--color-brand);
+  font-size: var(--step-1);
+  font-style: italic;
+}
+
+.body hr {
+  border: 0;
+  border-top: 1px solid var(--color-hairline);
+  margin-block: 2em;
+}
+
+.video {
+  display: block;
+  width: 100%;
+  max-height: 80vh;
+  background: #000;
+}
+
+.body img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Видео по ссылке (YouTube, VK, Rutube) — 16:9 на всю ширину текста. */
+.embed figcaption {
+  margin-top: 0.5rem;
+  font-size: var(--step--1);
+  color: var(--color-muted);
+}
+
+.embedFrame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+
+.embedFrame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Кнопка-ссылка из текста новости. */
+.buttonRow {
+  margin-block: 1.5em;
+}
+
+.body .button {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min, 44px);
+  padding: 0.6rem 1.5rem;
+  background: var(--color-ink);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.body .button:hover {
+  background: var(--color-brand);
+}

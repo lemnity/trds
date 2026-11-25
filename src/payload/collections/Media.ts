@@ -23,7 +23,17 @@ export const Media: CollectionConfig = {
   },
   upload: {
     staticDir: process.env.MEDIA_DIR ?? path.resolve(process.cwd(), 'media'),
-    mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'application/pdf'],
+    mimeTypes: [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/avif',
+      'application/pdf',
+      // Видео для текста новостей (визуальный редактор): mp4/webm/mov.
+      'video/mp4',
+      'video/webm',
+      'video/quicktime',
+    ],
     focalPoint: true,
     imageSizes: [
       { name: 'card', width: 736, withoutEnlargement: true },
