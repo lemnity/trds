@@ -2,7 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { EVENT_TYPE_LABELS } from '@/modules/shows'
 
-import { contentAccess, fieldTheatreAdmins } from '../access/roles'
+import { contentAccess } from '../access/roles'
 import { guardShowDelete } from '../hooks/inventorySync'
 import { refreshPerformanceTitles } from '../hooks/performanceTitle'
 import {
@@ -40,14 +40,14 @@ export const Shows: CollectionConfig = {
   defaultSort: 'title',
   fields: [
     slugField(),
-    // После «Сохранить черновик и добавить показ» — переход на вкладку показов (см. компонент).
+    // Даты, площадки и билеты — в «Показах»; здесь только ссылка на показы спектакля.
     {
-      name: 'openPerformancesAfterSave',
+      name: 'performancesLink',
       type: 'ui',
       admin: {
         position: 'sidebar',
         components: {
-          Field: '/payload/components/shows/ShowPerformancesPanel#OpenPerformancesTabAfterSave',
+          Field: '/payload/components/shows/ShowPerformancesLink#ShowPerformancesLink',
         },
       },
     },
@@ -109,42 +109,20 @@ export const Shows: CollectionConfig = {
             ...imageFields('poster', 'Афиша (16:9)'),
             ...imageFields('cover', 'Обложка страницы', 'Нет — первое фото галереи, иначе афиша.'),
             {
+              // Значение — CSS object-position «X% Y%»; выбирается щелчком по картинке.
               name: 'coverFocus',
               type: 'text',
-              label: 'Фокус обложки (CSS object-position)',
-              admin: { description: 'Например «50% 85%». Пусто — точка фокуса из «Медиа».' },
-            },
-            ...imageFields('preview', 'Превью карточки (368×250)', 'Нет — карточка берёт афишу.'),
-            ...galleryField(),
-          ],
-        },
-        {
-          label: 'Показы и продажи',
-          fields: [
-            {
-              name: 'seatsPerPerformance',
-              type: 'number',
-              label: 'Мест на показ (без схемы зала)',
-              min: 1,
-              admin: {
-                step: 1,
-                description:
-                  'Для показов без схемы зала: в показе появится кнопка «Добавить входной билет» с этой вместимостью. Цену задаёте в показе.',
-              },
-              validate: (value: number | null | undefined) =>
-                value == null || Number.isInteger(value) || 'Укажите целое число',
-              access: { create: fieldTheatreAdmins, update: fieldTheatreAdmins },
-            },
-            // Свой список вместо join: join не показывает черновики показов.
-            {
-              name: 'performancesPanel',
-              type: 'ui',
+              label: 'Фокус обложки',
+              validate: (v: string | null | undefined) =>
+                !v || /^\d+(\.\d+)?% \d+(\.\d+)?%$/.test(v) || 'Точка в процентах: «50% 85%»',
               admin: {
                 components: {
-                  Field: '/payload/components/shows/ShowPerformancesPanel#ShowPerformancesPanel',
+                  Field: '/payload/components/shows/CoverFocusField#CoverFocusField',
                 },
               },
             },
+            ...imageFields('preview', 'Превью карточки (368×250)', 'Нет — карточка берёт афишу.'),
+            ...galleryField(),
           ],
         },
         { label: 'SEO', fields: [seoField] },

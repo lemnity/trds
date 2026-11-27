@@ -234,9 +234,6 @@ export interface Show {
    * Только до загрузки файла в «Медиа»: https://static.tildacdn.com/… или /posters/…
    */
   coverUrl?: string | null;
-  /**
-   * Например «50% 85%». Пусто — точка фокуса из «Медиа».
-   */
   coverFocus?: string | null;
   /**
    * Нет — карточка берёт афишу.
@@ -257,10 +254,6 @@ export interface Show {
         id?: string | null;
       }[]
     | null;
-  /**
-   * Для показов без схемы зала: в показе появится кнопка «Добавить входной билет» с этой вместимостью. Цену задаёте в показе.
-   */
-  seatsPerPerformance?: number | null;
   seo?: {
     title?: string | null;
     description?: string | null;
@@ -496,6 +489,10 @@ export interface Performance {
      */
     unavailableSeatIds?: string[] | null;
   };
+  /**
+   * Сколько зрителей вмещает площадка на этом показе. Ниже появится кнопка «Добавить входной билет» на это число мест; цену задаёте в билете.
+   */
+  entrySeats?: number | null;
   ticketTypes?: {
     docs?: (number | TicketType)[];
     hasNextPage?: boolean;
@@ -1007,7 +1004,6 @@ export interface ShowsSelect<T extends boolean = true> {
         imageUrl?: T;
         id?: T;
       };
-  seatsPerPerformance?: T;
   seo?:
     | T
     | {
@@ -1037,6 +1033,7 @@ export interface PerformancesSelect<T extends boolean = true> {
         pricing?: T;
         unavailableSeatIds?: T;
       };
+  entrySeats?: T;
   ticketTypes?: T;
   salesStartAt?: T;
   salesEndAt?: T;

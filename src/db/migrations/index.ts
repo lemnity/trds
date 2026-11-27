@@ -11,6 +11,7 @@ import * as migration_20261125_143725_review_links from './20261125_143725_revie
 import * as migration_20261125_145044_review_no_order from './20261125_145044_review_no_order';
 import * as migration_20261125_145531_people_groups from './20261125_145531_people_groups';
 import * as migration_20261125_152140_news_rich_body from './20261125_152140_news_rich_body';
+import * as migration_20261127_085035_entry_seats_to_performance from './20261127_085035_entry_seats_to_performance';
 
 export const migrations = [
   {
@@ -76,6 +77,11 @@ export const migrations = [
   {
     up: migration_20261125_152140_news_rich_body.up,
     down: migration_20261125_152140_news_rich_body.down,
-    name: '20261125_152140_news_rich_body'
+    name: '20261125_152140_news_rich_body',
+  },
+  {
+    up: migration_20261127_085035_entry_seats_to_performance.up,
+    down: migration_20261127_085035_entry_seats_to_performance.down,
+    name: '20261127_085035_entry_seats_to_performance'
   },
 ];

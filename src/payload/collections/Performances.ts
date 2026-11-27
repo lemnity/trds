@@ -165,6 +165,23 @@ export const Performances: CollectionConfig = {
       ],
     },
     {
+      // Вместимость показа без схемы зала (раньше — у спектакля: зависит от площадки, а не от
+      // спектакля). Даёт кнопку «Добавить входной билет на N мест» (CategoriesHint).
+      name: 'entrySeats',
+      type: 'number',
+      label: 'Мест на показ (без схемы зала)',
+      min: 1,
+      access: { create: fieldTheatreAdmins, update: fieldTheatreAdmins },
+      validate: (value: number | null | undefined) =>
+        value == null || Number.isInteger(value) || 'Укажите целое число',
+      admin: {
+        step: 1,
+        condition: (data) => !data?.seating?.planId,
+        description:
+          'Сколько зрителей вмещает площадка на этом показе. Ниже появится кнопка «Добавить входной билет» на это число мест; цену задаёте в билете.',
+      },
+    },
+    {
       name: 'ticketTypesHint',
       type: 'ui',
       admin: { components: { Field: '/payload/components/tickets/CategoriesHint#CategoriesHint' } },

@@ -1,0 +1,133 @@
+.field {
+  margin-bottom: calc(var(--base) * 1.5);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base);
+}
+
+.label {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.reset {
+  padding: 4px 12px;
+  border: 1px solid var(--theme-elevation-300);
+  border-radius: var(--style-radius-s, 4px);
+  background: transparent;
+  color: var(--theme-text);
+  cursor: pointer;
+}
+
+.reset:hover {
+  border-color: var(--turdus-accent, var(--theme-text));
+  color: var(--turdus-accent, var(--theme-text));
+}
+
+.hint,
+.caption,
+.empty {
+  margin: 6px 0 12px;
+  font-size: 14px;
+  color: var(--theme-elevation-400);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Полная картинка: по ней ставят точку. */
+.picker {
+  position: relative;
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: var(--style-radius-s, 4px);
+  overflow: hidden;
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+
+.picker:focus-visible {
+  outline: 3px solid var(--turdus-accent, var(--theme-text));
+  outline-offset: 2px;
+}
+
+.picker img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+.dot {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px rgb(0 0 0 / 0.55),
+    0 2px 8px rgb(0 0 0 / 0.4);
+  background: var(--turdus-accent, #2d55d6);
+  pointer-events: none;
+}
+
+/* Точка не задана (из «Медиа» или центр) — полупрозрачная. */
+.dot[data-own='false'] {
+  opacity: 0.55;
+}
+
+/* Как обложка обрежется на сайте (ShowHeaderCompact.module.css: телефон 4:3, компьютер ~2.5:1). */
+.previews {
+  display: grid;
+  gap: 16px;
+}
+
+.previews figure {
+  margin: 0;
+}
+
+.previews figcaption {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--theme-elevation-500);
+}
+
+.preview {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--style-radius-s, 4px);
+  background: var(--theme-elevation-100);
+}
+
+.preview img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wide {
+  aspect-ratio: 5 / 2;
+}
+
+.phone {
+  width: 60%;
+  aspect-ratio: 4 / 3;
+}

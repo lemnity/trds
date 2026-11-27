@@ -41,10 +41,10 @@ describe('withTabNav', () => {
       'Основное',
       'Описание и состав',
       'Медиа',
-      'Показы и продажи',
       'SEO',
     ])
     expect(navOf(tabsField.tabs[0]!.fields)).toEqual({ index: 0, nextLabel: 'Описание и состав' })
-    expect(navOf(tabsField.tabs[4]!.fields)).toEqual({ index: 4, prevLabel: 'Показы и продажи' })
+    // Даты, площадки и билеты — в «Показах», не в спектакле.
+    expect(navOf(tabsField.tabs[3]!.fields)).toEqual({ index: 3, prevLabel: 'Медиа' })
   })
 })

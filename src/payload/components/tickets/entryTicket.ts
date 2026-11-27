@@ -3,7 +3,7 @@ export type EntryTicketInput = {
   saved: boolean
   /** Выбрана схема зала (seating.planId). */
   planId: unknown
-  /** Вместимость из показа (shows.seatsPerPerformance). */
+  /** Вместимость показа без схемы зала (performances.entrySeats). */
   seats: unknown
   canCreate: boolean
   /** Уже есть категории билетов; null — ещё не знаем. */

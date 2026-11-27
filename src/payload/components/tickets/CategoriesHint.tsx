@@ -10,7 +10,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-import { entrySeats, entryTicketState, showIdOf } from './entryTicket'
+import { entrySeats, entryTicketState } from './entryTicket'
 import { categoriesHint } from './hintText'
 
 const muted = { margin: '0 0 var(--base)', color: 'var(--theme-elevation-500)' } as const
@@ -23,7 +23,8 @@ async function getJson(url: string): Promise<unknown> {
 /** Описание блока категорий + кнопка «Добавить входной билет» для показов без схемы зала. */
 export function CategoriesHint() {
   const planId = useFormFields(([fields]) => fields['seating.planId']?.value)
-  const showValue = useFormFields(([fields]) => fields['show']?.value)
+  // Вместимость — поле этого же показа (раньше бралась из спектакля).
+  const seats = entrySeats(useFormFields(([fields]) => fields['entrySeats']?.value))
   const { id } = useDocumentInfo()
   const { permissions } = useAuth()
   const router = useRouter()
@@ -34,31 +35,9 @@ export function CategoriesHint() {
     },
   } = useConfig()
   const canCreate = Boolean(permissions?.collections?.['ticket-types']?.create)
-  const showId = showIdOf(showValue)
-  const [seatsFor, setSeatsFor] = useState<{ key: unknown; value: number | null } | null>(null)
   const [catsFor, setCatsFor] = useState<{ key: unknown; value: boolean } | null>(null)
-  const seats = seatsFor && seatsFor.key === showId ? seatsFor.value : null
   const hasCategories = catsFor && catsFor.key === id ? catsFor.value : null
   const [Drawer, , { openDrawer }] = useDocumentDrawer({ collectionSlug: 'ticket-types' })
-
-  useEffect(() => {
-    let cancelled = false
-    if (showId === null) return
-    void getJson(`${serverURL}${api}/shows/${showId}?depth=0&draft=true`)
-      .then((doc) => {
-        if (!cancelled)
-          setSeatsFor({
-            key: showId,
-            value: entrySeats(
-              (doc as { seatsPerPerformance?: unknown } | null)?.seatsPerPerformance,
-            ),
-          })
-      })
-      .catch(() => undefined)
-    return () => {
-      cancelled = true
-    }
-  }, [showId, serverURL, api])
 
   useEffect(() => {
     let cancelled = false

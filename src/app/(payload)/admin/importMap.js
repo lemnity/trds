@@ -1,8 +1,8 @@
-import { OpenPerformancesTabAfterSave as OpenPerformancesTabAfterSave_aee6c14f4bff33201cec8be3cc981d67 } from '../../../payload/components/shows/ShowPerformancesPanel'
+import { ShowPerformancesLink as ShowPerformancesLink_d2fc0169e1b195ab87dd8584910be7b8 } from '../../../payload/components/shows/ShowPerformancesLink'
 import { TabNav as TabNav_297a57cac53ca32fb496c03a56dada51 } from '../../../payload/components/TabNav'
 import { FieldRowLabel as FieldRowLabel_a8d6907fcd02b09b8f7289e26196c316 } from '../../../payload/components/FieldRowLabel'
+import { CoverFocusField as CoverFocusField_94f6aa1e0ce60700f9bb5a88ef374df0 } from '../../../payload/components/shows/CoverFocusField'
 import { GalleryField as GalleryField_f6c639cc49e0699d456c73197d0e4669 } from '../../../payload/components/gallery/GalleryField'
-import { ShowPerformancesPanel as ShowPerformancesPanel_aee6c14f4bff33201cec8be3cc981d67 } from '../../../payload/components/shows/ShowPerformancesPanel'
 import { ReadinessPanel as ReadinessPanel_80e17dd25847a148ce1ad6569cb7ded0 } from '../../../payload/components/performances/ReadinessPanel'
 import { SeatPricingField as SeatPricingField_6c1dd99f130615d13f3dabbf75fedfe9 } from '../../../payload/components/seating/SeatPricingField'
 import { CategoriesHint as CategoriesHint_a623f829d08e8c367a0ca0d681b5c813 } from '../../../payload/components/tickets/CategoriesHint'
@@ -43,11 +43,11 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
-  "/payload/components/shows/ShowPerformancesPanel#OpenPerformancesTabAfterSave": OpenPerformancesTabAfterSave_aee6c14f4bff33201cec8be3cc981d67,
+  "/payload/components/shows/ShowPerformancesLink#ShowPerformancesLink": ShowPerformancesLink_d2fc0169e1b195ab87dd8584910be7b8,
   "/payload/components/TabNav#TabNav": TabNav_297a57cac53ca32fb496c03a56dada51,
   "/payload/components/FieldRowLabel#FieldRowLabel": FieldRowLabel_a8d6907fcd02b09b8f7289e26196c316,
+  "/payload/components/shows/CoverFocusField#CoverFocusField": CoverFocusField_94f6aa1e0ce60700f9bb5a88ef374df0,
   "/payload/components/gallery/GalleryField#GalleryField": GalleryField_f6c639cc49e0699d456c73197d0e4669,
-  "/payload/components/shows/ShowPerformancesPanel#ShowPerformancesPanel": ShowPerformancesPanel_aee6c14f4bff33201cec8be3cc981d67,
   "/payload/components/performances/ReadinessPanel#ReadinessPanel": ReadinessPanel_80e17dd25847a148ce1ad6569cb7ded0,
   "/payload/components/seating/SeatPricingField#SeatPricingField": SeatPricingField_6c1dd99f130615d13f3dabbf75fedfe9,
   "/payload/components/tickets/CategoriesHint#CategoriesHint": CategoriesHint_a623f829d08e8c367a0ca0d681b5c813,
